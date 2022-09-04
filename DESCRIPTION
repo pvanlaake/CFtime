@@ -1,0 +1,20 @@
+Package: CFtime
+Title: Working with Dates and Time using the CF Convention
+Version: 0.0.0.9000
+Authors@R: 
+    person("Patrick", "Van Laake", , "patrick@vanlaake.net", role = c("aut", "cre"))
+Description: Support for dates and times as specified in the
+    CF convention for climate and forecasting data. The CF convention is widely
+    used for distributing files with climate observations or predictions,
+    including the CMIP data used by climate change scientists and the IPCC. This 
+    package specifically allows the user to work with any of the CF-compliant 
+    calendars (many of which are not compliant with POSIXt).
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.2
+Imports: 
+    dplyr,
+    methods,
+    stringi,
+    tibble
