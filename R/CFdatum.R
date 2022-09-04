@@ -1,6 +1,3 @@
-# TODO
-# calendar restricts year ranges
-
 #' CFdatum class
 #'
 #' This class stores the information to represent date and time values using
@@ -25,7 +22,6 @@
 #' @slot calendar character. The CF-calendar for the instance.
 #' @slot cal_id numeric. The internal identifier of the CF-calendar to use.
 #'
-#' @importFrom methods new
 #' @return An object of class CFdatum
 #' @export
 setClass("CFdatum",
