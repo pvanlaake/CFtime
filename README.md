@@ -13,9 +13,14 @@ as those produced under the [World Climate Research
 Programme](https://www.wcrp-climate.org) and re-analysis data such as
 ERA5.
 
-All defined calendars of the CF Metadata Convention are supported: -
-`standard` or `gregorian` - `proleptic_gregorian` - `julian` - `365_day`
-or `no_leap` - `366_day` or `all_leap` - `360_day`
+All defined calendars of the CF Metadata Convention are supported:
+
+-   `standard` or `gregorian`
+-   `proleptic_gregorian`
+-   `julian`
+-   `365_day` or `no_leap`
+-   `366_day` or `all_leap`
+-   `360_day`
 
 Use of custom calendars is not supported. This package is also not
 suitable for paleo-calendars. Time periods prior to the introduction of
@@ -86,7 +91,7 @@ In a typical process, you would combine multiple data files into a
 single data set to analyze a feature of interest. To continue the
 previous example of precipitation in the Central America domain using
 CORDEX data, you can calculate the average precipitation per month for
-the period 2041 - 2060 as follows:
+the period 2041 - 2050 as follows:
 
 ``` r
 library(CFtime)
@@ -95,8 +100,6 @@ library(abind)
 # Open the files - one would typically do this in a loop
 nc2041 <- nc_open("~/CC/CORDEX/CAM-22/RCP2.6/pr_CAM-22_MOHC-HadGEM2-ES_rcp26_r1i1p1_GERICS-REMO2015_v1_day_20410101-20451230.nc")
 nc2046 <- nc_open("~/CC/CORDEX/CAM-22/RCP2.6/pr_CAM-22_MOHC-HadGEM2-ES_rcp26_r1i1p1_GERICS-REMO2015_v1_day_20460101-20501230.nc")
-nc2051 <- nc_open("~/CC/CORDEX/CAM-22/RCP2.6/pr_CAM-22_MOHC-HadGEM2-ES_rcp26_r1i1p1_GERICS-REMO2015_v1_day_20510101-20551230.nc")
-nc2056 <- nc_open("~/CC/CORDEX/CAM-22/RCP2.6/pr_CAM-22_MOHC-HadGEM2-ES_rcp26_r1i1p1_GERICS-REMO2015_v1_day_20560101-20601230.nc")
 
 # Create the datum from the first file
 # All files have an identical datum as per the CORDEX specifications
@@ -104,14 +107,12 @@ datum <- CFdatum(nc2041$dim$time$units, nc2041$dim$time$calendar)
 
 # Create the time series object from the first file, then add the time values from 
 # the remaining files
-time <- CFts(datum, nc2041$dim$time$vals) + c(as.vector(nc2046$dim$time$vals), as.vector(nc2051$dim$time$vals), as.vector(nc2056$dim$time$vals))
+time <- CFts(datum, nc2041$dim$time$vals) + as.vector(nc2046$dim$time$vals)
 
 # Grab the data from the files and merge the arrays into one
-pr <- abind(ncvar_get(nc2041, "pr"), ncvar_get(nc2046, "pr"), ncvar_get(nc2051, "pr"), ncvar_get(nc2056, "pr"))
+pr <- abind(ncvar_get(nc2041, "pr"), ncvar_get(nc2046, "pr"))
 nc_close(nc2041)
 nc_close(nc2046)
-nc_close(nc2051)
-nc_close(nc2056)
 
 # Optionally - Set the time dimension to the timestamps from the time object
 dimnames(pr)[[3]] <- as_timestamp(time)

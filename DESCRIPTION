@@ -1,6 +1,6 @@
 Package: CFtime
 Title: Working with Dates and Time using the CF Convention
-Version: 0.0.0.9000
+Version: 1.0.0
 Authors@R: 
     person("Patrick", "Van Laake", , "patrick@vanlaake.net", role = c("aut", "cre"))
 Description: Support for dates and times as specified in the
