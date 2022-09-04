@@ -1,0 +1,143 @@
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+# CFtime
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+CFtime is an R package that support working with [CF Metadata
+Conventions](http://cfconventions.org) time coordinates, specifically
+geared to time-referencing data sets of climate change projections such
+as those produced under the [World Climate Research
+Programme](https://www.wcrp-climate.org) and re-analysis data such as
+ERA5.
+
+All defined calendars of the CF Metadata Convention are supported: -
+`standard` or `gregorian` - `proleptic_gregorian` - `julian` - `365_day`
+or `no_leap` - `366_day` or `all_leap` - `360_day`
+
+Use of custom calendars is not supported. This package is also not
+suitable for paleo-calendars. Time periods prior to the introduction of
+the Gregorian calendar (1582-10-15) may be used but there are no special
+provisions for it. Finally, there is no specific consideration of the
+year 0 (which does not exist in any of the above calendars).
+
+Timestamps are generated using the [ISO8601
+standard](https://en.wikipedia.org/wiki/ISO_8601).
+
+Calendar-aware factors can be generated to support processing of data
+using `tapply()` and similar functions.
+
+## Installation
+
+You can install the development version of CFtime from
+[GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("pvanlaake/CFtime")
+```
+
+The package has not yet been uploaded to CRAN.
+
+## Basic operation
+
+The package contains two classes, `CFdatum` to describe the time
+coordinate system, including its calendar; and `CFts` to hold the time
+coordinate values that are offset from the `CFdatum` to represent
+instants in time. These two classes operate on the data in the file of
+interest, here a CORDEX file of precipitation for the Central America
+domain:
+
+``` r
+library(CFtime)
+#> 
+#> Attaching package: 'CFtime'
+#> The following object is masked from 'package:forcats':
+#> 
+#>     as_factor
+library(ncdf4)
+nc <- nc_open("~/CC/CORDEX/CAM-22/RCP2.6/pr_CAM-22_MOHC-HadGEM2-ES_rcp26_r1i1p1_GERICS-REMO2015_v1_day_20060101-20101230.nc")
+datum <- CFdatum(nc$dim$time$units, nc$dim$time$calendar)
+time <- CFts(datum, nc$dim$time$vals)
+time
+#> CF datum of origin:
+#>   Origin  : 1949-12-01 00:00:00+00:00
+#>   Units   : days
+#>   Calendar: 360_day
+#> CF time series:
+#>   Elements: [2006-01-01 .. 2010-12-30] (average of 1.000000 days between elements)
+nc_close(nc)
+```
+
+Note that the information of interest (`nc$dim$time$units`, etc) is read
+out of the file “blindly”, without checking for available dimensions or
+attributes. This can be done because the `time` dimension and its
+attributes `units` and `calendar` are required by the CF Metadata
+Conventions. Should this fail, then your data set is not compliant. You
+could still use this package if the required information is contained in
+your file but using a different dimension name or different attribute
+names.
+
+## Typical workflow
+
+In a typical process, you would combine multiple data files into a
+single data set to analyze a feature of interest. To continue the
+previous example of precipitation in the Central America domain using
+CORDEX data, you can calculate the average precipitation per month for
+the period 2041 - 2060 as follows:
+
+``` r
+library(CFtime)
+library(ncdf4)
+library(abind)
+# Open the files - one would typically do this in a loop
+nc2041 <- nc_open("~/CC/CORDEX/CAM-22/RCP2.6/pr_CAM-22_MOHC-HadGEM2-ES_rcp26_r1i1p1_GERICS-REMO2015_v1_day_20410101-20451230.nc")
+nc2046 <- nc_open("~/CC/CORDEX/CAM-22/RCP2.6/pr_CAM-22_MOHC-HadGEM2-ES_rcp26_r1i1p1_GERICS-REMO2015_v1_day_20460101-20501230.nc")
+nc2051 <- nc_open("~/CC/CORDEX/CAM-22/RCP2.6/pr_CAM-22_MOHC-HadGEM2-ES_rcp26_r1i1p1_GERICS-REMO2015_v1_day_20510101-20551230.nc")
+nc2056 <- nc_open("~/CC/CORDEX/CAM-22/RCP2.6/pr_CAM-22_MOHC-HadGEM2-ES_rcp26_r1i1p1_GERICS-REMO2015_v1_day_20560101-20601230.nc")
+
+# Create the datum from the first file
+# All files have an identical datum as per the CORDEX specifications
+datum <- CFdatum(nc2041$dim$time$units, nc2041$dim$time$calendar)
+
+# Create the time series object from the first file, then add the time values from 
+# the remaining files
+time <- CFts(datum, nc2041$dim$time$vals) + c(as.vector(nc2046$dim$time$vals), as.vector(nc2051$dim$time$vals), as.vector(nc2056$dim$time$vals))
+
+# Grab the data from the files and merge the arrays into one
+pr <- abind(ncvar_get(nc2041, "pr"), ncvar_get(nc2046, "pr"), ncvar_get(nc2051, "pr"), ncvar_get(nc2056, "pr"))
+nc_close(nc2041)
+nc_close(nc2046)
+nc_close(nc2051)
+nc_close(nc2056)
+
+# Optionally - Set the time dimension to the timestamps from the time object
+dimnames(pr)[[3]] <- as_timestamp(time)
+
+# Create the month factor from the time object
+f_month <- as_factor(time, "month")
+
+# Now average the daily data to monthly data
+# Dimensions 1 and 2 are longitude and latitude, the third dimension is time
+pr_month <- aperm(apply(pr, 1:2, tapply, f_month, sum), c(2, 3, 1))
+dimnames(pr_month)[[3]] <- levels(f_month)
+```
+
+## Coverage
+
+This package has been tested with the following data sets:
+
+-   ERA5 (including multiple variables, levels, and mixed ERA5/ERA5T
+    data)
+-   CMIP5
+-   CORDEX
+-   CMIP6
+
+The package also operates on geographical and/or temporal subsets of
+data sets so long as the subsetted data complies with the CF Metadata
+Conventions. This includes subsetting in the [Climate Data
+Store](https://cds.climate.copernicus.eu/#!/home). Subsetted data from
+[Climate4Impact](https://climate4impact.eu/impactportal/general/index.jsp)
+is not automatically supported because the dimension names are changed.
