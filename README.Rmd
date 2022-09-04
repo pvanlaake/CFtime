@@ -1,0 +1,67 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# CFtime
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+CFtime is an R package that support working with [CF Metadata Conventions](http://cfconventions.org)
+time coordinates, specifically geared to reading and time-referencing data sets 
+of climate change predictions such as those produced under the [World Climate
+Research Programme](https://www.wcrp-climate.org) and affiliates.
+
+All defined calendars of the CF Metadata Convention can be used:
+ - `standard` or `gregorian`
+ - `proleptic_gregorian`
+ - `julian`
+ - `365_day` or `no_leap`
+ - `366_day` or `all_leap`
+ - `360_day`
+
+## Installation
+
+You can install the development version of CFtime from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("pvanlaake/CFtime")
+```
+
+## Basic operation
+
+The package contains two classes, `CFdatum` to describe the time coordinate
+system, including its calendar; and `CFts` to hold the time coordinate values
+that are offset from the `CFdatum` to represent actual instants in time. These
+two classes operate on the data in the file of interest, here a CORDEX file of
+precipitation for the Central America domain:
+
+```{r example}
+library(CFtime)
+library(ncdf4)
+nc <- nc_open("~/CC/CORDEX/CAM-22/RCP2.6/pr_CAM-22_MOHC-HadGEM2-ES_rcp26_r1i1p1_GERICS-REMO2015_v1_day_20060101-20101230.nc")
+datum <- CFdatum(nc$dim$time$units, nc$dim$time$calendar)
+time <- CFts(datum, nc$dim$time$vals)
+time
+nc_close(nc)
+```
+
+Note that the information of interest (`nc$dim$time$units`, etc) is read out of
+the file "blindly", without checking for available dimensions or attributes.
+This can be done because the `time` dimension and its attributes `units` and
+`calendar` are required by the CF Metadata Conventions. Should this fail, then
+your data set is not compliant. You could still use this package if the required
+information is contained in your file but using a different dimension name or
+different attribute names.
