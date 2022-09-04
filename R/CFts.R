@@ -30,9 +30,11 @@ setClass("CFts",
 #'
 #' @examples
 #' datum <- CFdatum("days since 1850-01-01", "julian")
-#' ts <- CFts(datum, 1:365)
+#' ts <- CFts(datum, 0:364)
 CFts <- function(datum, offsets) {
-  stopifnot(methods::is(datum, "CFdatum"), methods::is(offsets, "numeric"))
+  stopifnot(methods::is(datum, "CFdatum"))
+  if (is.array(offsets)) dim(offsets) <- NULL
+  #stopifnot(methods::is(offsets, "numeric"))
 
   ymds <- .add_offset(offsets, datum)
 
