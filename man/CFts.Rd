@@ -23,5 +23,5 @@ CF-compliant data file with climatological observations or predictions.
 }
 \examples{
 datum <- CFdatum("days since 1850-01-01", "julian")
-ts <- CFts(datum, 1:365)
+ts <- CFts(datum, 0:364)
 }

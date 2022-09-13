@@ -78,13 +78,12 @@ add_offset <- function(datum, offsets) {
 
 # Fixed year length, either 365_day or 366_day
 .offset2date_fixed <- function(x, origin, month, ydays) {
-  x <- x + origin[3]
-
   # First process full years over the vector
   yr <- origin[1] + (x %/% ydays)
   x <- x %% ydays
 
   # Remaining portion per datum
+  x <- x + origin[3]
   ymd <- mapply(function(y, m, d) {
     while (d > month[m]) {
       d <- d - month[m]
@@ -108,11 +107,11 @@ add_offset <- function(datum, offsets) {
   offset <- as.integer(origin[2] > 2)
 
   # First process 4-year cycles of 1,461 days over the vector
-  x <- x + origin[3]
   yr <- origin[1] + (x %/% 1461) * 4
   x <- x %% 1461
 
   # Remaining portion per datum
+  x <- x + origin[3]
   ymd <- mapply(function(y, m, d) {
     repeat {
       leap <- (y + offset) %% 4 == 0
@@ -148,7 +147,6 @@ add_offset <- function(datum, offsets) {
   offset <- as.integer(origin[2] > 2)
 
   x <- x + origin[3]
-
   ymd <- mapply(function(y, m, d) {
     repeat {
       test <- y + offset
