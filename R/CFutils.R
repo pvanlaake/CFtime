@@ -33,3 +33,19 @@
   }
   return(!((mon %in% c(4, 6, 9, 11)) && (day == 31))) # months other than February
 }
+
+# Return the extremes of the time series
+#
+# This function returns the first and last date of the time series as a vector.
+#
+# param x CFts. The time series to operate on
+#
+# This function returns a vector of two character strings that represent the
+# starting and ending dates in the time series. Note that the time series is not
+# necessarily sorted.
+.ts_daterange <- function(x) {
+  ts <- x@ymds
+  len <- nrow(ts)
+  return(c(sprintf("%04d-%02d-%-02d", ts[1, 1], ts[1, 2], ts[1, 3]),
+           sprintf("%04d-%02d-%-02d", ts[len, 1], ts[len, 2], ts[len, 3])))
+}

@@ -1,6 +1,7 @@
 #' CF-convention time series
 #'
 #' @slot origin CFdatum. The atomic origin upon which the `offsets` are based.
+#' @slot resolution numeric. The average number of time units between offsets.
 #' @slot offsets numeric. Vector of offsets in units and from a timestamp
 #' @slot ymds matrix. Matrix of numeric date elements year, month, day and seconds from offsets.
 #' defined by the `origin`.
@@ -9,9 +10,10 @@
 #' @export
 setClass("CFts",
          slots = c(
-           origin  = "CFdatum",
-           offsets = "numeric",
-           ymds    = "matrix"
+           origin     = "CFdatum",
+           resolution = "numeric",
+           offsets    = "numeric",
+           ymds       = "matrix"
          ))
 
 #' Create a CFts object
@@ -20,8 +22,8 @@ setClass("CFts",
 #' instance is read-only. The parameters to the call are typically read from a
 #' CF-compliant data file with climatological observations or predictions.
 #'
-#' @param datum CFdatum. An atomic instance of the `CFdatum` class describing the date-
-#' time system upon which to base the offsets.
+#' @param datum CFdatum. An atomic instance of the `CFdatum` class describing the
+#' date-time system upon which to base the offsets.
 #' @param offsets numeric. A vector of offsets from the origin in the `datum`
 #' instance. The unit of measure is defined by the `datum` instance as well.
 #'
@@ -36,9 +38,11 @@ CFts <- function(datum, offsets) {
   if (is.array(offsets)) dim(offsets) <- NULL
   #stopifnot(methods::is(offsets, "numeric"))
 
+  len <- length(offsets)
+  resolution <- (offsets[len] - offsets[1]) / (len - 1)
   ymds <- .add_offset(offsets, datum)
 
-  methods::new("CFts", origin = datum, offsets = offsets, ymds = ymds)
+  methods::new("CFts", origin = datum, resolution = resolution, offsets = offsets, ymds = ymds)
 }
 
 setMethod("show", "CFts", function(object) {
@@ -47,9 +51,13 @@ setMethod("show", "CFts", function(object) {
   cat("CF time series:\n",
       methods::show(object@origin),
       sprintf("  Elements: [%04d-%02d-%02d .. %04d-%02d-%02d] (average of %f %s between elements)\n",
-              ymds[1, 1], ymds[1, 2], ymds[1, 3], ymds[len, 1], ymds[len, 2], ymds[len, 3], (object@offsets[len] - object@offsets[1]) / (len - 1), CFt_unit_string[object@origin@unit]),
+              ymds[1, 1], ymds[1, 2], ymds[1, 3], ymds[len, 1], ymds[len, 2], ymds[len, 3], object@resolution, CFt_unit_string[object@origin@unit]),
       sep = "")
 })
+
+setGeneric("daterange", function(x) standardGeneric("daterange"))
+
+setMethod("daterange", "CFdatum", function(x) .ts_daterange(x))
 
 #' Equivalence of CFts objects
 #'
@@ -97,7 +105,7 @@ setMethod("+", c("CFts", "CFts"), function(e1, e2) if (e1@origin == e2@origin) C
 
 #' Extend an CFts object with additional offsets
 #'
-#' A CFts instance can be extnded by adding additional offsets using this
+#' A CFts instance can be extended by adding additional offsets using this
 #' operator.
 #'
 #' The resulting CFts instance will have its offsets in the order that they are added,

@@ -16,7 +16,7 @@ A CFts object with offsets composed of the CFts instance and the
 numeric vector.
 }
 \description{
-A CFts instance can be extnded by adding additional offsets using this
+A CFts instance can be extended by adding additional offsets using this
 operator.
 }
 \details{

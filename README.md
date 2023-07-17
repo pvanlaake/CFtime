@@ -13,19 +13,24 @@ as those produced under the [World Climate Research
 Programme](https://www.wcrp-climate.org) and re-analysis data such as
 ERA5.
 
+This package IS NOT intended to support the full date and time
+functionality of the CF Metadata Conventions. Instead, it facilitates
+use of a suite of models of climate change projections that use
+different calendars in a consistent manner.
+
 All defined calendars of the CF Metadata Convention are supported:
 
--   `standard` or `gregorian`
--   `proleptic_gregorian`
--   `julian`
--   `365_day` or `no_leap`
--   `366_day` or `all_leap`
--   `360_day`
+- `standard` or `gregorian`
+- `proleptic_gregorian`
+- `julian`
+- `365_day` or `no_leap`
+- `366_day` or `all_leap`
+- `360_day`
 
 Use of custom calendars is not supported. This package is also not
 suitable for paleo-calendars. Time periods prior to the introduction of
 the Gregorian calendar (1582-10-15) may be used but there are no special
-provisions for it. Finally, there is no specific consideration of the
+provisions for it. Finally, there is no specific consideration for the
 year 0 (which does not exist in any of the above calendars).
 
 Timestamps are generated using the [ISO8601
@@ -57,11 +62,6 @@ domain:
 
 ``` r
 library(CFtime)
-#> 
-#> Attaching package: 'CFtime'
-#> The following object is masked from 'package:forcats':
-#> 
-#>     as_factor
 library(ncdf4)
 nc <- nc_open("~/CC/CORDEX/CAM-22/RCP2.6/pr_CAM-22_MOHC-HadGEM2-ES_rcp26_r1i1p1_GERICS-REMO2015_v1_day_20060101-20101230.nc")
 datum <- CFdatum(nc$dim$time$units, nc$dim$time$calendar)
@@ -115,10 +115,10 @@ nc_close(nc2041)
 nc_close(nc2046)
 
 # Optionally - Set the time dimension to the timestamps from the time object
-dimnames(pr)[[3]] <- as_timestamp(time)
+dimnames(pr)[[3]] <- CFtimestamp(time)
 
 # Create the month factor from the time object
-f_month <- as_factor(time, "month")
+f_month <- CFfactor(time, "month")
 
 # Now average the daily data to monthly data
 # Dimensions 1 and 2 are longitude and latitude, the third dimension is time
@@ -130,11 +130,10 @@ dimnames(pr_month)[[3]] <- levels(f_month)
 
 This package has been tested with the following data sets:
 
--   ERA5 (including multiple variables, levels, and mixed ERA5/ERA5T
-    data)
--   CMIP5
--   CORDEX
--   CMIP6
+- ERA5 (including multiple variables, levels, and mixed ERA5/ERA5T data)
+- CMIP5
+- CORDEX
+- CMIP6
 
 The package also operates on geographical and/or temporal subsets of
 data sets so long as the subsetted data complies with the CF Metadata

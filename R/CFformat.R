@@ -20,9 +20,11 @@
 #' @examples
 #' datum <- CFdatum("hours since 2020-01-01")
 #' ts <- CFts(datum, seq(0, 24, by = 0.25))
-#' x <- as_timestamp(ts, "timestamp")
-as_timestamp <- function(cfts, format = "date") {
-  stopifnot(methods::is(cfts, "CFts"), format %in% c("date", "time", "timestamp"))
+#' x <- CFtimestamp(ts, "timestamp")
+CFtimestamp <- function(cfts, format = "date") {
+  if (!(methods::is(cfts, "CFts"))) stop("First argument to CFtimestamp must be an instance of the `CFts` class")
+  if (!(format %in% c("date", "time", "timestamp"))) stop("Format specifier not recognized")
+
   x <- cfts@ymds
   out <- switch(format,
     "date" = sprintf("%04d-%02d-%02d", x[, 1], x[, 2], x[, 3]),
@@ -68,6 +70,13 @@ as_timestamp <- function(cfts, format = "date") {
 #'
 #' \itemize{
 #'   \item `year`, the year of each offset is returned as "YYYY".
+#'   \item `season`, the meteorological season of each offset is returned as
+#'   "YYYY-DJF", "YYYY-MAM", "YYYY-JJA" or "YYYY-SON". Note that December dates
+#'   are labeled as belonging to the subsequent year, so the date "2020-12-01"
+#'   yields "2021-DJF". This implies that for standard CMIP files having one or
+#'   more full years of data the first season will have data for the first two
+#'   months (January and February), while the final season will have only a
+#'   single month of data (December).
 #'   \item `month`, the year and month of each offset are returned as "YYYY-MM".
 #'   \item `dekad`, ten-day periods for each year and month are returned as
 #'   "YYYYDxx", where xx runs from "01" to "36". Each month is subdivided in
@@ -75,14 +84,19 @@ as_timestamp <- function(cfts, format = "date") {
 #'   month.
 #' }
 #'
+#' It is not possible to create a factor for a period that is shorter than the
+#' temporal resolution of the source dataset from which the CFts instance
+#' derives. As an example, if the source dataset has monthly data, a dekad
+#' factor cannot be created.
+#'
 #' Creating factors for other periods is not supported by this function. Factors
 #' based on the timestamp information and not dependent on the calendar can
-#' trivially be constructed from the output of the `as_timestamp()` function.
+#' trivially be constructed from the output of the `CFtimestamp()` function.
 #'
 #' @param cfts CFts. An atomic instance of the `CFts` class whose offsets will
 #' be used to construct the factor.
 #' @param period character. An atomic character string with one of the values
-#' "year", "month" or "dekad".
+#' "year", "season", "month" or "dekad".
 #'
 #' @return A factor with a length equal to the number of offsets in `cfts`.
 #' @export
@@ -90,14 +104,33 @@ as_timestamp <- function(cfts, format = "date") {
 #' @examples
 #' datum <- CFdatum("days since 1949-12-01", "360_day")
 #' cfts <- CFts(datum, 31:390)
-#' f <- as_factor(cfts, "month")
-as_factor <- function(cfts, period = "month") {
-  stopifnot(methods::is(cfts, "CFts"), length(period) == 1, period %in% c("year", "month", "dekad"))
+#' f <- CFfactor(cfts, "month")
+CFfactor <- function(cfts, period = "month") {
+  period <- tolower(period)
+  if (!(methods::is(cfts, "CFts"))) stop("First argument to CFfactor must be an instance of the `CFts` class")
+  if (!((length(period) == 1) && (period %in% c("year", "season", "month", "dekad")))) stop("Period specifier must be an atomic value of a supported period")
+
+  # No fine-grained period factors for coarse source data
+  timestep <- CFt_units$seconds[cfts@origin@unit] * cfts@resolution;
+  if ((period == "year") && (timestep > 86400 * 366) ||
+      (period == "season") && (timestep > 86400 * 90) || # Somewhat arbirary
+      (period == "month") && (timestep > 86400 * 31) ||
+      (period == "dekad") && (timestep > 86400))         # Must be constructed from daily or finer data
+    stop("Cannot produce a short period factor from source data with long time interval")
+
   x <- cfts@ymds
   out <- switch(period,
-    "year"  = as.factor(sprintf("%04d", x[, 1])),
-    "month" = as.factor(sprintf("%04d-%02d", x[, 1], x[, 2])),
-    "dekad" = as.factor(sprintf("%04dD%02d", x[, 1], (x[, 2] - 1) * 3 + pmin((x[, 3] - 1) %/% 10 + 1, 3)))
+    "year"   = as.factor(sprintf("%04d", x[, 1])),
+    "season" = mapply (function (y, m)
+                 switch(m,
+                   as.factor(sprintf("%04d-DJF", y)), as.factor(sprintf("%04d-DJF", y)),
+                   as.factor(sprintf("%04d-MAM", y)), as.factor(sprintf("%04d-MAM", y)), as.factor(sprintf("%04d-MAM", y)),
+                   as.factor(sprintf("%04d-JJA", y)), as.factor(sprintf("%04d-JJA", y)), as.factor(sprintf("%04d-JJA", y)),
+                   as.factor(sprintf("%04d-SON", y)), as.factor(sprintf("%04d-SON", y)), as.factor(sprintf("%04d-SON", y)),
+                   as.factor(sprintf("%04d-DJF", y + 1))
+                 ), x[, 1], x[, 2]),
+    "month"  = as.factor(sprintf("%04d-%02d", x[, 1], x[, 2])),
+    "dekad"  = as.factor(sprintf("%04dD%02d", x[, 1], (x[, 2] - 1) * 3 + pmin((x[, 3] - 1) %/% 10 + 1, 3)))
   )
 
 }

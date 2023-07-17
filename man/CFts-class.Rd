@@ -15,6 +15,8 @@ CF-convention time series
 \describe{
 \item{\code{origin}}{CFdatum. The atomic origin upon which the \code{offsets} are based.}
 
+\item{\code{resolution}}{numeric. The average number of time units between offsets.}
+
 \item{\code{offsets}}{numeric. Vector of offsets in units and from a timestamp}
 
 \item{\code{ymds}}{matrix. Matrix of numeric date elements year, month, day and seconds from offsets.
