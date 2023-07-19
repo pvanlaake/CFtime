@@ -7,7 +7,7 @@
 #'
 #' \itemize{
 #'   \item `gregorian` or `standard`, the international standard calendar for civil use.
-#'   \item `proleptic_gregorian`, the common calendar but extending before 1582-10-15
+#'   \item `proleptic_gregorian`, the standard calendar but extending before 1582-10-15
 #'   when the Gregorian calendar was adopted.
 #'   \item `noleap` or `365_day`, all years have 365 days.
 #'   \item `all_leap` or `366_day`, all years have 366 days.
@@ -36,7 +36,7 @@ setClass("CFdatum",
 
 #' Create a CFdatum object
 #'
-#' This function creates an instance of the CFdatum class. After creation the
+#' This function creates an instance of the `CFdatum` class. After creation the
 #' instance is read-only. The parameters to the call are typically read from a
 #' CF-compliant data file with climatological observations or predictions.
 #'
@@ -45,7 +45,7 @@ setClass("CFdatum",
 #' @param calendar character. An atomic string describing the calendar to use
 #' with the time dimension definition string.
 #'
-#' @return An object of the CFdatum class.
+#' @return An object of the `CFdatum` class.
 #' @export
 #'
 #' @examples
@@ -54,7 +54,8 @@ CFdatum <- function(definition, calendar = "standard") {
   stopifnot(length(definition) ==  1, length(calendar) == 1)
   parts <- strsplit(definition, " ")[[1]]
   num <- length(parts)
-  if ((num < 3) || (stringi::stri_trans_tolower(parts[2]) != "since")) stop("definition string does not appear to be a CF-compliant time string")
+  if ((num < 3) || (!(stringi::stri_trans_tolower(parts[2]) %in% c("since", "after", "from", "ref", "per"))))
+    stop("definition string does not appear to be a CF-compliant time coordinate description")
   u <- dplyr::filter(CFt_units, unit == stringi::stri_trans_tolower(parts[1]))
   if (length(u) == 0) stop("unsupported unit: ", parts[1])
 
@@ -62,15 +63,16 @@ CFdatum <- function(definition, calendar = "standard") {
   if (length(cal) == 0) stop("invalid calendar specification")
 
   dt <- .parse_timestamp(stringi::stri_sub(definition, sum(stringi::stri_length(parts[1:2])) + 3), cal)[, 1]
-  if (is.na(dt[1])) stop("definition string does not appear to be a CF-compliant time string: invalid base date specification")
+  if (is.na(dt[1])) stop("definition string does not appear to be a CF-compliant time coordinate description: invalid base date specification")
   tz <- sprintf("%+03d:%02d", dt[5], dt[6])
 
   methods::new("CFdatum", definition = definition, unit = u$unit_id, origin = dt[1:4], tz = tz, calendar = calendar, cal_id = cal)
 }
 
 setMethod("show", "CFdatum", function(object) {
+  if (object@tz == "+00:00") tz = "" else tz = object@tz
   cat("CF datum of origin:",
-      "\n  Origin  : ", origin_date(object), " ", origin_time(object), object@tz,
+      "\n  Origin  : ", origin_date(object), " ", origin_time(object), tz,
       "\n  Units   : ", CFt_unit_string[object@unit],
       "\n  Calendar: ", object@calendar, "\n",
       sep = "")

@@ -14,10 +14,10 @@ of a CF-compliant data file.}
 with the time dimension definition string.}
 }
 \value{
-An object of the CFdatum class.
+An object of the \code{CFdatum} class.
 }
 \description{
-This function creates an instance of the CFdatum class. After creation the
+This function creates an instance of the \code{CFdatum} class. After creation the
 instance is read-only. The parameters to the call are typically read from a
 CF-compliant data file with climatological observations or predictions.
 }

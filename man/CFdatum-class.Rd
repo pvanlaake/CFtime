@@ -16,7 +16,7 @@ The following calendars are supported:
 
 \itemize{
 \item \code{gregorian} or \code{standard}, the international standard calendar for civil use.
-\item \code{proleptic_gregorian}, the common calendar but extending before 1582-10-15
+\item \code{proleptic_gregorian}, the standard calendar but extending before 1582-10-15
 when the Gregorian calendar was adopted.
 \item \code{noleap} or \verb{365_day}, all years have 365 days.
 \item \code{all_leap} or \verb{366_day}, all years have 366 days.
