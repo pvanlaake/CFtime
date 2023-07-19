@@ -12,24 +12,26 @@
 \item{e2}{numeric. Vector of offsets to be added to the CFts instance.}
 }
 \value{
-A CFts object with offsets composed of the CFts instance and the
+A \code{CFts} object with offsets composed of the \code{CFts} instance and the
 numeric vector.
 }
 \description{
-A CFts instance can be extended by adding additional offsets using this
+A \code{CFts} instance can be extended by adding additional offsets using this
 operator.
 }
 \details{
-The resulting CFts instance will have its offsets in the order that they are added,
-meaning that the offsets from the CFts instance come first and those from the
-numeric vector follow. There is no reordering or removal of duplicates. This
-is because the time series are usually associated with a dataset and the
-correspondence between the two is thus preserved.
+The resulting \code{CFts} instance will have its offsets in the order that they are
+added, meaning that the offsets from the \code{CFts} instance come first and those
+from the numeric vector follow. There is no reordering or removal of
+duplicates. This is because the time series are usually associated with a
+data set and the correspondence between the two is thus preserved, if and
+only if the data sets are merged in the same order.
 
-Note that when adding multiple vectors of offsets to a CFts instance, it is
+Note that when adding multiple vectors of offsets to a \code{CFts} instance, it is
 more efficient to first concatenate the vectors and then do a final addition
-to the CFts instance. So avoid \code{e1 + e2 + e3 + ...} but rather do
-\code{e1 + c(e2, e3, ...)}.
+to the \code{CFts} instance. So avoid \code{CFts(datum, e1) + CFts(datum, e2) + CFts(datum, e3) + ...} but rather do \code{CFts(datum, e1) + c(e2, e3, ...)}. It
+is the responsibility of the operator to ensure that the offsets of the
+different data sets are in reference to the same datum.
 }
 \examples{
 e1 <- CFts(CFdatum("days since 1850-01-01", "gregorian"), 0:364)

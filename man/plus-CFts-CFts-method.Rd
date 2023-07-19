@@ -7,26 +7,27 @@
 \S4method{+}{CFts,CFts}(e1, e2)
 }
 \arguments{
-\item{e1, e2}{CFts. Instances of the CFts class.}
+\item{e1, e2}{CFts. Instances of the \code{CFts} class.}
 }
 \value{
-A CFts object with a set of offsets equal to the offsets of the
-instances of CFts that the operator operates on. If the datums of the CFts
+A \code{CFts} object with a set of offsets equal to the offsets of the
+instances of \code{CFts} that the operator operates on. If the datums of the \code{CFts}
 instances are not equivalent, an error is thrown.
 }
 \description{
-Two CFts instances can be merged into one with this operator, provided that
-the datum of the two instances is equivalent.
+Two \code{CFts} instances can be merged into one with this operator, provided that
+the datums of the two instances are equivalent.
 }
 \details{
-The order of the two parameters is significant. The resulting CFts will have
-the offsets of both instances in the order that they are specified. There is
-no reordering or removal of duplicates. This is because the time series are
-usually associated with a dataset and the correspondence between the two is
-thus preserved.
+The order of the two parameters is indirectly significant. The resulting \code{CFts}
+will have the offsets of both instances in the order that they are specified.
+There is no reordering or removal of duplicates. This is because the time
+series are usually associated with a data set and the correspondence between
+the two is thus preserved. When merging the data sets described by this time
+series, the order must be identical to the ordering here.
 }
 \examples{
 e1 <- CFts(CFdatum("days since 1850-01-01", "gregorian"), 0:364)
-e2 <- CFts(CFdatum("days since 1850-01-01 00:00:00", "standard"), 0:364)
+e2 <- CFts(CFdatum("days since 1850-01-01 00:00:00", "standard"), 365:729)
 e1 + e2
 }

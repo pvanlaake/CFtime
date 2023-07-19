@@ -19,7 +19,7 @@ CF-convention time series
 
 \item{\code{offsets}}{numeric. Vector of offsets in units and from a timestamp}
 
-\item{\code{ymds}}{matrix. Matrix of numeric date elements year, month, day and seconds from offsets.
+\item{\code{ymds}}{matrix. Matrix of numeric date elements year, month, day and seconds from offsets
 defined by the \code{origin}.}
 }}
 

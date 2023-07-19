@@ -7,8 +7,8 @@
 CFts(datum, offsets)
 }
 \arguments{
-\item{datum}{CFdatum. An atomic instance of the \code{CFdatum} class describing the
-date-time system upon which to base the offsets.}
+\item{datum}{CFdatum. An atomic instance of the \code{CFdatum} class describing
+the date-time system upon which to base the offsets.}
 
 \item{offsets}{numeric. A vector of offsets from the origin in the \code{datum}
 instance. The unit of measure is defined by the \code{datum} instance as well.}
