@@ -1,14 +1,15 @@
-# Check if the supplied year, month and day form a valid date in the specified
-# calendar.
-#
-# This is an internal function that should not be used outside of the CFtime package.
-#
-# @param yr numeric. The year to test, must be in range 1:9999.
-# @param mon numeric. The month to test, must be in range 1:12
-# @param day numeric. The day to test, must be in the range permitted by the calendar.
-# @param cal_id numeric. Identifier of the calendar to use to test the validity of the date.
-#
-# @return boolean. TRUE if the date is valid, FALSE otherwise.
+#' Check if the supplied year, month and day form a valid date in the specified
+#' calendar.
+#'
+#' This is an internal function that should not be used outside of the CFtime package.
+#'
+#' @param yr numeric. The year to test, must be in range 1:9999.
+#' @param mon numeric. The month to test, must be in range 1:12
+#' @param day numeric. The day to test, must be in the range permitted by the calendar.
+#' @param cal_id numeric. Identifier of the calendar to use to test the validity of the date.
+#'
+#' @returns boolean. TRUE if the date is valid, FALSE otherwise.
+#' @noRd
 .is_valid_calendar_date <- function(yr, mon, day, cal_id) {
   if (is.na(yr) || is.na(mon)) return(FALSE)
 
@@ -34,18 +35,29 @@
   return(!((mon %in% c(4, 6, 9, 11)) && (day == 31))) # months other than February
 }
 
-# Return the extremes of the time series
-#
-# This function returns the first and last date of the time series as a vector.
-#
-# param x CFts. The time series to operate on
-#
-# This function returns a vector of two character strings that represent the
-# starting and ending dates in the time series. Note that the time series is not
-# necessarily sorted.
-.ts_daterange <- function(x) {
+#' Return the extremes of the time series as character strings
+#'
+#' This function returns the first and last timestamp of the time series as a vector. Note that the time series is not
+#' necessarily sorted.
+#'
+#' This is an internal function that should not be used outside of the CFtime package.
+#'
+#' @param x CFts. The time series to operate on
+#'
+#' @returns Vector of two character strings that represent the
+#' starting and ending timestamps in the time series.
+#'
+#' @noRd
+.ts_range <- function(x) {
+  mn <- which.min(x@offsets)
+  mx <- which.max(x@offsets)
   ts <- x@ymds
-  len <- nrow(ts)
-  return(c(sprintf("%04d-%02d-%-02d", ts[1, 1], ts[1, 2], ts[1, 3]),
-           sprintf("%04d-%02d-%-02d", ts[len, 1], ts[len, 2], ts[len, 3])))
+  if (all(ts[ ,4] == 0)) {
+    return(c(sprintf("%04d-%02d-%02d", ts[mn, 1], ts[mn, 2], ts[mn, 3]),
+             sprintf("%04d-%02d-%02d", ts[mx, 1], ts[mx, 2], ts[mx, 3])))
+  } else {
+    t <- .format_time(c(ts[mn, 4], ts[mx, 4]))
+    return(c(sprintf("%04d-%02d-%02dT%s", ts[mn, 1], ts[mn, 2], ts[mn, 3], t[1]),
+             sprintf("%04d-%02d-%02dT%s", ts[mx, 1], ts[mx, 2], ts[mx, 3], t[2])))
+  }
 }

@@ -45,19 +45,17 @@ CFts <- function(datum, offsets) {
 }
 
 setMethod("show", "CFts", function(object) {
-  mn <- which.min(object@offsets)
-  mx <- which.max(object@offsets)
-  ymds <- object@ymds
+  d <- CFts_range(object)
   cat("CF time series:\n",
       methods::show(object@origin),
-      sprintf("  Elements: [%04d-%02d-%02d .. %04d-%02d-%02d] (average of %f %s between elements)\n",
-              ymds[mn, 1], ymds[mn, 2], ymds[mn, 3], ymds[mx, 1], ymds[mx, 2], ymds[mx, 3], object@resolution, CFt_unit_string[object@origin@unit]),
+      sprintf("  Elements: [%s .. %s] (average of %f %s between elements)\n",
+              d[1], d[2], object@resolution, CFt_unit_string[object@origin@unit]),
       sep = "")
 })
 
-setGeneric("daterange", function(x) standardGeneric("daterange"))
+setGeneric("CFts_range", function(x) standardGeneric("CFts_range"))
 
-setMethod("daterange", "CFdatum", function(x) .ts_daterange(x))
+setMethod("CFts_range", "CFts", function(x) .ts_range(x))
 
 #' Equivalence of CFts objects
 #'
