@@ -4,56 +4,79 @@
 \alias{CFfactor}
 \title{Create a factor from the offsets in an CFts instance}
 \usage{
-CFfactor(cfts, period = "month")
+CFfactor(cfts, period = "month", epoch = NULL)
 }
 \arguments{
 \item{cfts}{CFts. An atomic instance of the \code{CFts} class whose offsets will
 be used to construct the factor.}
 
 \item{period}{character. An atomic character string with one of the values
-"year", "season", "month" or "dekad".}
+"year", "season", "month" (the default), "dekad" or "day".}
+
+\item{epoch}{vector or list, optional. Vector of years for which to construct
+the factor, or a list whose elements are each a vector of years. If \code{epoch}
+is not specified, the factor will use the entire time series for the
+factor.}
 }
 \value{
-A factor with a length equal to the number of offsets in \code{cfts}.
+If \code{epoch} is a single vector or not specified, a factor with a
+length equal to the number of offsets in \code{cfts}. If \code{epoch} is a list, a
+list with the same number of elements and names as \code{epoch}, each containing
+a factor. Elements in the factor will be set to \code{NA} for time series values
+outside of the range of specified years.
 }
 \description{
-With this function a factor can be generated for the time series contained in
-the \code{CFts} instance. This is specifically interesting for creating factors
-from the date part of the time series that aggregate the time series into
-longer time periods (such as month) that can then be used to process daily CF
-data sets using, for instance, \code{tapply()}. The factor will respect the
-calendar of the datum that the time series is built on. For \code{period}s larger
-than a day this will result in a factor where the calendar is no longer
-relevant (because calendars impacts days, not weeks or months).
+With this function a factor can be generated for the time series, or a part
+thereof, contained in the \code{CFts} instance. This is specifically interesting
+for creating factors from the date part of the time series that aggregate the
+time series into longer time periods (such as month) that can then be used to
+process daily CF data sets using, for instance, \code{tapply()}.
 }
 \details{
+The factor will respect the calendar of the datum that the time series is
+built on. For \code{period}s longer than a day this will result in a factor where
+the calendar is no longer relevant (because calendars impacts days, not
+dekads, months or seasons).
+
 The factor will be generated in the order of the offsets of the \code{CFts}
 instance. While typical CF-compliant data sources use ordered time series
-there is, however, no guarantee that the factor is ordered as
-multiple \code{CFts} objects may have been merged out of order.
+there is, however, no guarantee that the factor is ordered as multiple \code{CFts}
+objects may have been merged out of order.
+
+If the \code{epoch} parameter is specified, either as a vector of years to include
+in the factor, or as a list of such vectors, the factor will only consider
+those values in the time series that fall within the list of years, inclusive
+of boundary values. Other values in the factor will be set to \code{NA}. The years
+need not be contiguous, within a single vector or among the list items, or in
+order.
 
 The following periods are supported by this function:
 
 \itemize{
 \item \code{year}, the year of each offset is returned as "YYYY".
 \item \code{season}, the meteorological season of each offset is returned as
-"YYYY-DJF", "YYYY-MAM", "YYYY-JJA" or "YYYY-SON". Note that December dates
-are labeled as belonging to the subsequent year, so the date "2020-12-01"
-yields "2021-DJF". This implies that for standard CMIP files having one or
-more full years of data the first season will have data for the first two
-months (January and February), while the final season will have only a
-single month of data (December).
-\item \code{month}, the year and month of each offset are returned as "YYYY-MM".
-\item \code{dekad}, ten-day periods for each year and month are returned as
-"YYYYDxx", where xx runs from "01" to "36". Each month is subdivided in
-dekads as follows: 1- days 01 - 10; 2- days 11 - 20; 3- remainder of the
-month.
+"DJF", "MAM", "JJA" or "SON", preceeded by "YYYY-" if no \code{epoch} is
+specified. Note that December dates are labeled as belonging to the
+subsequent year, so the date "2020-12-01" yields "2021-DJF". This implies
+that for standard CMIP files having one or more full years of data the
+first season will have data for the first two months (January and
+February), while the final season will have only a single month of data
+(December).
+\item \code{month}, the month of each offset is returned as "01" to
+"12", preceeded by "YYYY-" if no \code{epoch} is specified. This is the default
+period.
+\item \code{dekad}, ten-day periods are returned as
+"Dxx", where xx runs from "01" to "36", preceeded by "YYYY" if no \code{epoch}
+is specified. Each month is subdivided in dekads as follows: 1- days 01 -
+10; 2- days 11 - 20; 3- remainder of the month.
+\item \code{day}, the month and day of each offset are returned as "MM-DD",
+preceeded by "YYYY-" if no \code{epoch} is specified.
 }
 
 It is not possible to create a factor for a period that is shorter than the
-temporal resolution of the source dataset from which the CFts instance
-derives. As an example, if the source dataset has monthly data, a dekad
-factor cannot be created.
+temporal resolution of the source data set from which the \code{cfts} argument
+derives. As an example, if the source data set has monthly data, a dekad or
+day factor cannot be created.
 
 Creating factors for other periods is not supported by this function. Factors
 based on the timestamp information and not dependent on the calendar can
@@ -61,6 +84,12 @@ trivially be constructed from the output of the \code{CFtimestamp()} function.
 }
 \examples{
 datum <- CFdatum("days since 1949-12-01", "360_day")
-cfts <- CFts(datum, 31:390)
-f <- CFfactor(cfts, "month")
+cfts <- CFts(datum, 19830:54029)
+
+# Create a dekad factor for the whole time series
+f <- CFfactor(cfts, "dekad")
+
+# Create four monthly factors for a baseline epoch and early, mid and late 21st century
+ep <- CFfactor(cfts, epoch = list(baseline = 1991:2020, early = 2021:2040,
+                                  mid = 2041:2060, late = 2061:2080))
 }
