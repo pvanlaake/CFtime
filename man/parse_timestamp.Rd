@@ -31,13 +31,13 @@ calendar will have \code{NA} values for the elements of the offending timestamp.
 \details{
 The supported formats are the \emph{broken timestamp} format from the UDUNITS
 library and ISO8601 \emph{extended}, both with minor changes, as suggested by the
-CF-convention 1.9. In general, the format is \verb{YYYY-MM-DD hh:mm:ss.sss hh:mm}.
+CF Metadata Conventions 1.9. In general, the format is \verb{YYYY-MM-DD hh:mm:ss.sss hh:mm}.
 The year can be from 1 to 4 digits and is interpreted literally, so \code{79-10-24}
 is the day Mount Vesuvius erupted and destroyed Pompeii, not \code{1979-10-24}
 (when \href{https://www.uefa.com/uefachampionsleague/match/63624--ajax-vs-omonia/}{Ajax Amsterdam beat Omonoia Cyprus 10-0 in the first leg of the second round of the European Cup competition, with 5 goals from Søren Lerby},
 as everybody vividly remembers). The year and month are mandatory,
 all other fields are optional. There are defaults for all missing values,
-following the UDUNITS and CF convention. Leading zeros can be omitted in the
+following the UDUNITS and CF Metadata Conventions. Leading zeros can be omitted in the
 UDUNITS format. The optional fractional part can have as many digits as the
 precision calls for and will be applied to the smallest specified time unit.
 In the result of this function if the fraction is associated with the minute
@@ -50,7 +50,7 @@ or a \code{T}; in the UDUNITS format the separator between the time and the time
 zone must be a single whitespace character.
 
 Currently only the extended formats (with separators between the elements)
-are supported. The vector of timestamps may have a combination of formats.
+are supported. The vector of timestamps may have any combination of ISO8601 and UDUNITS formats.
 }
 \examples{
 timestamps <- c("2012-01-01T12:21:34Z", "12-1-23", "today",

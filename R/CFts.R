@@ -48,8 +48,8 @@ setMethod("show", "CFts", function(object) {
   d <- CFts_range(object)
   cat("CF time series:\n",
       methods::show(object@origin),
-      sprintf("  Elements: [%s .. %s] (average of %f %s between elements)\n",
-              d[1], d[2], object@resolution, CFt_unit_string[object@origin@unit]),
+      sprintf("  Elements: [%s .. %s] (average of %f %s between %d elements)\n",
+              d[1], d[2], object@resolution, CFt_unit_string[object@origin@unit], length(object@offsets)),
       sep = "")
 })
 

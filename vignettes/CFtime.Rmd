@@ -1,0 +1,20 @@
+---
+title: "CFtime"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{CFtime}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+CFtime is a package 
+
+```{r setup}
+library(CFtime)
+```

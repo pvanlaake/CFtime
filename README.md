@@ -6,17 +6,37 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-CFtime is an R package that support working with [CF Metadata
+CFtime is an R package that supports working with [CF Metadata
 Conventions](http://cfconventions.org) time coordinates, specifically
 geared to time-referencing data sets of climate change projections such
 as those produced under the [World Climate Research
 Programme](https://www.wcrp-climate.org) and re-analysis data such as
 ERA5.
 
-This package IS NOT intended to support the full date and time
-functionality of the CF Metadata Conventions. Instead, it facilitates
-use of a suite of models of climate change projections that use
-different calendars in a consistent manner.
+The data sets include in their metadata a datum, a point in time from
+which other points in time are calculated. This datum takes the form of
+`days since 1949-12-01`, with each data source (CMIP generation, model,
+etc) having its own datum. The data itself has a dimension attribute of
+“time” with offset values such as 43289. To convert this “offset” to a
+date, using a specific calendar, is what this package does. Given that
+most calendars supported by the CF Metadata Conventions are not
+compatible with `POSIXt`, this conversion is not trivial. That it is
+important account for these differences is easily demonstrated:
+
+``` r
+library(CFtime)
+
+# POSIXt calculations on a standard calendar
+as.Date("1949-12-01") + 43289
+#> [1] "2068-06-08"
+
+# CFtime calculation on a "360_day" calendar
+CFtimestamp(CFts(CFdatum("days since 1949-12-01", "360_day"), 43289))
+#> [1] "2070-02-30"
+```
+
+That’s a difference of nearly 15 months! (And yes, 30 February is a
+valid date on a `360_day` calendar.)
 
 All defined calendars of the CF Metadata Convention are supported:
 
@@ -31,7 +51,18 @@ Use of custom calendars is not supported. This package is also not
 suitable for paleo-calendars. Time periods prior to the introduction of
 the Gregorian calendar (1582-10-15) may be used but there are no special
 provisions for it. Finally, there is no specific consideration for the
-year 0 (which does not exist in any of the above calendars).
+year 0 (which does not exist in any of the above calendars). Given that
+climate change projections are typically made from 1850-01-01 onwards,
+these limitations should not be of any practical concern.
+
+This package IS NOT intended to support the full date and time
+functionality of the CF Metadata Conventions. Instead, it facilitates
+use of a suite of models of climate change projections that use
+different calendars in a consistent manner.
+
+This package is particularly useful for working with climate change
+projections having a daily or higher resolution, but it will work
+equally well on data with a lower resolution.
 
 Timestamps are generated using the [ISO8601
 standard](https://en.wikipedia.org/wiki/ISO_8601).
@@ -67,12 +98,6 @@ nc <- nc_open("~/CC/CORDEX/CAM-22/RCP2.6/pr_CAM-22_MOHC-HadGEM2-ES_rcp26_r1i1p1_
 datum <- CFdatum(nc$dim$time$units, nc$dim$time$calendar)
 time <- CFts(datum, nc$dim$time$vals)
 time
-#> CF datum of origin:
-#>   Origin  : 1949-12-01 00:00:00+00:00
-#>   Units   : days
-#>   Calendar: 360_day
-#> CF time series:
-#>   Elements: [2006-01-01 .. 2010-12-30] (average of 1.000000 days between elements)
 nc_close(nc)
 ```
 
@@ -90,8 +115,8 @@ names.
 In a typical process, you would combine multiple data files into a
 single data set to analyze a feature of interest. To continue the
 previous example of precipitation in the Central America domain using
-CORDEX data, you can calculate the average precipitation per month for
-the period 2041 - 2050 as follows:
+CORDEX data, you can calculate the precipitation per month for the
+period 2041 - 2050 as follows:
 
 ``` r
 library(CFtime)
@@ -120,7 +145,7 @@ dimnames(pr)[[3]] <- CFtimestamp(time)
 # Create the month factor from the time object
 f_month <- CFfactor(time, "month")
 
-# Now average the daily data to monthly data
+# Now sum the daily data to monthly data
 # Dimensions 1 and 2 are longitude and latitude, the third dimension is time
 pr_month <- aperm(apply(pr, 1:2, tapply, f_month, sum), c(2, 3, 1))
 dimnames(pr_month)[[3]] <- levels(f_month)
@@ -140,4 +165,6 @@ data sets so long as the subsetted data complies with the CF Metadata
 Conventions. This includes subsetting in the [Climate Data
 Store](https://cds.climate.copernicus.eu/#!/home). Subsetted data from
 [Climate4Impact](https://climate4impact.eu/impactportal/general/index.jsp)
-is not automatically supported because the dimension names are changed.
+is not automatically supported because the dimension names are not
+compliant with the CF Metadata Conventions, use the corresponding
+dimension names instead.

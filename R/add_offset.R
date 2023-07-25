@@ -4,7 +4,7 @@
 #' origin to add the offsets to.
 #' @param offsets numeric. Vector of offsets to add to the datum.
 #'
-#' @return A tibble with columns year, month, day, hour, minute, second, offset.
+#' @returns A tibble with columns year, month, day, hour, minute, second, offset.
 #' @export
 #'
 #' @examples
@@ -21,18 +21,19 @@ add_offset <- function(datum, offsets) {
   dplyr::tibble(year = ymds[, 1], month = ymds[, 2], day = ymds[, 3], hour, minute, second, offset = offsets)
 }
 
-# Add an offset, in units of the datum, to a timestamp
-#
-# This function adds a specified amount of time to the origin of a CFts object.
-#
-# This is an internal function that should not be used outside of the CFtime package.
-#
-# @param offset numeric. Vector of offsets to add to the datum.
-# @param datum CFdatum. The datum that defines the unit of the offsets and the
-# origin to add the offsets to.
-#
-# @return A matrix with four column (year, month, day, second) and as many
-# rows as there are offsets
+#' Add an offset, in units of the datum, to a timestamp
+#'
+#' This function adds a specified amount of time to the origin of a CFts object.
+#'
+#' This is an internal function that should not be used outside of the CFtime package.
+#'
+#' @param offset numeric. Vector of offsets to add to the datum.
+#' @param datum CFdatum. The datum that defines the unit of the offsets and the
+#' origin to add the offsets to.
+#'
+#' @returns A matrix with four column (year, month, day, second) and as many
+#' rows as there are offsets
+#' @noRd
 .add_offset <- function(offset, datum) {
   origin <- datum@origin
 

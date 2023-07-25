@@ -18,3 +18,7 @@ Imports:
     methods,
     stringi,
     tibble
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

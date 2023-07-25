@@ -45,7 +45,10 @@
 #' @param x CFts. The time series to operate on
 #'
 #' @returns Vector of two character strings that represent the
-#' starting and ending timestamps in the time series.
+#' starting and ending timestamps in the time series. If all of the timestamps
+#' in the time series have a time component of `00:00:00` the date of the
+#' timestamp is returned, otherwise the full timestamp (without any time zone
+#' information).
 #'
 #' @noRd
 .ts_range <- function(x) {

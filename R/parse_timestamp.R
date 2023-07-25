@@ -8,14 +8,14 @@
 #'
 #' The supported formats are the *broken timestamp* format from the UDUNITS
 #' library and ISO8601 *extended*, both with minor changes, as suggested by the
-#' CF-convention 1.9. In general, the format is `YYYY-MM-DD hh:mm:ss.sss hh:mm`.
+#' CF Metadata Conventions 1.9. In general, the format is `YYYY-MM-DD hh:mm:ss.sss hh:mm`.
 #' The year can be from 1 to 4 digits and is interpreted literally, so `79-10-24`
 #' is the day Mount Vesuvius erupted and destroyed Pompeii, not `1979-10-24`
 #' (when [Ajax Amsterdam beat Omonoia Cyprus 10-0 in the first leg of the second
 #' round of the European Cup competition, with 5 goals from Søren Lerby](https://www.uefa.com/uefachampionsleague/match/63624--ajax-vs-omonia/),
 #' as everybody vividly remembers). The year and month are mandatory,
 #' all other fields are optional. There are defaults for all missing values,
-#' following the UDUNITS and CF convention. Leading zeros can be omitted in the
+#' following the UDUNITS and CF Metadata Conventions. Leading zeros can be omitted in the
 #' UDUNITS format. The optional fractional part can have as many digits as the
 #' precision calls for and will be applied to the smallest specified time unit.
 #' In the result of this function if the fraction is associated with the minute
@@ -28,7 +28,7 @@
 #' zone must be a single whitespace character.
 #'
 #' Currently only the extended formats (with separators between the elements)
-#' are supported. The vector of timestamps may have a combination of formats.
+#' are supported. The vector of timestamps may have any combination of ISO8601 and UDUNITS formats.
 #'
 #' @param x character. Vector of character string representing timestamps in
 #' ISO8601 extended or UDUNITS broken format.
@@ -62,19 +62,20 @@ parse_timestamp <- function(x, calendar = "standard") {
   return(tibble::as_tibble(ts))
 }
 
-# Parsing a vector of date-time strings, using a calendar.
-#
-# This is an internal function that should not generally be used outside of
-# the CFtime package.
-#
-# @param d character. A vector of strings of dates and times.
-# @param cal_id numeric. Identifier of the calendar to use.
-#
-# @return A matrix with as many columns as the input vector and six rows with
-# year, month, day, second, time zone offset hours and minutes. Invalid input
-# data will appear as `NA`. There are no hours and minutes in the result as
-# these can very easily be derived from the seconds value, which thus has a
-# range of `[0 .. 86400>`.
+#' Parsing a vector of date-time strings, using a calendar
+#'
+#' This is an internal function that should not generally be used outside of
+#' the CFtime package.
+#'
+#' @param d character. A vector of strings of dates and times.
+#' @param cal_id numeric. Identifier of the calendar to use.
+#'
+#' @returns A matrix with as many columns as the input vector and six rows with
+#' year, month, day, second, time zone offset hours and minutes. Invalid input
+#' data will appear as `NA`. There are no hours and minutes in the result as
+#' these can very easily be derived from the seconds value, which thus has a
+#' range of `[0 .. 86400>`.
+#' @noRd
 .parse_timestamp  <- function(d, cal_id) {
   # Parsers
 
