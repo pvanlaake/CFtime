@@ -170,6 +170,7 @@ CFfactor <- function(cfts, period = "month", epoch = NULL) {
     else stop("when specified, the `epoch` parameter must be a numeric vector or a list thereof")
 
     out <- lapply(ep, function(years) {
+<<<<<<< HEAD
       f <- ifelse(!(yr %in% years), NA_character_,
              switch(period,
                "year"   = sprintf("%04d", yr),
@@ -178,6 +179,15 @@ CFfactor <- function(cfts, period = "month", epoch = NULL) {
                "dekad"  = sprintf("D%02d", (mon - 1) * 3 + pmin.int((day - 1) %/% 10 + 1, 3)),
                "day"    = sprintf("%s-%02d", months[mon], day)
              ))
+=======
+      f <- switch(period,
+             "year"   = ifelse(yr %in% years, sprintf("%04d", yr), NA_character_),
+             "season" = ifelse(yr %in% years, seasons[mon], NA_character_),
+             "month"  = ifelse(yr %in% years, months[mon], NA_character_),
+             "dekad"  = ifelse(yr %in% years, sprintf("D%02d", (mon - 1) * 3 + pmin.int((day - 1) %/% 10 + 1, 3)), NA_character_),
+             "day"    = ifelse(yr %in% years, sprintf("%s-%02d", months[mon], day), NA_character_)
+           )
+>>>>>>> c9070d4 (Improved performance)
       f <- as.factor(f)
     })
     if (is.numeric(epoch)) out <- unlist(out)
