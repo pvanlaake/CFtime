@@ -7,7 +7,7 @@
 CFtimestamp(cfts, format = "date")
 }
 \arguments{
-\item{cfts}{CFts. The CFts instance that contains the offsets to use.}
+\item{cfts}{CFts. The \code{CFts} instance that contains the offsets to use.}
 
 \item{format}{character. An atomic string with either of the values "date",
 "time", "timestamp".}
@@ -17,7 +17,7 @@ A character vector where each element represents a moment in time
 according to the \code{format} specifier.
 }
 \description{
-The CFts instance typically contains a vector of offsets from an origin. This
+The \code{CFts} instance contains a vector of offsets from an origin. This
 function generates a vector of character strings that represent the date
 and/or time in a selectable combination for each offset.
 }

@@ -52,25 +52,30 @@ setClass("CFdatum",
 #' cf <- CFdatum("days since 1850-01-01", "julian")
 CFdatum <- function(definition, calendar = "standard") {
   stopifnot(length(definition) ==  1, length(calendar) == 1)
+  definition <- tolower(definition)
+  calendar <- tolower(calendar)
+
   parts <- strsplit(definition, " ")[[1]]
-  num <- length(parts)
-  if ((num < 3) || (!(stringi::stri_trans_tolower(parts[2]) %in% c("since", "after", "from", "ref", "per"))))
-    stop("definition string does not appear to be a CF-compliant time coordinate description")
-  u <- dplyr::filter(CFt_units, unit == stringi::stri_trans_tolower(parts[1]))
-  if (length(u) == 0) stop("unsupported unit: ", parts[1])
+  if ((length(parts) < 3) || !(parts[2] %in% c("since", "after", "from", "ref", "per")))
+    stop("Definition string does not appear to be a CF-compliant time coordinate description")
+  u <- which(CFt_units$unit == parts[1])
+  if (length(u) == 0) stop("Unsupported unit: ", parts[1])
 
   cal <- CFt_cal_ids[which(calendar == CFt_calendars)]
-  if (length(cal) == 0) stop("invalid calendar specification")
+  if (length(cal) == 0) stop("Invalid calendar specification")
 
-  dt <- .parse_timestamp(stringi::stri_sub(definition, sum(stringi::stri_length(parts[1:2])) + 3), cal)[, 1]
-  if (is.na(dt[1])) stop("definition string does not appear to be a CF-compliant time coordinate description: invalid base date specification")
-  tz <- sprintf("%+03d:%02d", dt[5], dt[6])
+  dt <- .parse_timestamp(paste(parts[3:length(parts)], collapse = " "), cal)
+  if (is.na(dt$year)) stop("Definition string does not appear to be a CF-compliant time coordinate description: invalid base date specification")
+  tz <- dt$tz
+  dt <- unlist(dt[1:6])
+  names(dt) <- NULL
+  dt[4] <- dt[4] * 3600 + dt[5] * 60 + dt[6]
 
-  methods::new("CFdatum", definition = definition, unit = u$unit_id, origin = dt[1:4], tz = tz, calendar = calendar, cal_id = cal)
+  methods::new("CFdatum", definition = definition, unit = CFt_units$unit_id[u], origin = dt[1:4], tz = tz, calendar = calendar, cal_id = cal)
 }
 
 setMethod("show", "CFdatum", function(object) {
-  if (object@tz == "+00:00") tz = "" else tz = object@tz
+  if (object@tz == "00:00") tz = "" else tz = object@tz
   cat("CF datum of origin:",
       "\n  Origin  : ", origin_date(object), " ", origin_time(object), tz,
       "\n  Units   : ", CFt_unit_string[object@unit],

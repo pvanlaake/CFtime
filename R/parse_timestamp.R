@@ -38,10 +38,8 @@
 #'
 #' @return A data frame with constituent elements of the parsed timestamps in
 #' numeric format. The columns are year, month, day, hour, minute, second (with
-#' an optional fraction), tz_hour and tz_minute.
-#' Missing and invalid input data will appear as `NA` - if the year is `NA` then
-#' the timestamp in its entirety is invalid, otherwise `NA` values specify
-#' missing information for which defaults exist.
+#' an optional fraction) and time zone. Invalid input data will appear as `NA`,
+#' other missing information on input will use default values.
 #' @export
 #' @examples
 #' timestamps <- c("2012-01-01T12:21:34Z", "12-1-23", "today",
@@ -50,6 +48,7 @@
 CF_parse_timestamp <- function(x, calendar = "standard") {
   # Check parameter sanity
   stopifnot(is.character(x), length(calendar) == 1)
+  calendar <- tolower(calendar)
   cal <- CFt_cal_ids[which(calendar == CFt_calendars)]
   if (length(cal) == 0) stop("Invalid calendar specification")
 

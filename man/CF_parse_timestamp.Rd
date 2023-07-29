@@ -16,10 +16,8 @@ to use in interpreting the validity of the date.}
 \value{
 A data frame with constituent elements of the parsed timestamps in
 numeric format. The columns are year, month, day, hour, minute, second (with
-an optional fraction), tz_hour and tz_minute.
-Missing and invalid input data will appear as \code{NA} - if the year is \code{NA} then
-the timestamp in its entirety is invalid, otherwise \code{NA} values specify
-missing information for which defaults exist.
+an optional fraction) and time zone. Invalid input data will appear as \code{NA},
+other missing information on input will use default values.
 }
 \description{
 This function will parse a vector of timestamps in ISO8601 or UDUNITS format
