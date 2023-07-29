@@ -1,7 +1,7 @@
 #' Parse series of timestamps in CF format to date-time elements
 #'
 #' This function will parse a vector of timestamps in ISO8601 or UDUNITS format
-#' into a tibble with columns for the elements of the timestamp: year, month,
+#' into a data frame with columns for the elements of the timestamp: year, month,
 #' day, hour, minute, second, time zone hour and minute. Those timestamps that
 #' could not be parsed or which represent an invalid date in the indicated
 #' calendar will have `NA` values for the elements of the offending timestamp.
@@ -28,14 +28,15 @@
 #' zone must be a single whitespace character.
 #'
 #' Currently only the extended formats (with separators between the elements)
-#' are supported. The vector of timestamps may have any combination of ISO8601 and UDUNITS formats.
+#' are supported. The vector of timestamps may have any combination of ISO8601
+#' and UDUNITS formats.
 #'
 #' @param x character. Vector of character string representing timestamps in
 #' ISO8601 extended or UDUNITS broken format.
 #' @param calendar character. Atomic character string indicating the CF calendar
 #' to use in interpreting the validity of the date.
 #'
-#' @return A tibble with constituent elements of the parsed timestamps in
+#' @return A data frame with constituent elements of the parsed timestamps in
 #' numeric format. The columns are year, month, day, hour, minute, second (with
 #' an optional fraction), tz_hour and tz_minute.
 #' Missing and invalid input data will appear as `NA` - if the year is `NA` then
@@ -45,21 +46,14 @@
 #' @examples
 #' timestamps <- c("2012-01-01T12:21:34Z", "12-1-23", "today",
 #'                 "2022-08-16T11:07:34.45-10", "2022-08-16 10.5+04")
-#' x <- parse_timestamp(timestamps, "proleptic_gregorian")
-parse_timestamp <- function(x, calendar = "standard") {
+#' x <- CF_parse_timestamp(timestamps, "proleptic_gregorian")
+CF_parse_timestamp <- function(x, calendar = "standard") {
   # Check parameter sanity
   stopifnot(is.character(x), length(calendar) == 1)
   cal <- CFt_cal_ids[which(calendar == CFt_calendars)]
-  if (length(cal) == 0) stop("invalid calendar specification")
+  if (length(cal) == 0) stop("Invalid calendar specification")
 
-  # Parse and convert to tibble
-  ts <- t(.parse_timestamp(x, cal))
-  hr <- ts[, 4] %/% 3600
-  min <- (ts[, 4] %% 3600) %/% 60
-  sec <- ts[, 4] %% 60
-  ts <- cbind(ts[, 1:3], hr, min, sec, ts[, 5:6])
-  colnames(ts) <- c("year", "month", "day", "hour", "minute", "second", "tz_hour", "tz_minute")
-  return(tibble::as_tibble(ts))
+  .parse_timestamp(x, cal)
 }
 
 #' Parsing a vector of date-time strings, using a calendar
@@ -70,11 +64,8 @@ parse_timestamp <- function(x, calendar = "standard") {
 #' @param d character. A vector of strings of dates and times.
 #' @param cal_id numeric. Identifier of the calendar to use.
 #'
-#' @returns A matrix with as many columns as the input vector and six rows with
-#' year, month, day, second, time zone offset hours and minutes. Invalid input
-#' data will appear as `NA`. There are no hours and minutes in the result as
-#' these can very easily be derived from the seconds value, which thus has a
-#' range of `[0 .. 86400>`.
+#' @returns A data frame with columns year, month, day, hour, minute, second,
+#' time zone offset hours and minutes. Invalid input data will appear as `NA`.
 #' @noRd
 .parse_timestamp  <- function(d, cal_id) {
   # Parsers
@@ -103,8 +94,8 @@ parse_timestamp <- function(x, calendar = "standard") {
     "(?:\\.([0-9]*))?",                     # optional fractional part of the smallest specified unit
     ")?",                                   # close optional time capture group
     "(?:\\s",                               # if a time zone offset is following, separate with a single whitespace character
-    "([+-]?[01]?[0-9]|2[0-3])?",            # hour, with optional sign
-    "(?::([0-5]?[0-9]))?",                  # minute
+    "([+-]?[01]?[0-9]|2[0-3](?::[0-5]?[0-9]))?",            # hour, with optional sign
+#    "(?::([0-5]?[0-9]))?",                  # minute
     ")?",                                   # close optional timezone capture group
     "$"                                     # anchor string at end
   )
@@ -121,8 +112,8 @@ parse_timestamp <- function(x, calendar = "standard") {
     "(?:\\.([0-9]*))?",
     ")?",
     "(?:",
-    "(Z|[+-][01][0-9]|2[0-3])?",
-    "(?::([0-5][0-9]))?",
+    "(Z|[+-][01][0-9]|2[0-3](?::[0-5][0-9]))?",
+#    "(?::([0-5][0-9]))?",
     ")?$"
   )
 
@@ -148,46 +139,48 @@ parse_timestamp <- function(x, calendar = "standard") {
   #   "$"                                     # anchor string at end
   # )
 
-  len <- length(d)
-  parts <- unlist(stringi::stri_match_all_regex(d, iso8601))
-  parts[parts == "Z"] <- "0"
-  dim(parts) <- c(10, len)
-  missing <- which(is.na(parts[1, ]))
-  if (length(missing) > 0) {
-    udunits <- unlist(stringi::stri_match_all_regex(d[missing], broken))
-    dim(udunits) <- c(10, length(missing))
-    for (i in 1:length(missing))
-      parts[, missing[i]] <- udunits[, i]
+  parts <- data.frame(year = numeric(), month = numeric(), day = numeric(),
+                      hour = numeric(), minute = numeric(), second = numeric(), frac = character(),
+                      tz = character())
+
+  cap <- utils::strcapture(iso8601, d, parts)
+  missing <- which(is.na(cap$year))
+  if (length(missing) > 0)
+    cap[missing,] <- utils::strcapture(broken, d[missing], parts)
+
+  # Assign any fraction to the appropriate time part
+  cap$frac[is.na(cap$frac)] <- "0"
+  frac <- as.numeric(paste0("0.", cap$frac))
+  if (sum(frac) > 0) {
+    ndx <- which(!(is.na(cap$second)) & frac > 0)
+    if (length(ndx) > 0) cap$second[ndx] <- cap$second[ndx] + frac[ndx]
+    ndx <- which(!(is.na(cap$minute)) & is.na(cap$second) & frac > 0)
+    if (length(ndx) > 0) cap$second[ndx] <- 60 * frac[ndx]
+    ndx <- which(!(is.na(cap$hour)) & is.na(cap$minute) & frac > 0)
+    if (length(ndx) > 0) {
+      secs <- 3600 * frac
+      cap$minute[ndx] <- secs[ndx] %/% 60
+      cap$second[ndx] <- secs[ndx] %% 60
+    }
   }
+  cap$frac <- NULL
 
-  # Convert to numeric
-  parts <- parts[-1, ]      # drop the captured string
-  parts <- as.numeric(parts)
-  dim(parts) <- c(9, len)
+  # Convert NA time parts to 0 - in CF default time is 00:00:00 when not specified
+  cap$hour[is.na(cap$hour)] <- 0
+  cap$minute[is.na(cap$minute)] <- 0
+  cap$second[is.na(cap$second)] <- 0
 
-  # Convert the time values into seconds, including any fractional part
-  secs <- apply(parts, 2, function(p) {
-    if (is.na(p[4])) return(0)    # in CF 1.9, default time is 00:00:00 when not specified
-    if (is.na(p[7])) frac <- 0
-    else frac <- (as.numeric(paste0("0.", p[7])))
-    if (is.na(p[5])) return((p[4] + frac) * 3600)
-    if (is.na(p[6])) return(p[4] * 3600 + (p[5] + frac) * 60)
-    return(p[4] * 3600 + p[5] * 60 + p[6] + frac)
-  })
+  # Set timezone to default value where needed
+  cap$tz[is.na(cap$tz) | (cap$tz %in% c("", "Z"))] <- "00:00"
 
-  # Drop useless rows, splice seconds back in
-  parts <- parts[-(5:7), ]
-  dim(parts) <- c(6, len)
-  parts[4, ] <- secs
-
-  # Set timezone values to default value if not specified
-  parts[5, is.na(parts[5, ])] <- 0
-  parts[6, is.na(parts[6, ])] <- 0
+  # Set optional date parts to 1 if not specified
+  cap$month[is.na(cap$month)] <- 1
+  cap$day[is.na(cap$day)] <- 1
 
   # Check date validity
-  notok <- apply(parts, 2, function(dt) !.is_valid_calendar_date(dt[1], dt[2], dt[3], cal_id))
-  if (sum(notok) > 0)
-    parts[, notok] <- rep(NA, 6)
+  notok <- mapply(function(y, m, d) {!.is_valid_calendar_date(y, m, d, cal_id)},
+                  cap$year, cap$month, cap$day)
+  if (sum(notok) > 0) cap[notok,] <- rep(NA, 7)
 
-  return(parts)
+  return(cap)
 }
