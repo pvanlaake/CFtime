@@ -1,6 +1,6 @@
 #' Create a vector of character strings that represent CF timestamps
 #'
-#' The CFts instance typically contains a vector of offsets from an origin. This
+#' The `CFtime` instance contains a vector of offsets from an origin. This
 #' function generates a vector of character strings that represent the date
 #' and/or time in a selectable combination for each offset.
 #'
@@ -9,27 +9,25 @@
 #' compatible with `POSIXt` - in the `360_day` calendar `2017-02-30` is valid
 #' and `2017-03-31` is not.
 #'
-#' @param cfts CFts. The CFts instance that contains the offsets to use.
+#' @param cf CFtime. The `CFtime` instance that contains the offsets to use.
 #' @param format character. An atomic string with either of the values "date",
 #' "time", "timestamp".
 #'
 #' @returns A character vector where each element represents a moment in time
-#' according to the `format` specifier.
+#' according to the `format` specifier. Time zone information is not repesented.
 #' @export
 #'
 #' @examples
-#' datum <- CFdatum("hours since 2020-01-01")
-#' ts <- CFts(datum, seq(0, 24, by = 0.25))
-#' x <- CFtimestamp(ts, "timestamp")
-CFtimestamp <- function(cfts, format = "date") {
-  if (!(methods::is(cfts, "CFts"))) stop("First argument to CFtimestamp must be an instance of the `CFts` class")
+#' cf <- CFtime("hours since 2020-01-01", "standard", seq(0, 24, by = 0.25))
+#' CFtimestamp(cf, "timestamp")
+CFtimestamp <- function(cf, format = "date") {
+  if (!(methods::is(cf, "CFtime"))) stop("First argument to CFtimestamp must be an instance of the `CFtime` class")
   if (!(format %in% c("date", "time", "timestamp"))) stop("Format specifier not recognized")
 
-  x <- cfts@ymds
   out <- switch(format,
-    "date" = sprintf("%04d-%02d-%02d", x[, 1], x[, 2], x[, 3]),
-    "time" = .format_time(x[, 4]),
-    "timestamp" = sprintf("%04d-%02d-%02dT%s%s", x[, 1], x[, 2], x[, 3], .format_time(x[, 4]), cfts@origin@tz)
+    "date" = sprintf("%04d-%02d-%02d", cf@time$year, cf@time$month, cf@time$day),
+    "time" = .format_time(cf@time),
+    "timestamp" = sprintf("%04d-%02d-%02dT%s", cf@time$year, cf@time$month, cf@time$day, .format_time(cf@time))
   )
   return(out)
 }
@@ -39,22 +37,24 @@ CFtimestamp <- function(cfts, format = "date") {
 #' This is an internal function that should not generally be used outside of
 #' the CFtime package.
 #'
-#' @param t numeric. A vector representing the second element of a timestamp.
+#' @param t data.frame. A data.frame representing timestamps.
 #'
-#' @returns A character string with a properly formatted time string.
+#' @returns A vector of character strings with a properly formatted time.
 #' @noRd
 .format_time <- function(t) {
-  fsec <- t %% 1
+  out <- vector("character", nrow(t))
+  fsec <- t$second %% 1
+  no_fsec <- which(fsec == 0)
   has_fsec <- which(fsec > 0)
-  out <- sprintf("%02d:%02d:%02d", t %/% 3600, (t %% 3600) %/% 60, t %% 60 %/% 1)
-  out[has_fsec] <- paste0(out[has_fsec], substr(as.character(fsec[has_fsec]), 2, 8))
+  out[no_fsec] <- sprintf("%02d:%02d:%02d", t$hour[no_fsec], t$minute[no_fsec], t$second[no_fsec])
+  out[has_fsec] <- sprintf("%02d:%02d:%f", t$hour[has_fsec], t$minute[has_fsec], t$second[has_fsec])
   return(out)
 }
 
-#' Create a factor from the offsets in an CFts instance
+#' Create a factor from the offsets in an CFtime instance
 #'
 #' With this function a factor can be generated for the time series, or a part
-#' thereof, contained in the `CFts` instance. This is specifically interesting
+#' thereof, contained in the `CFtime` instance. This is specifically interesting
 #' for creating factors from the date part of the time series that aggregate the
 #' time series into longer time periods (such as month) that can then be used to
 #' process daily CF data sets using, for instance, `tapply()`.
@@ -64,9 +64,9 @@ CFtimestamp <- function(cfts, format = "date") {
 #' the calendar is no longer relevant (because calendars impacts days, not
 #' dekads, months or seasons).
 #'
-#' The factor will be generated in the order of the offsets of the `CFts`
+#' The factor will be generated in the order of the offsets of the `CFtime`
 #' instance. While typical CF-compliant data sources use ordered time series
-#' there is, however, no guarantee that the factor is ordered as multiple `CFts`
+#' there is, however, no guarantee that the factor is ordered as multiple `CFtime`
 #' objects may have been merged out of order.
 #'
 #' If the `epoch` parameter is specified, either as a vector of years to include
@@ -100,7 +100,7 @@ CFtimestamp <- function(cfts, format = "date") {
 #' }
 #'
 #' It is not possible to create a factor for a period that is shorter than the
-#' temporal resolution of the source data set from which the `cfts` argument
+#' temporal resolution of the source data set from which the `cf` argument
 #' derives. As an example, if the source data set has monthly data, a dekad or
 #' day factor cannot be created.
 #'
@@ -108,7 +108,7 @@ CFtimestamp <- function(cfts, format = "date") {
 #' based on the timestamp information and not dependent on the calendar can
 #' trivially be constructed from the output of the `CFtimestamp()` function.
 #'
-#' @param cfts CFts. An atomic instance of the `CFts` class whose offsets will
+#' @param cf CFtime. An atomic instance of the `CFtime` class whose offsets will
 #'   be used to construct the factor.
 #' @param period character. An atomic character string with one of the values
 #'   "year", "season", "month" (the default), "dekad" or "day".
@@ -118,30 +118,31 @@ CFtimestamp <- function(cfts, format = "date") {
 #'   factor.
 #'
 #' @returns If `epoch` is a single vector or not specified, a factor with a
-#'   length equal to the number of offsets in `cfts`. If `epoch` is a list, a
+#'   length equal to the number of offsets in `cf`. If `epoch` is a list, a
 #'   list with the same number of elements and names as `epoch`, each containing
 #'   a factor. Elements in the factor will be set to `NA` for time series values
 #'   outside of the range of specified years.
 #' @export
 #'
 #' @examples
-#' datum <- CFdatum("days since 1949-12-01", "360_day")
-#' cfts <- CFts(datum, 19830:54029)
+#' cf <- CFtime("days since 1949-12-01", "360_day", 19830:54029)
 #'
 #' # Create a dekad factor for the whole time series
-#' f <- CFfactor(cfts, "dekad")
+#' f <- CFfactor(cf, "dekad")
 #'
-#' # Create four monthly factors for a baseline epoch and early, mid and late 21st century
-#' ep <- CFfactor(cfts, epoch = list(baseline = 1991:2020, early = 2021:2040,
-#'                                   mid = 2041:2060, late = 2061:2080))
-CFfactor <- function(cfts, period = "month", epoch = NULL) {
-  if (!(methods::is(cfts, "CFts"))) stop("First argument to CFfactor must be an instance of the `CFts` class")
+#' # Create four monthly factors for a baseline epoch and early, mid and late 21st century epochs
+#' ep <- CFfactor(cf, epoch = list(baseline = 1991:2020, early = 2021:2040,
+#'                                 mid = 2041:2060, late = 2061:2080))
+CFfactor <- function(cf, period = "month", epoch = NULL) {
+  if (!(methods::is(cf, "CFtime"))) stop("First argument to CFfactor must be an instance of the `CFtime` class")
+  if (nrow(cf@time) < 10) stop("Cannot create factor for very short time series.")
 
   period <- tolower(period)
-  if (!((length(period) == 1) && (period %in% c("year", "season", "month", "dekad", "day")))) stop("Period specifier must be an atomic value of a supported period")
+  if (!((length(period) == 1) && (period %in% c("year", "season", "month", "dekad", "day"))))
+    stop("Period specifier must be an atomic value of a supported period")
 
   # No fine-grained period factors for coarse source data
-  timestep <- CFt_units$seconds[cfts@origin@unit] * cfts@resolution;
+  timestep <- CFtime_units$seconds[cf@datum@unit] * cf@resolution;
   if ((period == "year") && (timestep > 86400 * 366) ||
       (period == "season") && (timestep > 86400 * 90) || # Somewhat arbitrary
       (period == "month") && (timestep > 86400 * 31) ||
@@ -149,34 +150,32 @@ CFfactor <- function(cfts, period = "month", epoch = NULL) {
       (period == "day") && (timestep > 86400))           # Must be no longer than a day
     stop("Cannot produce a short period factor from source data with long time interval")
 
-  yr <- cfts@ymds[, 1]
-  mon <- cfts@ymds[, 2]
-  if (period %in% c("dekad", "day")) day <- cfts@ymds[, 3]
   seasons <- c("DJF", "DJF", "MAM", "MAM", "MAM", "JJA", "JJA", "JJA", "SON", "SON", "SON", "DJF")
   months <- c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12")
 
   if (is.null(epoch)) {
     f <- switch(period,
-      "year"   = sprintf("%04d", yr),
-      "season" = sprintf("%04d-%s", yr, seasons[mon]),
-      "month"  = sprintf("%04d-%s", yr, months[mon]),
-      "dekad"  = sprintf("%04dD%02d", yr, (mon - 1) * 3 + pmin.int((day - 1) %/% 10 + 1, 3)),
-      "day"    = sprintf("%04d-%02d-%02d", yr, mon, day)
+      "year"   = sprintf("%04d", cf@time$year),
+      "season" = ifelse(cf@time$month == 12, sprintf("%04d-DJF", cf@time$year + 1), sprintf("%04d-%s", cf@time$year, seasons[cf@time$month])),
+      "month"  = sprintf("%04d-%s", cf@time$year, months[cf@time$month]),
+      "dekad"  = sprintf("%04dD%02d", cf@time$year, (cf@time$month - 1) * 3 + pmin.int((cf@time$day - 1) %/% 10 + 1, 3)),
+      "day"    = sprintf("%04d-%02d-%02d", cf@time$year, cf@time$month, cf@time$day)
     )
     out <- factor(f)
   } else {
     if (is.numeric(epoch)) ep <- list(epoch)
     else if ((is.list(epoch) && all(unlist(lapply(epoch, is.numeric))))) ep <- epoch
-    else stop("when specified, the `epoch` parameter must be a numeric vector or a list thereof")
+    else stop("When specified, the `epoch` parameter must be a numeric vector or a list thereof")
 
     out <- lapply(ep, function(years) {
       f <- switch(period,
-             "year"   = ifelse(yr %in% years, sprintf("%04d", yr), NA_character_),
-             "season" = ifelse(yr %in% years, seasons[mon], NA_character_),
-             "month"  = ifelse(yr %in% years, months[mon], NA_character_),
-             "dekad"  = ifelse(yr %in% years, sprintf("D%02d", (mon - 1) * 3 + pmin.int((day - 1) %/% 10 + 1, 3)), NA_character_),
-             "day"    = ifelse(yr %in% years, sprintf("%s-%02d", months[mon], day), NA_character_)
-           )
+        "year"   = ifelse(cf@time$year %in% years, sprintf("%04d", cf@time$year), NA_character_),
+        "season" = ifelse((cf@time$month == 12) & ((cf@time$year + 1) %in% years), "DJF",
+                          ifelse((cf@time$month < 12) & (cf@time$year %in% years), seasons[cf@time$month], NA_character_)),
+        "month"  = ifelse(cf@time$year %in% years, months[cf@time$month], NA_character_),
+        "dekad"  = ifelse(cf@time$year %in% years, sprintf("D%02d", (cf@time$month - 1) * 3 + pmin.int((cf@time$day - 1) %/% 10 + 1, 3)), NA_character_),
+        "day"    = ifelse(cf@time$year %in% years, sprintf("%s-%02d", months[cf@time$month], cf@time$day), NA_character_)
+      )
       f <- as.factor(f)
     })
     if (is.numeric(epoch)) out <- unlist(out)

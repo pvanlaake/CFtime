@@ -4,20 +4,20 @@
 \alias{CFtimestamp}
 \title{Create a vector of character strings that represent CF timestamps}
 \usage{
-CFtimestamp(cfts, format = "date")
+CFtimestamp(cf, format = "date")
 }
 \arguments{
-\item{cfts}{CFts. The \code{CFts} instance that contains the offsets to use.}
+\item{cf}{CFtime. The \code{CFtime} instance that contains the offsets to use.}
 
 \item{format}{character. An atomic string with either of the values "date",
 "time", "timestamp".}
 }
 \value{
 A character vector where each element represents a moment in time
-according to the \code{format} specifier.
+according to the \code{format} specifier. Time zone information is not repesented.
 }
 \description{
-The \code{CFts} instance contains a vector of offsets from an origin. This
+The \code{CFtime} instance contains a vector of offsets from an origin. This
 function generates a vector of character strings that represent the date
 and/or time in a selectable combination for each offset.
 }
@@ -28,7 +28,6 @@ compatible with \code{POSIXt} - in the \verb{360_day} calendar \code{2017-02-30}
 and \code{2017-03-31} is not.
 }
 \examples{
-datum <- CFdatum("hours since 2020-01-01")
-ts <- CFts(datum, seq(0, 24, by = 0.25))
-x <- CFtimestamp(ts, "timestamp")
+cf <- CFtime("hours since 2020-01-01", "standard", seq(0, 24, by = 0.25))
+CFtimestamp(cf, "timestamp")
 }

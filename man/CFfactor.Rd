@@ -2,12 +2,12 @@
 % Please edit documentation in R/CFformat.R
 \name{CFfactor}
 \alias{CFfactor}
-\title{Create a factor from the offsets in an CFts instance}
+\title{Create a factor from the offsets in an CFtime instance}
 \usage{
-CFfactor(cfts, period = "month", epoch = NULL)
+CFfactor(cf, period = "month", epoch = NULL)
 }
 \arguments{
-\item{cfts}{CFts. An atomic instance of the \code{CFts} class whose offsets will
+\item{cf}{CFtime. An atomic instance of the \code{CFtime} class whose offsets will
 be used to construct the factor.}
 
 \item{period}{character. An atomic character string with one of the values
@@ -20,14 +20,14 @@ factor.}
 }
 \value{
 If \code{epoch} is a single vector or not specified, a factor with a
-length equal to the number of offsets in \code{cfts}. If \code{epoch} is a list, a
+length equal to the number of offsets in \code{cf}. If \code{epoch} is a list, a
 list with the same number of elements and names as \code{epoch}, each containing
 a factor. Elements in the factor will be set to \code{NA} for time series values
 outside of the range of specified years.
 }
 \description{
 With this function a factor can be generated for the time series, or a part
-thereof, contained in the \code{CFts} instance. This is specifically interesting
+thereof, contained in the \code{CFtime} instance. This is specifically interesting
 for creating factors from the date part of the time series that aggregate the
 time series into longer time periods (such as month) that can then be used to
 process daily CF data sets using, for instance, \code{tapply()}.
@@ -38,9 +38,9 @@ built on. For \code{period}s longer than a day this will result in a factor wher
 the calendar is no longer relevant (because calendars impacts days, not
 dekads, months or seasons).
 
-The factor will be generated in the order of the offsets of the \code{CFts}
+The factor will be generated in the order of the offsets of the \code{CFtime}
 instance. While typical CF-compliant data sources use ordered time series
-there is, however, no guarantee that the factor is ordered as multiple \code{CFts}
+there is, however, no guarantee that the factor is ordered as multiple \code{CFtime}
 objects may have been merged out of order.
 
 If the \code{epoch} parameter is specified, either as a vector of years to include
@@ -74,7 +74,7 @@ preceeded by "YYYY-" if no \code{epoch} is specified.
 }
 
 It is not possible to create a factor for a period that is shorter than the
-temporal resolution of the source data set from which the \code{cfts} argument
+temporal resolution of the source data set from which the \code{cf} argument
 derives. As an example, if the source data set has monthly data, a dekad or
 day factor cannot be created.
 
@@ -83,13 +83,12 @@ based on the timestamp information and not dependent on the calendar can
 trivially be constructed from the output of the \code{CFtimestamp()} function.
 }
 \examples{
-datum <- CFdatum("days since 1949-12-01", "360_day")
-cfts <- CFts(datum, 19830:54029)
+cf <- CFtime("days since 1949-12-01", "360_day", 19830:54029)
 
 # Create a dekad factor for the whole time series
-f <- CFfactor(cfts, "dekad")
+f <- CFfactor(cf, "dekad")
 
-# Create four monthly factors for a baseline epoch and early, mid and late 21st century
-ep <- CFfactor(cfts, epoch = list(baseline = 1991:2020, early = 2021:2040,
-                                  mid = 2041:2060, late = 2061:2080))
+# Create four monthly factors for a baseline epoch and early, mid and late 21st century epochs
+ep <- CFfactor(cf, epoch = list(baseline = 1991:2020, early = 2021:2040,
+                                mid = 2041:2060, late = 2061:2080))
 }

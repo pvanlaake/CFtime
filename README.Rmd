@@ -40,10 +40,10 @@ library(CFtime)
 as.Date("1949-12-01") + 43289
 
 # CFtime calculation on a "360_day" calendar
-CFtimestamp(CFts(CFdatum("days since 1949-12-01", "360_day"), 43289))
+CFtimestamp(CFtime("days since 1949-12-01", "360_day", 43289))
 ```
 
-That's a difference of nearly 15 months! (And yes, 30 February is a valid date
+That's a difference of nearly 21 months! (And yes, 30 February is a valid date
 on a `360_day` calendar.)
 
 All defined calendars of the CF Metadata Convention are supported:
@@ -89,19 +89,17 @@ The package has not yet been uploaded to CRAN.
 
 ## Basic operation
 
-The package contains two classes, `CFdatum` to describe the time coordinate
-system, including its calendar; and `CFts` to hold the time coordinate values
-that are offset from the `CFdatum` to represent instants in time. These
-two classes operate on the data in the file of interest, here a CORDEX file of
+The package contains a class, `CFtime` to describe the time coordinate
+system, including its calendar, - a *datum* - and which holds the time coordinate values
+that are offset from the datum to represent instants in time. This
+class operates on the data in the file of interest, here a CORDEX file of
 precipitation for the Central America domain:
 
 ```{r example_2, eval = FALSE}
 library(CFtime)
 library(ncdf4)
 nc <- nc_open("~/CC/CORDEX/CAM-22/RCP2.6/pr_CAM-22_MOHC-HadGEM2-ES_rcp26_r1i1p1_GERICS-REMO2015_v1_day_20060101-20101230.nc")
-datum <- CFdatum(nc$dim$time$units, nc$dim$time$calendar)
-time <- CFts(datum, nc$dim$time$vals)
-time
+time <- CFtime(nc$dim$time$units, nc$dim$time$calendar, nc$dim$time$vals)
 nc_close(nc)
 ```
 
@@ -128,15 +126,15 @@ library(abind)
 nc2041 <- nc_open("~/CC/CORDEX/CAM-22/RCP2.6/pr_CAM-22_MOHC-HadGEM2-ES_rcp26_r1i1p1_GERICS-REMO2015_v1_day_20410101-20451230.nc")
 nc2046 <- nc_open("~/CC/CORDEX/CAM-22/RCP2.6/pr_CAM-22_MOHC-HadGEM2-ES_rcp26_r1i1p1_GERICS-REMO2015_v1_day_20460101-20501230.nc")
 
-# Create the datum from the first file
+# Create the time object from the first file
 # All files have an identical datum as per the CORDEX specifications
-datum <- CFdatum(nc2041$dim$time$units, nc2041$dim$time$calendar)
+time <- CFtime(nc2041$dim$time$units, nc2041$dim$time$calendar, nc2041$dim$time$vals)
 
-# Create the time series object from the first file, then add the time values from 
-# the remaining files
-time <- CFts(datum, nc2041$dim$time$vals) + as.vector(nc2046$dim$time$vals)
+# Add the time values from the remaining files
+time <- time + as.vector(nc2046$dim$time$vals)
 
-# Grab the data from the files and merge the arrays into one
+# Grab the data from the files and merge the arrays into one, in the same order
+# as the time values
 pr <- abind(ncvar_get(nc2041, "pr"), ncvar_get(nc2046, "pr"))
 nc_close(nc2041)
 nc_close(nc2046)

@@ -1,7 +1,9 @@
 #' CFdatum class
 #'
-#' This class stores the information to represent date and time values using
-#' the CF conventions.
+#' This internal class stores the information to represent date and time values using
+#' the CF conventions. This class is not supposed to be used by end-users directly.
+#' An instance is created by the exported `CFtime` class, which also exposes the
+#' relevant properties of this class.
 #'
 #' The following calendars are supported:
 #'
@@ -17,19 +19,17 @@
 #'
 #' @slot definition character. The string that defines the time unit and base date/time.
 #' @slot unit numeric. The unit of time in which offsets are expressed.
-#' @slot origin numeric. Vector of components year, month, day and seconds.
-#' @slot tz character. Time zone offset hour and minute.
+#' @slot origin data.frame. Data frame with 1 row that defines the origin time.
 #' @slot calendar character. The CF-calendar for the instance.
 #' @slot cal_id numeric. The internal identifier of the CF-calendar to use.
 #'
-#' @return An object of class CFdatum
-#' @export
+#' @returns An object of class CFdatum
+#' @noRd
 setClass("CFdatum",
     slots = c(
       definition     = "character",
       unit           = "numeric",
-      origin         = "numeric",
-      tz             = "character",
+      origin         = "data.frame",
       calendar       = "character",
       cal_id         = "numeric"
     ))
@@ -45,12 +45,9 @@ setClass("CFdatum",
 #' @param calendar character. An atomic string describing the calendar to use
 #' with the time dimension definition string.
 #'
-#' @return An object of the `CFdatum` class.
-#' @export
-#'
-#' @examples
-#' cf <- CFdatum("days since 1850-01-01", "julian")
-CFdatum <- function(definition, calendar = "standard") {
+#' @returns An object of the `CFdatum` class.
+#' @noRd
+CFdatum <- function(definition, calendar) {
   stopifnot(length(definition) ==  1, length(calendar) == 1)
   definition <- tolower(definition)
   calendar <- tolower(calendar)
@@ -58,70 +55,30 @@ CFdatum <- function(definition, calendar = "standard") {
   parts <- strsplit(definition, " ")[[1]]
   if ((length(parts) < 3) || !(parts[2] %in% c("since", "after", "from", "ref", "per")))
     stop("Definition string does not appear to be a CF-compliant time coordinate description")
-  u <- which(CFt_units$unit == parts[1])
+  u <- which(CFtime_units$unit == parts[1])
   if (length(u) == 0) stop("Unsupported unit: ", parts[1])
 
-  cal <- CFt_cal_ids[which(calendar == CFt_calendars)]
+  cal <- CFtime_cal_ids[which(calendar == CFtime_calendars)]
   if (length(cal) == 0) stop("Invalid calendar specification")
 
   dt <- .parse_timestamp(paste(parts[3:length(parts)], collapse = " "), cal)
-  if (is.na(dt$year)) stop("Definition string does not appear to be a CF-compliant time coordinate description: invalid base date specification")
-  tz <- dt$tz
-  dt <- unlist(dt[1:6])
-  names(dt) <- NULL
-  dt[4] <- dt[4] * 3600 + dt[5] * 60 + dt[6]
+  if (is.na(dt$year[1])) stop("Definition string does not appear to be a CF-compliant time coordinate description: invalid base date specification")
 
-  methods::new("CFdatum", definition = definition, unit = CFt_units$unit_id[u], origin = dt[1:4], tz = tz, calendar = calendar, cal_id = cal)
+  methods::new("CFdatum", definition = definition, unit = CFtime_units$unit_id[u], origin = dt, calendar = calendar, cal_id = cal)
 }
 
 setMethod("show", "CFdatum", function(object) {
-  if (object@tz == "00:00") tz = "" else tz = object@tz
+  if (object@origin$tz[1] == "00:00") tz = "" else tz = object@origin$tz[1]
   cat("CF datum of origin:",
       "\n  Origin  : ", origin_date(object), " ", origin_time(object), tz,
-      "\n  Units   : ", CFt_unit_string[object@unit],
+      "\n  Units   : ", CFtime_unit_string[object@unit],
       "\n  Calendar: ", object@calendar, "\n",
       sep = "")
 })
 
-setGeneric("definition", function(x) standardGeneric("definition"))
-
-setMethod("definition", "CFdatum", function(x) x@definition)
-
-setGeneric("calendar", function(x) standardGeneric("calendar"))
-
-setMethod("calendar", "CFdatum", function(x) x@calendar)
-
-setGeneric("unit", function(x) standardGeneric("unit"))
-
-setMethod("unit", "CFdatum", function(x) x@unit)
-
-setGeneric("origin_date", function(x) standardGeneric("origin_date"))
-
-setMethod("origin_date", "CFdatum", function(x) sprintf("%04d-%02d-%02d", x@origin[1], x@origin[2], x@origin[3]))
-
-setGeneric("origin_time", function(x) standardGeneric("origin_time"))
-
-setMethod("origin_time", "CFdatum", function(x) .format_time(x@origin[4]))
-
-setGeneric("year", function(x) standardGeneric("year"))
-
-setMethod("year", "CFdatum", function(x) x@origin[1])
-
-setGeneric("month", function(x) standardGeneric("month"))
-
-setMethod("month", "CFdatum", function(x) x@origin[2])
-
-setGeneric("day", function(x) standardGeneric("day"))
-
-setMethod("day", "CFdatum", function(x) x@origin[3])
-
-setGeneric("second", function(x) standardGeneric("second"))
-
-setMethod("second", "CFdatum", function(x) x@origin[3])
-
 #' Equivalence of CFdatum objects
 #'
-#' This operator can be used to test if two CFdatum objects represent the same datum
+#' This function can be used to test if two CFdatum objects represent the same datum
 #' for CF-convention time coordinates. Two CFdatum objects are considered equivalent
 #' if they have the same definition string and the same calendar. Calendars
 #' "standard", "gregorian" and "proleptic_gregorian" are considered equivalent,
@@ -129,14 +86,20 @@ setMethod("second", "CFdatum", function(x) x@origin[3])
 #'
 #' @param e1,e2 CFdatum Instances of the CFdatum class.
 #'
-#' @return `TRUE` if the CFdatum objects are equivalent, `FALSE` otherwise.
-#' @export
-#'
-#' @examples
-#' e1 <- CFdatum("days since 1850-01-01", "gregorian")
-#' e2 <- CFdatum("days since 1850-01-01 00:00:00", "standard")
-#' e1 == e2
-setMethod("==", c("CFdatum", "CFdatum"), function(e1, e2) sum(e1@origin != e2@origin) == 0 &&
-                                                          e1@unit == e2@unit &&
-                                                          e1@cal_id == e2@cal_id)
+#' @returns `TRUE` if the CFdatum objects are equivalent, `FALSE` otherwise.
+#' @noRd
+.datum_equivalent <- function(e1, e2) {
+  sum(e1@origin[1,1:6] != e2@origin[1,1:6]) == 0 &&  # Offset column is NA
+  e1@unit == e2@unit &&
+  e1@cal_id == e2@cal_id
+}
 
+definition <- function(x) x@definition
+
+calendar <- function(x) x@calendar
+
+unit <- function(x) x@unit
+
+origin_date <- function(x) sprintf("%04d-%02d-%02d", x@origin$year[1], x@origin$month[1], x@origin$day[1])
+
+origin_time <- function(x) .format_time(x@origin)

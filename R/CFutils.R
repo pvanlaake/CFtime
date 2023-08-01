@@ -1,3 +1,55 @@
+#' Return the number of days in a month given a certain CF calendar
+#'
+#' @description Given a vector of dates as strings in ISO 8601 format and a
+#' `CFtime` object, this function will return a vector of the same length as the
+#' dates, indicating the number of days in the month according to the calendar
+#' specification.
+#'
+#' @param x character. A vector of dates as strings with format `YYYY-MM-DD`.
+#' @param cf CFtime. The CF time definition to use.
+#'
+#' @returns A vector indicating the number of days in each month for the vector of
+#' dates supplied as a parameter to the function
+#' @export
+#' @examples
+#' dates <- c("2021-11-27", "2021-12-10", "2022-01-14", "2022-02-18")
+#' cf <- CFtime("days since 1850-01-01", "standard")
+#' CFmonth_days(dates, cf)
+#'
+#' cf <- CFtime("days since 1850-01-01", "all_leap")
+#' CFmonth_days(dates, cf)
+#'
+#' cf <- CFtime("days since 1850-01-01", "360_day")
+#' CFmonth_days(dates, cf)
+#'
+CFmonth_days <- function(x, cf) {
+  stopifnot(methods::is(cf, "CFtime"))
+
+  if (cf@datum@cal_id == 3) days <- rep(30, length(x)) # 360_day
+  else {
+    days_in_month <- c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+    if (cf@datum@cal_id == 5) days_in_month[2] <- 29
+
+    months <- as.integer(substr(x, 6, 7))
+    if (cf@datum@cal_id %in% c(4, 5)) { # 365_day or 366_day
+      dim(months) <- length(months)
+      days <- days_in_month[months]
+    } else {                     # standard and julian: account for leap years
+      years <- as.integer(substr(x, 1, 4))
+      days <- mapply(function(m, y) {
+        if (m == 2) {
+          if (y %% 4 > 0) return(28)                     # not divisible by 4, so always a normal year
+          else if (calendar == 2) return(29)             # divisible by 4, so on Julian calendar always 29
+          if (y %% 100 == 0 && y %% 400 > 0) return(28)  # divisible by 100 but not 400, so a normal year
+          else return(29)                                # all other years are leap years
+        }
+        else return(days_in_month[m])
+      }, months, years)
+    }
+  }
+  return(days)
+}
+
 #' Check if the supplied year, month and day form a valid date in the specified
 #' calendar.
 #'
@@ -35,32 +87,3 @@
   return(!((mon %in% c(4, 6, 9, 11)) && (day == 31))) # months other than February
 }
 
-#' Return the extremes of the time series as character strings
-#'
-#' This function returns the first and last timestamp of the time series as a vector. Note that the time series is not
-#' necessarily sorted.
-#'
-#' This is an internal function that should not be used outside of the CFtime package.
-#'
-#' @param x CFts. The time series to operate on
-#'
-#' @returns Vector of two character strings that represent the
-#' starting and ending timestamps in the time series. If all of the timestamps
-#' in the time series have a time component of `00:00:00` the date of the
-#' timestamp is returned, otherwise the full timestamp (without any time zone
-#' information).
-#'
-#' @noRd
-.ts_range <- function(x) {
-  mn <- which.min(x@offsets)
-  mx <- which.max(x@offsets)
-  ts <- x@ymds
-  if (all(ts[ ,4] == 0)) {
-    return(c(sprintf("%04d-%02d-%02d", ts[mn, 1], ts[mn, 2], ts[mn, 3]),
-             sprintf("%04d-%02d-%02d", ts[mx, 1], ts[mx, 2], ts[mx, 3])))
-  } else {
-    t <- .format_time(c(ts[mn, 4], ts[mx, 4]))
-    return(c(sprintf("%04d-%02d-%02dT%s", ts[mn, 1], ts[mn, 2], ts[mn, 3], t[1]),
-             sprintf("%04d-%02d-%02dT%s", ts[mx, 1], ts[mx, 2], ts[mx, 3], t[2])))
-  }
-}
