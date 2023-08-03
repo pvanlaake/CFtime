@@ -4,32 +4,37 @@
 \alias{CFmonth_days}
 \title{Return the number of days in a month given a certain CF calendar}
 \usage{
-CFmonth_days(x, cf)
+CFmonth_days(cf, x = NULL)
 }
 \arguments{
-\item{x}{character. A vector of dates as strings with format \code{YYYY-MM-DD}.}
-
 \item{cf}{CFtime. The CF time definition to use.}
+
+\item{x}{character. An optional vector of dates as strings with format
+\code{YYYY-MM-DD}.}
 }
 \value{
-A vector indicating the number of days in each month for the vector of
-dates supplied as a parameter to the function
+A vector indicating the number of days in each month for the vector
+of dates supplied as a parameter to the function. If no dates are supplied,
+the number of days per month for the calendar as a vector of length 12.
 }
 \description{
-Given a vector of dates as strings in ISO 8601 format and a
-\code{CFtime} object, this function will return a vector of the same length as the
-dates, indicating the number of days in the month according to the calendar
-specification.
+Given a vector of dates as strings in ISO 8601 format and a \code{CFtime} object,
+this function will return a vector of the same length as the dates,
+indicating the number of days in the month according to the calendar
+specification. If no vector of days is supplied, the function will return an
+integer vector of length 12 with the number of days for each month of the
+calendar (disregarding the leap day for \code{standard} and \code{julian} calendars).
 }
 \examples{
 dates <- c("2021-11-27", "2021-12-10", "2022-01-14", "2022-02-18")
 cf <- CFtime("days since 1850-01-01", "standard")
-CFmonth_days(dates, cf)
-
-cf <- CFtime("days since 1850-01-01", "all_leap")
-CFmonth_days(dates, cf)
+CFmonth_days(cf, dates)
 
 cf <- CFtime("days since 1850-01-01", "360_day")
-CFmonth_days(dates, cf)
+CFmonth_days(cf, dates)
 
+cf <- CFtime("days since 1850-01-01", "all_leap")
+CFmonth_days(cf, dates)
+
+CFmonth_days(cf)
 }

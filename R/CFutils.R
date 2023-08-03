@@ -1,33 +1,54 @@
 #' Return the number of days in a month given a certain CF calendar
 #'
-#' @description Given a vector of dates as strings in ISO 8601 format and a
-#' `CFtime` object, this function will return a vector of the same length as the
-#' dates, indicating the number of days in the month according to the calendar
-#' specification.
+#' Given a vector of dates as strings in ISO 8601 format and a `CFtime` object,
+#' this function will return a vector of the same length as the dates,
+#' indicating the number of days in the month according to the calendar
+#' specification. If no vector of days is supplied, the function will return an
+#' integer vector of length 12 with the number of days for each month of the
+#' calendar (disregarding the leap day for `standard` and `julian` calendars).
 #'
-#' @param x character. A vector of dates as strings with format `YYYY-MM-DD`.
 #' @param cf CFtime. The CF time definition to use.
+#' @param x character. An optional vector of dates as strings with format
+#'  `YYYY-MM-DD`.
 #'
-#' @returns A vector indicating the number of days in each month for the vector of
-#' dates supplied as a parameter to the function
+#' @returns A vector indicating the number of days in each month for the vector
+#'   of dates supplied as a parameter to the function. If no dates are supplied,
+#'   the number of days per month for the calendar as a vector of length 12.
 #' @export
 #' @examples
 #' dates <- c("2021-11-27", "2021-12-10", "2022-01-14", "2022-02-18")
 #' cf <- CFtime("days since 1850-01-01", "standard")
-#' CFmonth_days(dates, cf)
-#'
-#' cf <- CFtime("days since 1850-01-01", "all_leap")
-#' CFmonth_days(dates, cf)
+#' CFmonth_days(cf, dates)
 #'
 #' cf <- CFtime("days since 1850-01-01", "360_day")
-#' CFmonth_days(dates, cf)
+#' CFmonth_days(cf, dates)
 #'
-CFmonth_days <- function(x, cf) {
+#' cf <- CFtime("days since 1850-01-01", "all_leap")
+#' CFmonth_days(cf, dates)
+#'
+#' CFmonth_days(cf)
+CFmonth_days <- function(cf, x = NULL) {
   stopifnot(methods::is(cf, "CFtime"))
+
+  days_in_month <- c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+
+  # No dates supplied: return standard number of days per month
+  if (is.null(x)) {
+    if (cf@datum@cal_id %in% c(1, 2, 4)) {
+      return(days_in_month)
+    } else if (cf@datum@cal_id == 3) {
+      return(rep(30, 12))
+    } else {
+      days_in_month[2] <- 29
+      return(days_in_month)
+    }
+  }
+
+  # Argument x supplied
+  if (!(is.character(x))) stop("Argument `x` must be a character vector of dates in 'YYYY-MM-DD' format")
 
   if (cf@datum@cal_id == 3) days <- rep(30, length(x)) # 360_day
   else {
-    days_in_month <- c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
     if (cf@datum@cal_id == 5) days_in_month[2] <- 29
 
     months <- as.integer(substr(x, 6, 7))
