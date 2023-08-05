@@ -61,10 +61,13 @@ CFdatum <- function(definition, calendar) {
   cal <- CFtime_cal_ids[which(calendar == CFtime_calendars)]
   if (length(cal) == 0) stop("Invalid calendar specification")
 
-  dt <- .parse_timestamp(paste(parts[3:length(parts)], collapse = " "), cal)
-  if (is.na(dt$year[1])) stop("Definition string does not appear to be a CF-compliant time coordinate description: invalid base date specification")
+  nw <- methods::new("CFdatum", definition = definition, unit = CFtime_units$unit_id[u], origin = data.frame(), calendar = calendar, cal_id = cal)
 
-  methods::new("CFdatum", definition = definition, unit = CFtime_units$unit_id[u], origin = dt, calendar = calendar, cal_id = cal)
+  dt <- .parse_timestamp(nw, paste(parts[3:length(parts)], collapse = " "))
+  if (is.na(dt$year[1])) stop("Definition string does not appear to be a CF-compliant time coordinate description: invalid base date specification")
+  nw@origin <- dt
+
+  return(nw)
 }
 
 setMethod("show", "CFdatum", function(object) {

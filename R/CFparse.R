@@ -3,8 +3,9 @@
 #' This function will parse a vector of timestamps in ISO8601 or UDUNITS format
 #' into a data frame with columns for the elements of the timestamp: year,
 #' month, day, hour, minute, second, time zone. Those timestamps that could not
-#' be parsed or which represent an invalid date in the indicated calendar will
-#' have `NA` values for the elements of the offending timestamp.
+#' be parsed or which represent an invalid date in the indicated `CFtime`
+#' instance will have `NA` values for the elements of the offending timestamp
+#' (which will generate a warning).
 #'
 #' The supported formats are the *broken timestamp* format from the UDUNITS
 #' library and ISO8601 *extended*, both with minor changes, as suggested by the
@@ -32,44 +33,49 @@
 #' are supported. The vector of timestamps may have any combination of ISO8601
 #' and UDUNITS formats.
 #'
+#' Timestamps that are prior to the datum are not allowed. The corresponding row
+#' in the result will have `NA` values.
+#'
+#' @param cf CFtime. An instance of `CFtime` indicating the CF calendar and
+#'   datum to use in interpreting the validity of the date.
 #' @param x character. Vector of character string representing timestamps in
 #'   ISO8601 extended or UDUNITS broken format.
-#' @param calendar character. Atomic character string indicating the CF calendar
-#'   to use in interpreting the validity of the date.
 #'
 #' @returns A data frame with constituent elements of the parsed timestamps in
 #'   numeric format. The columns are year, month, day, hour, minute, second
-#'   (with an optional fraction) and time zone (character string). Invalid input
-#'   data will appear as `NA`, other missing information on input will use
-#'   default values.
+#'   (with an optional fraction), time zone (character string), and the
+#'   corresponding offset value from the datum. Invalid input data will appear
+#'   as `NA`, other missing information on input will use default values - if
+#'   this is the case, a warning message will be displayed.
 #' @export
 #' @examples
+#' cf <- CFtime("days since 0001-01-01", "proleptic_gregorian")
+#'
+#' # This will have `NA`s on output and generate a warning
 #' timestamps <- c("2012-01-01T12:21:34Z", "12-1-23", "today",
 #'                 "2022-08-16T11:07:34.45-10", "2022-08-16 10.5+04")
-#' x <- CFparse_timestamp(timestamps, "proleptic_gregorian")
-CFparse_timestamp <- function(x, calendar = "standard") {
-  # Check parameter sanity
-  stopifnot(is.character(x), length(calendar) == 1)
-  calendar <- tolower(calendar)
-  cal <- CFtime_cal_ids[which(calendar == CFtime_calendars)]
-  if (length(cal) == 0) stop("Invalid calendar specification")
+#' CFparse(cf, timestamps)
+CFparse <- function(cf, x) {
+  stopifnot(is.character(x), methods::is(cf, "CFtime"))
 
-  .parse_timestamp(x, cal)
+  out <- .parse_timestamp(cf@datum, x)
+  if (any(is.na(out$year)))
+    warning("Some dates could not be parsed. Result contains `NA` values.")
+  return(out)
 }
 
-#' Parsing a vector of date-time strings, using a calendar
+#' Parsing a vector of date-time strings, using a CFtime specification
 #'
 #' This is an internal function that should not generally be used outside of
 #' the CFtime package.
 #'
+#' @param datum CFdatum. The `CFdatum` instance that is the datum for the dates.
 #' @param d character. A vector of strings of dates and times.
-#' @param cal_id numeric. Identifier of the calendar to use.
 #'
 #' @returns A data frame with columns year, month, day, hour, minute, second,
-#' time zone, and offset. Invalid input data will appear as `NA`. Offsets are
-#' currently not computed.
+#' time zone, and offset. Invalid input data will appear as `NA`.
 #' @noRd
-.parse_timestamp  <- function(d, cal_id) {
+.parse_timestamp  <- function(datum, d) {
   # Parsers
 
   # UDUNITS broken timestamp definition, with some changes
@@ -178,12 +184,142 @@ CFparse_timestamp <- function(x, calendar = "standard") {
   cap$day[is.na(cap$day)] <- 1
 
   # Check date validity
-  notok <- mapply(function(y, m, d) {!.is_valid_calendar_date(y, m, d, cal_id)},
-                  cap$year, cap$month, cap$day)
-  if (sum(notok) > 0) cap[notok,] <- rep(NA, 7)
+  invalid <- mapply(function(y, m, d) {!.is_valid_calendar_date(y, m, d, datum@cal_id)},
+                    cap$year, cap$month, cap$day)
+  if (nrow(datum@origin) > 0) {
+    earlier <- mapply(function(y, m, d, dy, dm, dd) {
+      if (is.na(y)) return(TRUE)
+      if (y < dy) return(TRUE)
+      if (y == dy){
+        if (m < dm) return(TRUE)
+        if (m == dm && d < dd) return(TRUE)
+      }
+      return(FALSE)
+    }, cap$year, cap$month, cap$day, datum@origin[1, 1], datum@origin[1, 2], datum@origin[1, 3])
+    invalid <- invalid | earlier
+  }
+  if (sum(invalid) > 0) cap[invalid,] <- rep(NA, 7)
 
-  # Add offsets to the result - currently not useful
-  cap$offset <- rep.int(NA_real_, nrow(cap))
-
+  # Calculate offsets
+  if (nrow(datum@origin) == 0) {        # if there's no datum yet, don't calculate offsets
+    cap$offset <- rep(0, nrow(cap))     # this happens, f.i., when a CFdatum is created
+  } else {
+    days <- switch(datum@cal_id,
+                   .date2offset_standard(cap, datum@origin),
+                   .date2offset_julian(cap, datum@origin),
+                   .date2offset_360day(cap, datum@origin),
+                   .date2offset_365day(cap, datum@origin),
+                   .date2offset_366day(cap, datum@origin)
+                  )
+    cap$offset <- (days * 86400 + (cap$hour - datum@origin$hour[1]) * 3600 +
+                   (cap$minute - datum@origin$minute[1]) * 60 +
+                   cap$second - datum@origin$second) / CFtime_unit_seconds[datum@unit]
+  }
   return(cap)
+}
+
+#' Calculate difference in days between a data.frame of time parts and a datum
+#'
+#' This is an internal function that should not generally be used outside of
+#' the CFtime package.
+#'
+#' @param x data.frame. Dates to calculate the difference for.
+#' @param origin data.frame. The origin to calculate the difference against.
+#'
+#' @returns Vector of days between `x` and the `origin`, using the `standard` calendar.
+#' @noRd
+.date2offset_standard <- function(x, origin) {
+  yd0 <- c(0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334) # days diff of 1st of month to 1 January in normal year
+
+  datum_year <- origin[1, 1]
+  datum_days_in_year <- yd0[origin[1, 2]] + origin[1, 3]
+  if ((origin[1, 2] <= 2) && ((datum_year %% 4 == 0 && datum_year %% 100 > 0) || datum_year %% 400 == 0))
+    datum_days_in_year <- datum_days_in_year - 1
+
+  mapply(function(y, m, d) {
+    if (is.na(y)) return(NA_integer_)
+    if (m <= 2 && ((y %% 4 == 0 && y %% 100 > 0) || y %% 400 == 0)) days <- -1 else days <- 0 # -1 if in a leap year up to the leap day, 0 otherwise
+    repeat {
+      if (y > datum_year) {
+        days <- days + 365 + as.integer((y %% 4 == 0 && y %% 100 > 0) || y %% 400 == 0)
+        y <- y - 1
+      } else break
+    }
+    days + yd0[m] + d - datum_days_in_year
+  }, x$year, x$month, x$day)
+}
+
+#' Calculate difference in days between a data.frame of time parts and a datum
+#'
+#' This is an internal function that should not generally be used outside of
+#' the CFtime package.
+#'
+#' @param x data.frame. Dates to calculate the difference for.
+#' @param origin data.frame. The origin to calculate the difference against.
+#'
+#' @returns Vector of days between `x` and the `origin`, using the `julian` calendar.
+#' @noRd
+.date2offset_julian <- function(x, origin) {
+  yd0 <- c(0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334) # days diff of 1st of month to 1 January in normal year
+
+  datum_year <- origin[1, 1]
+  datum_days_in_year <- yd0[origin[1, 2]] + origin[1, 3]
+  if (origin[1, 2] <= 2 && datum_year %% 4 == 0)
+    datum_days_in_year <- datum_days_in_year - 1
+
+  mapply(function(y, m, d) {
+    if (is.na(y)) return(NA_integer_)
+    if (m <= 2 && y %% 4 == 0) days <- -1 else days <- 0 # -1 if in a leap year up to the leap day, 0 otherwise
+    repeat {
+      if (y > datum_year) {
+        days <- days + 365 + as.integer(y %% 4 == 0)
+        y <- y - 1
+      } else break
+    }
+    days + yd0[m] + d - datum_days_in_year
+  }, x$year, x$month, x$day)
+}
+
+#' Calculate difference in days between a data.frame of time parts and a datum
+#'
+#' This is an internal function that should not generally be used outside of
+#' the CFtime package.
+#'
+#' @param x data.frame. Dates to calculate the difference for.
+#' @param origin data.frame. The origin to calculate the difference against.
+#'
+#' @returns Vector of days between `x` and the `origin`, using the `360_day` calendar.
+#' @noRd
+.date2offset_360day <- function(x, origin) {
+  (x$year - origin[1, 1]) * 360 + (x$month - origin[1, 2]) * 30 + x$day - origin[1, 3]
+}
+
+#' Calculate difference in days between a data.frame of time parts and a datum
+#'
+#' This is an internal function that should not generally be used outside of
+#' the CFtime package.
+#'
+#' @param x data.frame. Dates to calculate the difference for.
+#' @param origin data.frame. The origin to calculate the difference against.
+#'
+#' @returns Vector of days between `x` and the `origin`, using the `365_day` calendar.
+#' @noRd
+.date2offset_365day <- function(x, origin) {
+  yd0 <- c(0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334) # days diff of 1st of month to 1 January
+  (x$year - origin[1, 1]) * 365 + yd0[x$month] - yd0[origin[1, 2]] + x$day - origin[1, 3]
+}
+
+#' Calculate difference in days between a data.frame of time parts and a datum
+#'
+#' This is an internal function that should not generally be used outside of
+#' the CFtime package.
+#'
+#' @param x data.frame. Dates to calculate the difference for.
+#' @param origin data.frame. The origin to calculate the difference against.
+#'
+#' @returns Vector of days between `x` and the `origin`, using the `366_day` calendar.
+#' @noRd
+.date2offset_366day <- function(x, origin) {
+  yd0 <- c(0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335) # days diff of 1st of month to 1 January
+  (x$year - origin[1, 1]) * 366 + yd0[x$month] - yd0[origin[1, 2]] + x$day - origin[1, 3]
 }

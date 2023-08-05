@@ -61,8 +61,12 @@ setMethod("show", "CFtime", function(object) {
     el <- "  Elements: (no elements)\n"
   } else {
     d <- CFrange(object)
-    el <- sprintf("  Elements: [%s .. %s] (average of %f %s between %d elements)\n",
-                  d[1], d[2], object@resolution, CFtime_unit_string[object@datum@unit], nrow(object@time))
+    if (nrow(object@time) > 1) {
+      el <- sprintf("  Elements: [%s .. %s] (average of %f %s between %d elements)\n",
+                    d[1], d[2], object@resolution, CFtime_unit_string[object@datum@unit], nrow(object@time))
+    } else {
+      el <- paste("  Elements:", d[1], "\n")
+    }
   }
   cat("CF time series:\n", methods::show(object@datum), el, sep = "")
 })
@@ -150,6 +154,8 @@ setMethod("+", c("CFtime", "CFtime"), function(e1, e2) if (.datum_equivalent(e1@
 #' responsibility of the operator to ensure that the offsets of the different
 #' data sets are in reference to the same datum.
 #'
+#' Negative offsets will generate an error.
+#'
 #' @param e1 CFtime Instance of the `CFtime` class.
 #' @param e2 numeric. Vector of offsets to be added to the `CFtime` instance.
 #'
@@ -168,14 +174,14 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {if (.validOffsets(e2)) 
 #' This is an internal function that should not be used outside the CFtime
 #' package.
 #'
-#' Tests the `offsets` values. Throws an error if the arguments contains negative or `NA` values.
+#' Tests the `offsets` values. Throws an error if the argument contains negative or `NA` values.
 #'
 #' @param offsets The offsets to test
 #'
 #' @returns logical. `TRUE` if the offsets are valid, throws an error otherwise.
 #' @noRd
 .validOffsets <- function(offsets) {
-  if (any(is.na(offsets) | offsets < 0)) stop("Offsets cannot contain negative or `NA` values.")
+  if (any(is.na(offsets) | (offsets < 0))) stop("Offsets cannot contain negative or `NA` values.")
   TRUE
 }
 
@@ -198,8 +204,8 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {if (.validOffsets(e2)) 
 .ts_extremes <- function(x) {
   if (nrow(x@time) == 0) return(c(NA_character_, NA_character_))
 
-  mn <- which.min(x@time$offsets)
-  mx <- which.max(x@time$offsets)
+  mn <- which.min(x@time$offset)
+  mx <- which.max(x@time$offset)
   if (sum(x@time$hour, x@time$minute, x@time$second) == 0) { # all times are 00:00:00
     return(c(sprintf("%04d-%02d-%02d", x@time$year[mn], x@time$month[mn], x@time$day[mn]),
              sprintf("%04d-%02d-%02d", x@time$year[mx], x@time$month[mx], x@time$day[mx])))
@@ -226,15 +232,11 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {if (.validOffsets(e2)) 
 .add_offsets <- function(offsets, datum) {
   len <- length(offsets)
 
-    # First add time: convert to seconds first, then recompute time parts
-  switch (datum@unit,
-          secs <- offsets * 86400,
-          secs <- offsets * 3600,
-          secs <- offsets * 60,
-          secs <- offsets)
+  # First add time: convert to seconds first, then recompute time parts
+  secs <- offsets * CFtime_unit_seconds[datum@unit]
   secs <- secs + datum@origin$hour[1] * 3600 + datum@origin$minute[1] * 60 + datum@origin$second[1]
-  days <- secs %/% 86400  # overflow days
-  secs <- secs %% 86400   # drop overflow days from time
+  days <- secs %/% 86400            # overflow days
+  secs <- round(secs %% 86400, 3)   # drop overflow days from time, round down to milli-seconds avoid errors
 
   # Time elements for output
   hrs <- secs %/% 3600
@@ -242,8 +244,8 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {if (.validOffsets(e2)) 
   secs <- secs %% 60
 
   # Now add days using the calendar of the datum
+  origin <- unlist(datum@origin[1,1:3]) # origin ymd as a named vector
   if (any(days > 0)) {
-    origin <- unlist(datum@origin[1,1:3]) # origin ymd as a named vector
     switch (datum@cal_id,
             out <- .offset2date_standard(days, origin),
             out <- .offset2date_julian(days, origin),
