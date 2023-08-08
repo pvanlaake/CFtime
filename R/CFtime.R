@@ -56,6 +56,43 @@ CFtime <- function(definition, calendar = "standard", offsets = NULL) {
   }
 }
 
+#' @aliases CFproperties
+#' @title Properties of a CFtime object
+#'
+#' @description These functions return the properties of an instance of the `CFtime` class.
+#' The properties are all read-only, but offsets can be added using the `+`
+#' operator.
+#'
+#' @param cf CFtime. An instance of `CFtime`.
+#'
+#' @returns `CFcalendar()` and `CFunit()` return an atomic character string.
+#' `CForigin()` returns a data frame of timestamp elements with a single row of
+#' data. `CFoffsets()` returns a vector of offsets or `NULL` if no offsets have
+#' been set.
+#'
+#' @examples
+#' cf <- CFtime("days since 1850-01-01", "julian", 0:364)
+#' CFcalendar(cf)
+#' CFunit(cf)
+#' CForigin(cf)
+#' CFoffsets(cf)
+
+#' @describeIn CFproperties The calendar of the CFtime instance
+#' @export
+CFcalendar <- function(cf) cf@datum@calendar
+
+#' @describeIn CFproperties The unit of the CFtime instance
+#' @export
+CFunit <- function(cf) CFtime_unit_string[cf@datum@unit]
+
+#' @describeIn CFproperties The origin of the CFtime instance in timestamp elements
+#' @export
+CForigin <- function(cf) cf@datum@origin
+
+#' @describeIn CFproperties The offsets of the CFtime instance as a vector
+#' @export
+CFoffsets <- function(cf) cf@time$offset
+
 setMethod("show", "CFtime", function(object) {
   if (nrow(object@time) == 0) {
     el <- "  Elements: (no elements)\n"
