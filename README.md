@@ -43,7 +43,7 @@ All defined calendars of the CF Metadata Convention are supported:
 - `standard` or `gregorian`
 - `proleptic_gregorian`
 - `julian`
-- `365_day` or `no_leap`
+- `365_day` or `noleap`
 - `366_day` or `all_leap`
 - `360_day`
 
@@ -72,6 +72,12 @@ using `tapply()` and similar functions.
 
 ## Installation
 
+Get the latest stable version on CRAN:
+
+``` r
+install_packages("CFtime")
+```
+
 You can install the development version of CFtime from
 [GitHub](https://github.com/) with:
 
@@ -79,8 +85,6 @@ You can install the development version of CFtime from
 # install.packages("devtools")
 devtools::install_github("pvanlaake/CFtime")
 ```
-
-The package has not yet been uploaded to CRAN.
 
 ## Basic operation
 
@@ -91,10 +95,28 @@ in time. This class operates on the data in the file of interest, here a
 CORDEX file of precipitation for the Central America domain:
 
 ``` r
-library(CFtime)
 library(ncdf4)
-nc <- nc_open("~/CC/CORDEX/CAM-22/RCP2.6/pr_CAM-22_MOHC-HadGEM2-ES_rcp26_r1i1p1_GERICS-REMO2015_v1_day_20060101-20101230.nc")
-time <- CFtime(nc$dim$time$units, nc$dim$time$calendar, nc$dim$time$vals)
+
+# Opening a data file that is included with the package.
+# Usually you would `list.files()` on a directory of your choice.
+nc <- nc_open(list.files(path = system.file("extdata", package = "CFtime"), full.names = TRUE)[1])
+attrs <- ncatt_get(nc, "")
+attrs$title
+#> [1] "NOAA GFDL GFDL-ESM4 model output prepared for CMIP6 update of RCP4.5 based on SSP2"
+attrs$license
+#> [1] "CMIP6 model data produced by NOAA-GFDL is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License (https://creativecommons.org/licenses/). Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse for terms of use governing CMIP6 output, including citation requirements and proper acknowledgment. Further information about this data, including some limitations, can be found via the further_info_url (recorded as a global attribute in this file). The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law."
+
+# Create the CFtime instance
+cf <- CFtime(nc$dim$time$units, nc$dim$time$calendar, nc$dim$time$vals)
+cf
+#> CF datum of origin:
+#>   Origin  : 1850-01-01 00:00:00
+#>   Units   : days
+#>   Calendar: noleap
+#> CF time series:
+#>   Elements: [2015-01-01T12:00:00 .. 2099-12-31T12:00:00] (average of 1.000000 days between 31025 elements)
+
+# ... work with the data ...
 nc_close(nc)
 ```
 
@@ -116,6 +138,7 @@ CORDEX data, you can calculate the precipitation per month for the
 period 2041 - 2050 as follows:
 
 ``` r
+# NOT RUN
 library(CFtime)
 library(ncdf4)
 library(abind)

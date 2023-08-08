@@ -14,7 +14,7 @@ CFtimestamp(cf, format = "date")
 }
 \value{
 A character vector where each element represents a moment in time
-according to the \code{format} specifier. Time zone information is not repesented.
+according to the \code{format} specifier. Time zone information is not represented.
 }
 \description{
 The \code{CFtime} instance contains a vector of offsets from an origin. This

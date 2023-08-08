@@ -14,7 +14,7 @@
 #' "time", "timestamp".
 #'
 #' @returns A character vector where each element represents a moment in time
-#' according to the `format` specifier. Time zone information is not repesented.
+#' according to the `format` specifier. Time zone information is not represented.
 #' @export
 #'
 #' @examples
@@ -39,16 +39,17 @@ CFtimestamp <- function(cf, format = "date") {
 #'
 #' @param t data.frame. A data.frame representing timestamps.
 #'
-#' @returns A vector of character strings with a properly formatted time.
+#' @returns A vector of character strings with a properly formatted time. If any
+#' timestamp has a fractional second part, then all time strings will report
+#' seconds at milli-second precision.
 #' @noRd
 .format_time <- function(t) {
-  out <- vector("character", nrow(t))
   fsec <- t$second %% 1
-  no_fsec <- which(fsec == 0)
-  has_fsec <- which(fsec > 0)
-  out[no_fsec] <- sprintf("%02d:%02d:%02d", t$hour[no_fsec], t$minute[no_fsec], t$second[no_fsec])
-  out[has_fsec] <- sprintf("%02d:%02d:%f", t$hour[has_fsec], t$minute[has_fsec], t$second[has_fsec])
-  return(out)
+  if (any(fsec > 0)) {
+    paste0(sprintf("%02d:%02d:", t$hour, t$minute), ifelse(t$second < 10, "0", ""), sprintf("%.3f", t$second))
+  } else {
+    sprintf("%02d:%02d:%02d", t$hour, t$minute, t$second)
+  }
 }
 
 #' Create a factor from the offsets in an CFtime instance
@@ -142,7 +143,7 @@ CFfactor <- function(cf, period = "month", epoch = NULL) {
     stop("Period specifier must be an atomic value of a supported period")
 
   # No fine-grained period factors for coarse source data
-  timestep <- CFtime_units$seconds[cf@datum@unit] * cf@resolution;
+  timestep <- CFtime_unit_seconds[cf@datum@unit] * cf@resolution;
   if ((period == "year") && (timestep > 86400 * 366) ||
       (period == "season") && (timestep > 86400 * 90) || # Somewhat arbitrary
       (period == "month") && (timestep > 86400 * 31) ||

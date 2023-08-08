@@ -35,6 +35,8 @@ addition to the \code{CFtime} instance. So avoid `CFtime(definition, calendar, e
 responsibility of the operator to ensure that the offsets of the different
 data sets are in reference to the same datum.
 }
+
+Negative offsets will generate an error.
 }
 \examples{
 e1 <- CFtime("days since 1850-01-01", "gregorian", 0:364)

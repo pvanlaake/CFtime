@@ -8,9 +8,9 @@ CFparse(cf, x)
 }
 \arguments{
 \item{cf}{CFtime. An instance of \code{CFtime} indicating the CF calendar and
-datum to use in interpreting the validity of the date.}
+datum to use when parsing the date.}
 
-\item{x}{character. Vector of character string representing timestamps in
+\item{x}{character. Vector of character strings representing timestamps in
 ISO8601 extended or UDUNITS broken format.}
 }
 \value{
@@ -18,8 +18,8 @@ A data frame with constituent elements of the parsed timestamps in
 numeric format. The columns are year, month, day, hour, minute, second
 (with an optional fraction), time zone (character string), and the
 corresponding offset value from the datum. Invalid input data will appear
-as \code{NA}, other missing information on input will use default values - if
-this is the case, a warning message will be displayed.
+as \code{NA} - if this is the case, a warning message will be displayed - other
+missing information on input will use default values.
 }
 \description{
 This function will parse a vector of timestamps in ISO8601 or UDUNITS format
@@ -38,11 +38,12 @@ CF Metadata Conventions. In general, the format is \verb{YYYY-MM-DD hh:mm:ss.sss
 as everybody vividly remembers). The year and month are mandatory, all other
 fields are optional. There are defaults for all missing values, following the
 UDUNITS and CF Metadata Conventions. Leading zeros can be omitted in the
-UDUNITS format. The optional fractional part can have as many digits as the
-precision calls for and will be applied to the smallest specified time unit.
-In the result of this function if the fraction is associated with the minute
-or the hour, it is converted into a regular \code{hh:mm:ss.sss} format, i.e. any
-fraction in the result is always associated with the second. The time zone is
+UDUNITS format, but not in the ISO8601 format. The optional fractional part
+can have as many digits as the precision calls for and will be applied to the
+smallest specified time unit. In the result of this function, if the fraction
+is associated with the minute or the hour, it is converted into a regular
+\code{hh:mm:ss.sss} format, i.e. any fraction in the result is always associated
+with the second, rounded down to milli-second accuracy. The time zone is
 optional and should have at least the hour or \code{Z} if present, the minute is
 optional. The time zone hour can have an optional sign. The separator between
 the date and the time can be a single whitespace character or a \code{T}; in the
