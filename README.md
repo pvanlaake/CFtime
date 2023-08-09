@@ -186,7 +186,6 @@ The package also operates on geographical and/or temporal subsets of
 data sets so long as the subsetted data complies with the CF Metadata
 Conventions. This includes subsetting in the [Climate Data
 Store](https://cds.climate.copernicus.eu/#!/home). Subsetted data from
-[Climate4Impact](https://climate4impact.eu/impactportal/general/index.jsp)
-is not automatically supported because the dimension names are not
-compliant with the CF Metadata Conventions, use the corresponding
-dimension names instead.
+Climate4Impact is not automatically supported because the dimension
+names are not compliant with the CF Metadata Conventions, use the
+corresponding dimension names instead.

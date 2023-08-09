@@ -5,7 +5,7 @@
 \alias{CFtime-package}
 \alias{_PACKAGE}
 \alias{CFtime_package}
-\title{CFtime: Using CF-compliant Calendars with Climate Change Projections}
+\title{CFtime: Using CF-Compliant Calendars with Climate Change Projections}
 \description{
 Support for all calendars as specified in the Climate and Forecast (CF) Metadata Conventions for climate and forecasting data. The CF Metadata Conventions is widely used for distributing files with climate observations or projections, including the CMIP data used by climate change scientists and the IPCC. This package specifically allows the user to work with any of the CF-compliant calendars (many of which are not compliant with POSIXt).
 }

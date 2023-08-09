@@ -378,7 +378,7 @@ statements:
  - **pr_day_GFDL-ESM4_ssp245_r1i1p1f1_gr1_20150101-20991231_v20180701.nc:** CMIP6 
 model data produced by NOAA-GFDL is licensed under a Creative Commons Attribution-ShareAlike 
 4.0 International License (https://creativecommons.org/licenses/). Consult
-https://pcmdi.llnl.gov/CMIP6/TermsOfUse for terms of use governing CMIP6 output, 
+https://pcmdi.llnl.gov/CMIP6/TermsOfUse/ for terms of use governing CMIP6 output, 
 including citation requirements and proper acknowledgment. Further information 
 about this data, including some limitations, can be found via the further_info_url 
 (recorded as a global attribute in this file). The data producers and data providers 
@@ -389,7 +389,7 @@ are excluded to the fullest extent permitted by law.
  - **pr_day_MRI-ESM2-0_ssp245_r1i1p1f1_gn_20150101-20991231_v20190603.nc:** CMIP6 
 model data produced by MRI is licensed under a Creative Commons Attribution-ShareAlike 
 4.0 International License (https://creativecommons.org/licenses/). Consult
-https://pcmdi.llnl.gov/CMIP6/TermsOfUse for terms of use governing CMIP6 output, 
+https://pcmdi.llnl.gov/CMIP6/TermsOfUse/ for terms of use governing CMIP6 output, 
 including citation requirements and proper acknowledgment. Further information about 
 this data, including some limitations, can be found via the further_info_url (recorded
 as a global attribute in this file). The data producers and data providers make no 

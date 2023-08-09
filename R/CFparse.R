@@ -12,16 +12,13 @@
 #' CF Metadata Conventions. In general, the format is `YYYY-MM-DD hh:mm:ss.sss
 #' hh:mm`. The year can be from 1 to 4 digits and is interpreted literally, so
 #' `79-10-24` is the day Mount Vesuvius erupted and destroyed Pompeii, not
-#' `1979-10-24` (when [Ajax Amsterdam beat Omonoia Cyprus 10-0 in the first leg
-#' of the second round of the European Cup competition, with 5 goals from Søren
-#' Lerby](https://www.uefa.com/uefachampionsleague/match/63624--ajax-vs-omonia/),
-#' as everybody vividly remembers). The year and month are mandatory, all other
-#' fields are optional. There are defaults for all missing values, following the
-#' UDUNITS and CF Metadata Conventions. Leading zeros can be omitted in the
-#' UDUNITS format, but not in the ISO8601 format. The optional fractional part
-#' can have as many digits as the precision calls for and will be applied to the
-#' smallest specified time unit. In the result of this function, if the fraction
-#' is associated with the minute or the hour, it is converted into a regular
+#' `1979-10-24`. The year and month are mandatory, all other fields are
+#' optional. There are defaults for all missing values, following the UDUNITS
+#' and CF Metadata Conventions. Leading zeros can be omitted in the UDUNITS
+#' format, but not in the ISO8601 format. The optional fractional part can have
+#' as many digits as the precision calls for and will be applied to the smallest
+#' specified time unit. In the result of this function, if the fraction is
+#' associated with the minute or the hour, it is converted into a regular
 #' `hh:mm:ss.sss` format, i.e. any fraction in the result is always associated
 #' with the second, rounded down to milli-second accuracy. The time zone is
 #' optional and should have at least the hour or `Z` if present, the minute is
