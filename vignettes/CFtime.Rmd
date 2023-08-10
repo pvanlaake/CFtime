@@ -31,7 +31,7 @@ the Earth Systems Grid Federation.
 The data are all formatted to comply with the [CF Metadata Conventions](http://cfconventions.org),
 a set of standards to support standardization among research groups and published
 data sets. These conventions greatly facilitate use and analysis of the climate
-change projections because standard processing work flows (should) work across
+projections because standard processing work flows (should) work across
 the various data sets.
 
 On the flip side, the CF Metadata Conventions needs to cater to a wide range of
@@ -39,7 +39,7 @@ modeling requirements and that means that some of the areas covered by the stand
 more complex than might be assumed. One of those areas is the temporal dimension
 of the data sets. The CF Metadata Conventions supports no less than nine different
 calendar definitions, that, upon analysis, fall into five distinct calendars
-(from the perspective of computation of climate change projections):
+(from the perspective of computation of climate projections):
 
  - `standard` or `gregorian`: The international civil calendar that is in common use in 
  many countries around the world, adopted by edict of Pope Gregory XIII in 1582
@@ -151,9 +151,9 @@ with offsets calculated in days (the largest time unit that the CF Metadata
 Conventions allows). Typically the middle of the month is then recorded, which 
 for months with 31 days would be something like `2005-01-15T12:00:00`.
 
-## Processing climate change data
+## Processing climate projections
 
-Individual files containing climate change data contain global, regional or local
+Individual files containing climate projections contain global, regional or local
 data, typically on a rectangular latitude-longitude grid, for a single parameter
 such as "near-surface temperature", and for a number of time steps. An analysis
 workflow then consists of a number of steps:
@@ -290,7 +290,7 @@ ano <- lapply(pr_d_ave, function(x) (x - baseline) * CFmonth_days(cf))
 
 ## Working with multiple files in a single data suite
 
-Due to the large size of typical climate change projection data files, it is
+Due to the large size of typical climate projection data files, it is
 common to have a data suite that is contained in multiple files. A case in point
 is the CORDEX data set which breaks up the experiment period of 2006 - 2100 into
 19 files of 5 years each, with each file covering a single parameter (temperature,
@@ -345,19 +345,19 @@ When working like this it is imperative that the offsets and the data arrays are
 added to their final structures *in exactly the same order*. It is not necessary
 that the offsets (and the data) themselves are in order, but the correspondence
 between offsets and data needs to be maintained. (`list.files()` produces a list
-in alphabetical order by default, which for most climate change projection files
+in alphabetical order by default, which for most climate projection files
 produces offsets in chronological order.)
 
 ## Final observations
 
- - This package is intended to facilitate processing of climate change projection
+ - This package is intended to facilitate processing of climate projection
  data. It is not a full implementation of the CF Metadata Conventions "time"
  component.
  - In parsing and deparsing of offsets and timestamps, data is rounded to
  milli-second precision. When using units of "days" or "hours", this may lead to
  some loss of precision due to rounding errors. If milli-second precision is 
  required, use a unit of "seconds". The authors have no knowledge of published
- climate change projection data that requires milli-second precision so for the
+ climate projection data that requires milli-second precision so for the
  intended use of the package this issue is marginal.
  
 ## Acknowledgements

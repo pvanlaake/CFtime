@@ -20,14 +20,14 @@ knitr::opts_chunk$set(
 <!-- badges: end -->
 
 CFtime is an R package that supports working with [CF Metadata Conventions](http://cfconventions.org)
-time coordinates, specifically geared to time-referencing data sets 
-of climate change projections such as those produced under the [World Climate
-Research Programme](https://www.wcrp-climate.org) and re-analysis data such as
-ERA5.
+time coordinates, specifically geared to time-referencing data sets of climate 
+projections such as those produced under the [World Climate Research Programme](https://www.wcrp-climate.org) and re-analysis data such as ERA5 from
+the European Centre for Medium-range Weather Forecasts (ECMWF).
 
 The data sets include in their metadata a datum, a point in time from which 
 other points in time are calculated. This datum takes the form of `days since
-1949-12-01`, with each data source (CMIP generation, model, etc) having its own
+1949-12-01`, with each data source (Coupled Model Intercomparison Project (CMIP)
+generation, model, etc) having its own
 datum. The data itself has a dimension attribute of "time" with offset values 
 such as 43289. To convert this "offset" to a date, using a specific calendar, is
 what this package does. Given that most calendars supported by the CF Metadata
@@ -82,7 +82,7 @@ and similar functions.
 Get the latest stable version on CRAN:
 
 ``` r
-install_packages("CFtime")
+install.packages("CFtime")
 ```
 
 You can install the development version of CFtime from [GitHub](https://github.com/) with:
@@ -130,7 +130,8 @@ different attribute names.
 
 In a typical process, you would combine multiple data files into a single data
 set to analyze a feature of interest. To continue the previous example of
-precipitation in the Central America domain using CORDEX data, you can calculate
+precipitation in the Central America domain using Coordinated Regional Climate 
+Downscaling Experiment (CORDEX) data, you can calculate
 the precipitation per month for the period 2041 - 2050 as follows:
 
 ```{r example_3, eval = FALSE}
