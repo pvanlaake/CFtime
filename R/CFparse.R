@@ -211,7 +211,7 @@ CFparse <- function(cf, x) {
                   )
     cap$offset <- round((days * 86400 + (cap$hour - datum@origin$hour[1]) * 3600 +
                          (cap$minute - datum@origin$minute[1]) * 60 +
-                         cap$second - datum@origin$second) / CFtime_unit_seconds[datum@unit], 3)
+                         cap$second - datum@origin$second) / CFt$unit_seconds[datum@unit], 3)
   }
   return(cap)
 }

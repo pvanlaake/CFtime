@@ -83,7 +83,7 @@ CFcalendar <- function(cf) cf@datum@calendar
 
 #' @describeIn CFproperties The unit of the CFtime instance
 #' @export
-CFunit <- function(cf) CFtime_unit_string[cf@datum@unit]
+CFunit <- function(cf) CFt$unit_string[cf@datum@unit]
 
 #' @describeIn CFproperties The origin of the CFtime instance in timestamp elements
 #' @export
@@ -100,7 +100,7 @@ setMethod("show", "CFtime", function(object) {
     d <- CFrange(object)
     if (nrow(object@time) > 1) {
       el <- sprintf("  Elements: [%s .. %s] (average of %f %s between %d elements)\n",
-                    d[1], d[2], object@resolution, CFtime_unit_string[object@datum@unit], nrow(object@time))
+                    d[1], d[2], object@resolution, CFt$unit_string[object@datum@unit], nrow(object@time))
     } else {
       el <- paste("  Elements:", d[1], "\n")
     }
@@ -270,7 +270,7 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {if (.validOffsets(e2)) 
   len <- length(offsets)
 
   # First add time: convert to seconds first, then recompute time parts
-  secs <- offsets * CFtime_unit_seconds[datum@unit]
+  secs <- offsets * CFt$unit_seconds[datum@unit]
   secs <- secs + datum@origin$hour[1] * 3600 + datum@origin$minute[1] * 60 + datum@origin$second[1]
   days <- secs %/% 86400            # overflow days
   secs <- round(secs %% 86400, 3)   # drop overflow days from time, round down to milli-seconds avoid errors
@@ -303,7 +303,6 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {if (.validOffsets(e2)) 
 }
 
 #' 360_day, use integer arithmetic
-#'
 #' This is an internal function that should not be used outside of the CFtime package.
 #'
 #' @param x integer. Vector of days to add to the origin.

@@ -143,7 +143,7 @@ CFfactor <- function(cf, period = "month", epoch = NULL) {
     stop("Period specifier must be an atomic value of a supported period")
 
   # No fine-grained period factors for coarse source data
-  timestep <- CFtime_unit_seconds[cf@datum@unit] * cf@resolution;
+  timestep <- CFt$unit_seconds[cf@datum@unit] * cf@resolution;
   if ((period == "year") && (timestep > 86400 * 366) ||
       (period == "season") && (timestep > 86400 * 90) || # Somewhat arbitrary
       (period == "month") && (timestep > 86400 * 31) ||
