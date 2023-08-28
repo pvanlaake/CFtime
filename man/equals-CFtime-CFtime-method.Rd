@@ -7,7 +7,7 @@
 \S4method{==}{CFtime,CFtime}(e1, e2)
 }
 \arguments{
-\item{e1, e2}{CFts. Instances of the \code{CFtime} class.}
+\item{e1, e2}{CFtime. Instances of the \code{CFtime} class.}
 }
 \value{
 \code{TRUE} if the \code{CFtime} objects are equivalent, \code{FALSE} otherwise.

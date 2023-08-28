@@ -2,10 +2,10 @@ test_that("timestamp string parsing to offsets and deparsing of offsets to times
   # This test tests: global CFt* constants, CFtime(), CFparse(), CFtimestamp():
   # decomposing offsets into timestamp elements, generating timestamp strings,
   # parsing timestamp strings back into timestamp elements.
-  for (c in CFt$calendars) {
-    for (u in unique(CFt$units$unit_id)) {
+  for (c in CFt$calendars$name) {
+    for (u in unique(CFt$units$id)) {
       offsets <- 1:10000
-      def <- paste(CFt$unit_string[u], "since 1953-08-20")
+      def <- paste(CFt$units$name[u], "since 1953-08-20")
       cf <- CFtime(def, c, offsets)
       ts <- CFtimestamp(cf, "timestamp")
       cf2 <- CFtime(def, c)
@@ -36,10 +36,10 @@ test_that("Testing milli-second timestamp string parsing to offsets and deparsin
   # This test tests: global CFt* constants, CFtime(), CFparse(), CFtimestamp():
   # decomposing offsets into milli-second timestamp elements, generating timestamp strings,
   # parsing timestamp strings back into timestamp elements.
-  for (c in CFt$calendars) {
+  for (c in CFt$calendars$name) {
     for (u in 3:4) {
       offsets <- runif(10000, max = 10000)
-      def <- paste(CFt$unit_string[u], "since 1953-08-20 07:34:12.2")
+      def <- paste(CFt$units$name[u], "since 1953-08-20 07:34:12.2")
       cf <- CFtime(def, c, offsets)
       ts <- CFtimestamp(cf, "timestamp")
       cf2 <- CFtime(def, c)

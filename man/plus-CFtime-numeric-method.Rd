@@ -7,7 +7,7 @@
 \S4method{+}{CFtime,numeric}(e1, e2)
 }
 \arguments{
-\item{e1}{CFtime Instance of the \code{CFtime} class.}
+\item{e1}{CFtime. Instance of the \code{CFtime} class.}
 
 \item{e2}{numeric. Vector of offsets to be added to the \code{CFtime} instance.}
 }
@@ -29,12 +29,10 @@ only if the data sets are merged in the same order.
 
 Note that when adding multiple vectors of offsets to a \code{CFtime} instance, it
 is more efficient to first concatenate the vectors and then do a final
-addition to the \code{CFtime} instance. So avoid `CFtime(definition, calendar, e1)
-\itemize{
-\item CFtime(definition, calendar, e2) + CFtime(definition, calendar, e3) + ...\verb{but rather do}CFtime(definition, calendar, e1) + c(e2, e3, ...)`. It is the
+addition to the \code{CFtime} instance. So avoid \code{CFtime(definition, calendar, e1) + CFtime(definition, calendar, e2) + CFtime(definition, calendar, e3) + ...}
+but rather do \code{CFtime(definition, calendar, e1) + c(e2, e3, ...)}. It is the
 responsibility of the operator to ensure that the offsets of the different
 data sets are in reference to the same datum.
-}
 
 Negative offsets will generate an error.
 }

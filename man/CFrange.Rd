@@ -20,7 +20,7 @@ Character representation of the extreme values in the time series
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{CFrange(CFtime)}: User method
+\item \code{CFrange(CFtime)}: Extreme values of the time series
 
 }}
 \examples{

@@ -146,9 +146,8 @@ CFrange(cf)
 
 Note that in this latter case, if any of the timestamps in the time series have a time that is
 other than `00:00:00` then the time of the extremes of the time series is also
-displayed. This is a common occurrence for data sets at a monthly resolution 
-with offsets calculated in days (the largest time unit that the CF Metadata
-Conventions allows). Typically the middle of the month is then recorded, which 
+displayed. This is a common occurrence because the CF Metadata
+Conventions prescribe that the middle of the time period (month, day, etc) is recorded, which 
 for months with 31 days would be something like `2005-01-15T12:00:00`.
 
 ## Processing climate projections
@@ -162,7 +161,7 @@ workflow then consists of a number of steps:
  geography, time range, parameter, ... (called a "data suite" henceforth). If your 
  analysis involves multiple parameters (such as temperature and precipitation to 
  estimate crop productivity), repeat the process for all parameters. If you want 
- to make an ensemble to reduce model bias, repeat again for all desired model, 
+ to make a multi-model ensemble to reduce model bias, repeat again for all desired model, 
  experiment and realization combinations ("ensemble member"). You end up having 
  one or more data suites to work with.
  - Take all files in a data suite and extract the data. Process the data in the 
@@ -174,7 +173,7 @@ workflow then consists of a number of steps:
  - Combine the above results as your workflow requires. Frequently this involves 
  computing "anomalies": ratio the data for one or more future periods to a 
  baseline period. Repeat for each ensemble member.
- - Construct the ensemble from the individual ensemble members.
+ - Construct the multi-model ensemble from the individual ensemble members.
  
 Apart from the first step of obtaining the data, the steps lend themselves well
 to automation. The catch, however, is in the factor `f` to use with `tapply()`.
@@ -194,13 +193,14 @@ data files. The function comes in two operating modes:
  
 ```{r}
 # Create a dekad factor for the whole `cf` time series that was created above
-f_k <- CFfactor(cf, "dekad")
-str(f_k)
+dek <- CFfactor(cf, "dekad")
+str(dek)
 
-# Create four monthly factors for a baseline epoch and early, mid and late 21st century epochs
-f_ep <- CFfactor(cf, epoch = list(baseline = 1991:2020, early = 2021:2040,
-                                  mid = 2041:2060, late = 2061:2080))
-str(f_ep)
+# Create monthly factors for a baseline epoch and early, mid and late 21st century epochs
+baseline <- CFfactor(cf, epoch = 1991:2020)
+future <- CFfactor(cf, epoch = list(early = 2021:2040, mid = 2041:2060, late = 2061:2080))
+str(baseline)
+str(future)
 ```
 
 For the "epoch" version, there are two interesting things to note here:
@@ -233,35 +233,30 @@ baseline period could look like this:
 ```{r}
 # Read the data from the netCDF file.
 # Keep degenerate dimensions so that we have a predictable data structure: 3-dimensional array.
-# Converts units of kg m-2 s-2 to mm/day.
-pr_d <- ncvar_get(nc, "pr", collapse_degen = FALSE) * 86400
-str(pr_d)
-# Note that the data file has two degenerate dimensions for longitude and latitude, to keep
-# the example data shipped with this package small.
+# Converts units of kg m-2 s-1 to mm/day.
+pr <- ncvar_get(nc, "pr", collapse_degen = FALSE) * 86400
 
 # Assign dimnames(), optional.
-dimnames(pr_d) <- list(nc$dim$lon$vals, nc$dim$lat$vals, CFtimestamp(cf))
+dimnames(pr) <- list(nc$dim$lon$vals, nc$dim$lat$vals, CFtimestamp(cf))
 
 nc_close(nc)
 
 # Calculate the daily average precipitation per month for the baseline period
 # and the three future epochs.
-# `aperm()` rearranges dimensions after `tapply()` mixed them up.
-pr_d_ave <- lapply(f_ep, function(f) aperm(apply(pr_d, 1:2, tapply, f, mean), c(2, 3, 1)))
+pr_base <- apply(pr, 1:2, tapply, baseline, mean)                         # an array
+pr_future <- lapply(future, function(f) apply(pr, 1:2, tapply, f, mean))  # a list of arrays
 
 # Calculate the precipitation anomalies for the future epochs against the baseline.
 # Working with daily averages per month so we can simply subtract and then multiply by days 
 # per month for the CF calendar.
-baseline <- pr_d_ave$baseline
-pr_d_ave$baseline <- NULL
-ano <- lapply(pr_d_ave, function(x) (x - baseline) * CFmonth_days(cf))
+ano <- lapply(pr_future, function(x) (x - pr_base) * CFmonth_days(cf))
 
 # Plot the results
-plot(1:12, ano$early[1,1,], type = "o", col = "blue", ylim = c(-50, 40), xlim = c(1, 12), 
+plot(1:12, ano$early[,1,1], type = "o", col = "blue", ylim = c(-50, 40), xlim = c(1, 12), 
      main = paste0("Hamilton, New Zealand\n", experiment), 
      xlab = "month", ylab = "Precipitation anomaly (mm)")
-lines(1:12, ano$mid[1,1,], type = "o", col = "green")
-lines(1:12, ano$late[1,1,], type = "o", col = "red")
+lines(1:12, ano$mid[,1,1], type = "o", col = "green")
+lines(1:12, ano$late[,1,1], type = "o", col = "red")
 ```
 
 Looks like Hadley will be needing rubber boots in spring and autumn back home!
@@ -276,16 +271,15 @@ nc <- nc_open(list.files(path = system.file("extdata", package = "CFtime"), full
 cf <- CFtime(nc$dim$time$units, nc$dim$time$calendar, nc$dim$time$vals)
 # Note that `cf` has a different CF calendar
 
-f_ep <- CFfactor(cf, epoch = list(baseline = 1991:2020, early = 2021:2040,
-                                  mid = 2041:2060, late = 2061:2080))
+baseline = CFfactor(cf, epoch = 1991:2020)
+future <- CFfactor(cf, epoch = list(early = 2021:2040, mid = 2041:2060, late = 2061:2080))
 
-pr_d <- ncvar_get(nc, "pr", collapse_degen = FALSE) * 86400
+pr <- ncvar_get(nc, "pr", collapse_degen = FALSE) * 86400
 nc_close(nc)
 
-pr_d_ave <- lapply(f_ep, function(f) aperm(apply(pr_d, 1:2, tapply, f, mean), c(2, 3, 1)))
-baseline <- pr_d_ave$baseline
-pr_d_ave$baseline <- NULL
-ano <- lapply(pr_d_ave, function(x) (x - baseline) * CFmonth_days(cf))
+pr_base <- apply(pr, 1:2, tapply, baseline, mean)
+pr_future <- lapply(future, function(f) apply(pr, 1:2, tapply, f, mean))
+ano <- lapply(pr_future, function(x) (x - pr_base) * CFmonth_days(cf))
 ```
 
 ## Working with multiple files in a single data suite
@@ -314,22 +308,23 @@ library(ncdf4)
 library(abind)
 
 prepare_CORDEX <- function(fn, var) {
-  cf <- NA
-  offsets <- vector("list")
-  data <- vector("list")
-  lapply(fn, function(f) {
-    nc <- nc_open(f)
-    if (is.na(cf)) 
+  offsets <- vector("list", length(fn))
+  data <- vector("list", length(fn))
+  for (i in 1:length(fn)) {
+    nc <- nc_open(fn[i])
+    if (i == 1) 
       # Create an "empty" CFtime object, without elements
       cf <- CFtime(nc$dim$time$units, nc$dim$time$calendar)
     
-    # Make a list of all datum offsets and data arrays
-    offsets <- append(offsets, as.vector(nc$dim$time$vals))
-    data <- append(data, ncvar_get(nc, var, collapse_degen = FALSE)
-                   
-    nc_close(nc)
-  })
+    # Make lists of all datum offsets and data arrays
+    offsets[[i]] <- as.vector(nc$dim$time$vals)
+    data[[i]] <- ncvar_get(nc, var, 
+                           start = c(10, 10, 1), count = c(100, 100, -1), # spatial subsetting
+                           collapse_degen = FALSE)
     
+    nc_close(nc)
+  }
+  
   # Create a list for output with the CFtime instance assigned the offsets and
   # the data bound in a single 3-dimensional array
   list(CFtime = cf + unlist(offsets), data = abind(data, along = 3))

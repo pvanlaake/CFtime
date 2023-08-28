@@ -1,7 +1,6 @@
 #' Create a vector of character strings that represent CF timestamps
 #'
-#' The `CFtime` instance contains a vector of offsets from an origin. This
-#' function generates a vector of character strings that represent the date
+#' This function generates a vector of character strings that represent the date
 #' and/or time in a selectable combination for each offset.
 #'
 #' The character strings use the format `YYYY-MM-DDThh:mm:ss±hh:mm`, depending
@@ -131,9 +130,8 @@ CFtimestamp <- function(cf, format = "date") {
 #' # Create a dekad factor for the whole time series
 #' f <- CFfactor(cf, "dekad")
 #'
-#' # Create four monthly factors for a baseline epoch and early, mid and late 21st century epochs
-#' ep <- CFfactor(cf, epoch = list(baseline = 1991:2020, early = 2021:2040,
-#'                                 mid = 2041:2060, late = 2061:2080))
+#' # Create three monthly factors for early, mid and late 21st century epochs
+#' ep <- CFfactor(cf, epoch = list(early = 2021:2040, mid = 2041:2060, late = 2061:2080))
 CFfactor <- function(cf, period = "month", epoch = NULL) {
   if (!(methods::is(cf, "CFtime"))) stop("First argument to CFfactor must be an instance of the `CFtime` class")
   if (nrow(cf@time) < 10) stop("Cannot create factor for very short time series.")
@@ -143,7 +141,7 @@ CFfactor <- function(cf, period = "month", epoch = NULL) {
     stop("Period specifier must be an atomic value of a supported period")
 
   # No fine-grained period factors for coarse source data
-  timestep <- CFt$unit_seconds[cf@datum@unit] * cf@resolution;
+  timestep <- CFt$units$seconds[cf@datum@unit] * cf@resolution;
   if ((period == "year") && (timestep > 86400 * 366) ||
       (period == "season") && (timestep > 86400 * 90) || # Somewhat arbitrary
       (period == "month") && (timestep > 86400 * 31) ||

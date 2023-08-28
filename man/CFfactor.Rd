@@ -88,7 +88,6 @@ cf <- CFtime("days since 1949-12-01", "360_day", 19830:54029)
 # Create a dekad factor for the whole time series
 f <- CFfactor(cf, "dekad")
 
-# Create four monthly factors for a baseline epoch and early, mid and late 21st century epochs
-ep <- CFfactor(cf, epoch = list(baseline = 1991:2020, early = 2021:2040,
-                                mid = 2041:2060, late = 2061:2080))
+# Create three monthly factors for early, mid and late 21st century epochs
+ep <- CFfactor(cf, epoch = list(early = 2021:2040, mid = 2041:2060, late = 2061:2080))
 }

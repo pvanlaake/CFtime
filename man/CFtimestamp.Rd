@@ -17,8 +17,7 @@ A character vector where each element represents a moment in time
 according to the \code{format} specifier. Time zone information is not represented.
 }
 \description{
-The \code{CFtime} instance contains a vector of offsets from an origin. This
-function generates a vector of character strings that represent the date
+This function generates a vector of character strings that represent the date
 and/or time in a selectable combination for each offset.
 }
 \details{

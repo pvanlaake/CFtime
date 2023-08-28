@@ -7,7 +7,7 @@
 \S4method{+}{CFtime,CFtime}(e1, e2)
 }
 \arguments{
-\item{e1, e2}{CFts. Instances of the \code{CFtime} class.}
+\item{e1, e2}{CFtime. Instances of the \code{CFtime} class.}
 }
 \value{
 A \code{CFtime} object with a set of offsets equal to the offsets of the
