@@ -3,7 +3,7 @@ test_that("timestamp string parsing to offsets and deparsing of offsets to times
   # decomposing offsets into timestamp elements, generating timestamp strings,
   # parsing timestamp strings back into timestamp elements.
   for (c in CFt$calendars$name) {
-    for (u in unique(CFt$units$id)) {
+    for (u in unique(CFt$CFunits$id)) {
       offsets <- 1:10000
       def <- paste(CFt$units$name[u], "since 1953-08-20")
       cf <- CFtime(def, c, offsets)

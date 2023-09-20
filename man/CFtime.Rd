@@ -13,9 +13,13 @@ of a CF-compliant data file.}
 \item{calendar}{character. An atomic string describing the calendar to use
 with the time dimension definition string. Default value is "standard".}
 
-\item{offsets}{numeric. An optional vector of offsets from the origin in the time
-series. The unit of measure of the offsets is defined by the time series
-definition as well.}
+\item{offsets}{numeric or character, optional. When numeric, a vector of
+offsets from the origin in the time series. When a character vector,
+timestamps in ISO8601 or UDUNITS format. When an atomic character string, a
+timestamp in ISO8601 or UDUNITS format and then a time series will be
+generated with a separation between steps equal to the unit of measure in
+the definition, inclusive of the definition timestamp. The unit of measure
+of the offsets is defined by the time series definition.}
 }
 \value{
 An instance of the \code{CFtime} class.
@@ -27,4 +31,6 @@ observations or climate projections.
 }
 \examples{
 CFtime("days since 1850-01-01", "julian", 0:364)
+
+CFtime("hours since 2023-01-01", "360_day", "2023-01-30T23:00")
 }

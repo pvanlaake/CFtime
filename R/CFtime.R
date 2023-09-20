@@ -22,29 +22,36 @@ setClass("CFtime",
 #' observations or climate projections.
 #'
 #' @param definition character. An atomic string describing the time coordinate
-#' of a CF-compliant data file.
+#'   of a CF-compliant data file.
 #' @param calendar character. An atomic string describing the calendar to use
-#' with the time dimension definition string. Default value is "standard".
-#' @param offsets numeric. An optional vector of offsets from the origin in the time
-#'   series. The unit of measure of the offsets is defined by the time series
-#'   definition as well.
+#'   with the time dimension definition string. Default value is "standard".
+#' @param offsets numeric or character, optional. When numeric, a vector of
+#'   offsets from the origin in the time series. When a character vector,
+#'   timestamps in ISO8601 or UDUNITS format. When an atomic character string, a
+#'   timestamp in ISO8601 or UDUNITS format and then a time series will be
+#'   generated with a separation between steps equal to the unit of measure in
+#'   the definition, inclusive of the definition timestamp. The unit of measure
+#'   of the offsets is defined by the time series definition.
 #'
 #' @returns An instance of the `CFtime` class.
 #' @export
 #'
 #' @examples
 #' CFtime("days since 1850-01-01", "julian", 0:364)
+#'
+#' CFtime("hours since 2023-01-01", "360_day", "2023-01-30T23:00")
 CFtime <- function(definition, calendar = "standard", offsets = NULL) {
   datum <- CFdatum(definition, calendar)
+
+  if (is.array(offsets)) dim(offsets) <- NULL
 
   if (is.null(offsets)) {
     methods::new("CFtime", datum = datum, resolution = NA_real_,
                  time = data.frame(c(year = integer(), month = integer(), day = integer(),
                                      hour = integer(), minute = integer(), second = numeric(),
                                      tz = character(), offset = numeric())))
-  } else {
-    if (is.array(offsets)) dim(offsets) <- NULL
-    stopifnot(methods::is(offsets, "numeric"), .validOffsets(offsets))
+  } else if (methods::is(offsets, "numeric")) {
+    stopifnot(.validOffsets(offsets))
 
     if (length(offsets) > 1) {
       resolution <- (max(offsets) - min(offsets)) / (length(offsets) - 1)
@@ -53,7 +60,17 @@ CFtime <- function(definition, calendar = "standard", offsets = NULL) {
     }
     time <- .add_offsets(offsets, datum)
     methods::new("CFtime", datum = datum, resolution = resolution, time = time)
-  }
+  } else if (methods::is(offsets, "character")) {
+    time <- .parse_timestamp(datum, offsets)
+    if (any(is.na(time$year))) stop("Offset argument contains invalid timestamps")
+
+    if (length(offsets) == 1) {
+      ts <- seq(0, time$offset)
+      time <- .add_offsets(ts, datum)
+      resolution <- 1
+    } else resolution <- (max(time$offset) - min(time$offset)) / (length(time$offset) - 1)
+    methods::new("CFtime", datum = datum, resolution = resolution, time = time)
+  } else stop("Invalid offsets for CFtime object")
 }
 
 #' @aliases CFproperties
