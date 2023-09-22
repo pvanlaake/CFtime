@@ -93,14 +93,15 @@ CFparse <- function(cf, x) {
     "([+-]?[0-9]{1,4})",                    # year, with optional sign
     "-(0?[1-9]|1[012])",                    # month
     "(?:-(0?[1-9]|[12][0-9]|3[01]))?",      # day, optional
-    "(?:[T,\\s]",                           # if a time is following, separate with a single whitespace character or a "T"
-    "([01]?[0-9]|2[0-3])?",                 # hour
-    ":([0-5]?[0-9])?",                      # minute
+    "(?:[T ]",                              # if a time is following, separate with a single whitespace character or a "T"
+    "([01]?[0-9]|2[0-3])",                  # hour
+    ":([0-5]?[0-9])",                       # minute
     "(?::([0-5]?[0-9]))?",                  # second, optional
     "(?:\\.([0-9]*))?",                     # optional fractional part of the smallest specified unit
     ")?",                                   # close optional time capture group
     "(?:\\s",                               # if a time zone offset is following, separate with a single whitespace character
-    "([+-]?[01]?[0-9]|2[0-3](?::[0-5]?[0-9]))?",            # tz, with optional sign
+    "([+-])?([01]?[0-9]|2[0-3])",           # tz hour, with optional sign
+    "(?::(00|15|30|45))?",                  # optional tz minute, only 4 possible values
     ")?",                                   # close optional timezone capture group
     "$"                                     # anchor string at end
   )
@@ -116,8 +117,7 @@ CFparse <- function(cf, x) {
     "(?::([0-5][0-9]))?",
     "(?:\\.([0-9]*))?",
     ")?",
-    "(?:",
-    "(Z|[+-][01][0-9]|2[0-3](?::[0-5][0-9]))?",
+    "(?:([Z+-])([01][0-9]|2[0-3])(?::(00|15|30|45))?",
     ")?$"
   )
 
@@ -138,14 +138,14 @@ CFparse <- function(cf, x) {
   #   ")?",                                   # close optional time capture group
   #   "(?:\\s",                               # if a time zone offset is following, separate with a single whitespace character
   #     "([+-]?[01][0-9]|2[0-3])?",           # hour, with optional sign
-  #     "([0-5][0-9])?",                      # minute
+  #     "(00|15|30|45)?",                     # minute, only 4 possible values
   #   ")?",                                   # close optional timezone capture group
   #   "$"                                     # anchor string at end
   # )
 
   parse <- data.frame(year = integer(), month = integer(), day = integer(),
                       hour = integer(), minute = integer(), second = numeric(), frac = character(),
-                      tz = character())
+                      tz_sign = character(), tz_hour = character(), tz_min = character())
 
   cap <- utils::strcapture(iso8601, d, parse)
   missing <- which(is.na(cap$year))
@@ -175,7 +175,10 @@ CFparse <- function(cf, x) {
   cap$second[is.na(cap$second)] <- 0
 
   # Set timezone to default value where needed
-  cap$tz[is.na(cap$tz) | (cap$tz %in% c("", "Z"))] <- "00:00"
+  cap$tz_hour[is.na(cap$tz_hour)] <- "00"
+  cap$tz_min[is.na(cap$tz_min)] <- "00"
+  cap$tz <- paste0(ifelse(cap$tz_sign == "-", "-", ""), cap$tz_hour, ":", cap$tz_min)
+  cap$tz_sign <- cap$tz_hour <- cap$tz_min <- NULL
 
   # Set optional date parts to 1 if not specified
   cap$month[is.na(cap$month)] <- 1
