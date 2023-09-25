@@ -130,8 +130,17 @@ cf
 
 `nc$dim$time$units` and `nc$dim$time$calendar` are required attributes of the `time`
 dimension in the netCDF file, and `nc$dim$time$vals` are the offset values, or
-`dimnames()` in `R` terms, for the `time` dimension of the data. The corresponding 
-character representations of the time series can be easily generated:
+`dimnames()` in `R` terms, for the `time` dimension of the data.
+
+The above example (and others in this vignette) use the `ncdf4` package. If you 
+are using the `RNetCDF` package, creating a `CFtime` instance goes like this:
+
+```{r eval = FALSE}
+nc <- open.nc(list.files(path = system.file("extdata", package = "CFtime"), full.names = TRUE)[1])
+cf <- CFtime(att.get.nc(nc, "time", "units"), att.get.nc(nc, "time", "calendar"), var.get.nc(nc, "time"))
+```
+
+The corresponding character representations of the time series can be easily generated:
 
 ```{r}
 dates <- CFtimestamp(cf, format = "date")
@@ -271,7 +280,7 @@ nc <- nc_open(list.files(path = system.file("extdata", package = "CFtime"), full
 cf <- CFtime(nc$dim$time$units, nc$dim$time$calendar, nc$dim$time$vals)
 # Note that `cf` has a different CF calendar
 
-baseline = CFfactor(cf, epoch = 1991:2020)
+baseline <- CFfactor(cf, epoch = 1991:2020)
 future <- CFfactor(cf, epoch = list(early = 2021:2040, mid = 2041:2060, late = 2061:2080))
 
 pr <- ncvar_get(nc, "pr", collapse_degen = FALSE) * 86400
@@ -332,7 +341,8 @@ prepare_CORDEX <- function(fn, var) {
 ```
 
 Calling this function like `prepare_CORDEX(list.files(path = "~/CC/CORDEX/CAM", 
-pattern = "*.nc", full.names = TRUE))` will yield a list with the `CFtime` instance
+pattern = "^pr.*\\.nc$", full.names = TRUE), "pr")` will yield a list of netCDF
+files with precipitation data, with the resulting `CFtime` instance
 describing the full temporal extent covered by the data files, as well as the
 data bound on the temporal dimension, ready for further processing.
 

@@ -16,7 +16,15 @@ knitr::opts_chunk$set(
 # CFtime
 
 <!-- badges: start -->
+[![Lifecycle: Stable](https://img.shields.io/badge/Lifecycle-Stable-green.svg)](https://lifecycle.r-lib.org/articles/stages.html)
+[![CRAN Downloads](https://cranlogs.r-pkg.org/badges/grand-total/CFtime)](https://cran.r-project.org/package=CFtime)
+[![License: GPL v3](https://img.shields.io/badge/License-MIT-blue.svg)](https://mit-license.org)
+
+[![CRAN Status](https://www.r-pkg.org/badges/version/CFtime)](https://cran.r-project.org/package=CFtime)
+[![Commits since release](https://img.shields.io/github/commits-since/pvanlaake/CFtime/latest.svg?color=green)](https://GitHub.com/pvanlaake/CFtime/commit/master/)
+[![Last commit](https://img.shields.io/github/last-commit/pvanlaake/CFtime)](https://github.com/pvanlaake/CFtime/commits/master)
 [![R-CMD-check](https://github.com/pvanlaake/CFtime/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/pvanlaake/CFtime/actions/workflows/R-CMD-check.yaml)
+  
 <!-- badges: end -->
 
 CFtime is an R package that supports working with [CF Metadata Conventions](http://cfconventions.org)
@@ -60,7 +68,7 @@ Use of custom calendars is not supported. This package is also not suitable for
 paleo-calendars. Time periods prior to the introduction of the Gregorian calendar
 (1582-10-15) may be used but there are no special provisions for it. Finally,
 there is no specific consideration for the year 0 (which does not exist in any of
-the above calendars). Given that climate change projections are typically made
+the above calendars). Given that climate projections are typically made
 from 1850-01-01 onwards, these limitations should not be of any practical 
 concern.
 
@@ -68,7 +76,7 @@ This package IS NOT intended to support the full date and time functionality of
 the CF Metadata Conventions. Instead, it facilitates use of a suite of models of
 climate change projections that use different calendars in a consistent manner.
 
-This package is particularly useful for working with climate change projections
+This package is particularly useful for working with climate projections
 having a daily or higher resolution, but it will work equally well on data with
 a lower resolution.
 
@@ -94,11 +102,11 @@ devtools::install_github("pvanlaake/CFtime")
 
 ## Basic operation
 
-The package contains a class, `CFtime` to describe the time coordinate
+The package contains a class, `CFtime`, to describe the time coordinate
 system, including its calendar, - a *datum* - and which holds the time coordinate values
 that are offset from the datum to represent instants in time. This
-class operates on the data in the file of interest, here a CORDEX file of
-precipitation for the Central America domain:
+class operates on the data in the file of interest, here a Coordinated Regional Climate 
+Downscaling Experiment (CORDEX) file of precipitation for the Central America domain:
 
 ```{r example_2}
 library(ncdf4)
@@ -126,12 +134,20 @@ your data set is not compliant. You could still use this package if the required
 information is contained in your file but using a different dimension name or
 different attribute names.
 
+##### Using RNetCDF
+If you are using the `RNetCDF` package rather than `ncdf4`, creating a `CFtime` 
+instance goes like this:
+
+```{r eval = FALSE}
+nc <- open.nc(list.files(path = system.file("extdata", package = "CFtime"), full.names = TRUE)[1])
+cf <- CFtime(att.get.nc(nc, "time", "units"), att.get.nc(nc, "time", "calendar"), var.get.nc(nc, "time"))
+```
+
 ## Typical workflow
 
 In a typical process, you would combine multiple data files into a single data
 set to analyze a feature of interest. To continue the previous example of
-precipitation in the Central America domain using Coordinated Regional Climate 
-Downscaling Experiment (CORDEX) data, you can calculate
+precipitation in the Central America domain using CORDEX data, you can calculate
 the precipitation per month for the period 2041 - 2050 as follows:
 
 ```{r example_3, eval = FALSE}
