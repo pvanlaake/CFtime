@@ -1,6 +1,6 @@
 #' Return the number of days in a month given a certain CF calendar
 #'
-#' Given a vector of dates as strings in ISO 8601 format and a `CFtime` object,
+#' Given a vector of dates as strings in ISO 8601 or UDUNITS format and a `CFtime` object,
 #' this function will return a vector of the same length as the dates,
 #' indicating the number of days in the month according to the calendar
 #' specification. If no vector of days is supplied, the function will return an
@@ -9,11 +9,12 @@
 #'
 #' @param cf CFtime. The CF time definition to use.
 #' @param x character. An optional vector of dates as strings with format
-#'  `YYYY-MM-DD`.
+#'  `YYYY-MM-DD`. Any time part will be silently ingested.
 #'
 #' @returns A vector indicating the number of days in each month for the vector
 #'   of dates supplied as a parameter to the function. If no dates are supplied,
 #'   the number of days per month for the calendar as a vector of length 12.
+#'   Invalidly specified dates will result in an `NA` value.
 #' @export
 #' @examples
 #' dates <- c("2021-11-27", "2021-12-10", "2022-01-14", "2022-02-18")
@@ -31,44 +32,31 @@ CFmonth_days <- function(cf, x = NULL) {
   stopifnot(methods::is(cf, "CFtime"))
 
   days_in_month <- c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+  leapdays_in_month <- c(31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
 
   # No dates supplied: return standard number of days per month
   if (is.null(x)) {
-    if (cf@datum@cal_id %in% c(1, 2, 4)) {
-      return(days_in_month)
-    } else if (cf@datum@cal_id == 3) {
-      return(rep(30, 12))
-    } else {
-      days_in_month[2] <- 29
-      return(days_in_month)
-    }
+    if (cf@datum@cal_id %in% c(1, 2, 4)) return(days_in_month)
+    if (cf@datum@cal_id == 3) return(rep(30, 12))
+    return(leapdays_in_month)
   }
 
   # Argument x supplied
   if (!(is.character(x))) stop("Argument `x` must be a character vector of dates in 'YYYY-MM-DD' format")
 
-  if (cf@datum@cal_id == 3) days <- rep(30, length(x)) # 360_day
-  else {
-    if (cf@datum@cal_id == 5) days_in_month[2] <- 29
+  ymd <- .parse_timestamp(cf@datum, x)
 
-    months <- as.integer(substr(x, 6, 7))
-    if (cf@datum@cal_id %in% c(4, 5)) { # 365_day or 366_day
-      dim(months) <- length(months)
-      days <- days_in_month[months]
-    } else {                     # standard and julian: account for leap years
-      years <- as.integer(substr(x, 1, 4))
-      days <- mapply(function(m, y) {
-        if (m == 2) {
-          if (y %% 4 > 0) return(28)                     # not divisible by 4, so always a normal year
-          else if (calendar == 2) return(29)             # divisible by 4, so on Julian calendar always 29
-          if (y %% 100 == 0 && y %% 400 > 0) return(28)  # divisible by 100 but not 400, so a normal year
-          else return(29)                                # all other years are leap years
-        }
-        else return(days_in_month[m])
-      }, months, years)
-    }
+  if (cf@datum@cal_id == 3) {     # 360_day
+    res <- rep(30, length(x))
+    res[which(is.na(ymd$year))] <- NA
+    return(res)
   }
-  return(days)
+
+  if (cf@datum@cal_id == 4) return(days_in_month[ymd$month])
+  if (cf@datum@cal_id == 5) return(leapdays_in_month[ymd$month])
+
+  # Standard and julian calendars
+  ifelse(.is_leap_year(ymd$year, cf@datum@cal_id), leapdays_in_month[ymd$month], days_in_month[ymd$month])
 }
 
 #' Check if the supplied year, month and day form a valid date in the specified
@@ -108,3 +96,21 @@ CFmonth_days <- function(cf, x = NULL) {
   return(!((mon %in% c(4, 6, 9, 11)) && (day == 31))) # months other than February
 }
 
+#' Flag which years are leap years, given a certain CF calendar
+#'
+#' This is an internal function that should not be used outside of the CFtime package.
+#'
+#' @param yr numeric. Vector of years to test.
+#' @param cal integer. The id of the calendar.
+#'
+#' @returns A logical vector of the same length as argument `yr` which is `TRUE`
+#' for elements that are leap years for the given calendar, `FALSE` otherwise.
+#' @noRd
+.is_leap_year <- function(yr, cal) {
+  switch (cal,
+          ((yr %% 4 == 0) & (yr %% 100 > 0)) | (yr %% 400 == 0),
+          yr %% 4 == 0,
+          rep(FALSE, length(yr)),
+          rep(FALSE, length(yr)),
+          rep(TRUE, length(yr)))
+}
