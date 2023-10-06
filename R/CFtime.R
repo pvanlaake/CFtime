@@ -89,10 +89,15 @@ CFtime <- function(definition, calendar = "standard", offsets = NULL) {
 #'
 #' @examples
 #' cf <- CFtime("days since 1850-01-01", "julian", 0:364)
+#' CFdefinition(cf)
 #' CFcalendar(cf)
 #' CFunit(cf)
 #' CForigin(cf)
 #' CFoffsets(cf)
+
+#' @describeIn CFproperties The defintion string of the CFtime instance
+#' @export
+CFdefinition <- function(cf) cf@datum@definition
 
 #' @describeIn CFproperties The calendar of the CFtime instance
 #' @export
