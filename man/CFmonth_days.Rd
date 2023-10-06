@@ -10,15 +10,16 @@ CFmonth_days(cf, x = NULL)
 \item{cf}{CFtime. The CF time definition to use.}
 
 \item{x}{character. An optional vector of dates as strings with format
-\code{YYYY-MM-DD}.}
+\code{YYYY-MM-DD}. Any time part will be silently ingested.}
 }
 \value{
 A vector indicating the number of days in each month for the vector
 of dates supplied as a parameter to the function. If no dates are supplied,
 the number of days per month for the calendar as a vector of length 12.
+Invalidly specified dates will result in an \code{NA} value.
 }
 \description{
-Given a vector of dates as strings in ISO 8601 format and a \code{CFtime} object,
+Given a vector of dates as strings in ISO 8601 or UDUNITS format and a \code{CFtime} object,
 this function will return a vector of the same length as the dates,
 indicating the number of days in the month according to the calendar
 specification. If no vector of days is supplied, the function will return an

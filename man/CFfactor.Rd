@@ -13,7 +13,7 @@ be used to construct the factor.}
 \item{period}{character. An atomic character string with one of the values
 "year", "season", "month" (the default), "dekad" or "day".}
 
-\item{epoch}{vector or list, optional. Vector of years for which to construct
+\item{epoch}{numeric or list, optional. Vector of years for which to construct
 the factor, or a list whose elements are each a vector of years. If \code{epoch}
 is not specified, the factor will use the entire time series for the
 factor.}

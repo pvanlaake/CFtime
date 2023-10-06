@@ -43,4 +43,14 @@ test_that("test all variants of creating a CFtime object", {
   random <- runif(100, min = 1, max = 99)
   cf <- CFtime("days since 2001-01-01", offsets = c(0, random[1:50], 100, random[51:100]))
   expect_equal(CFrange(cf), c("2001-01-01T00:00:00", paste0(as.Date("2001-01-01") + 100, "T00:00:00")))
+
+  # Character offsets
+  cf <- CFtime("hours since 2023-01-01", "360_day", "2023-04-30T23:00")
+  expect_equal(CFrange(cf), c("2023-01-01T00:00:00", "2023-04-30T23:00:00"))
+  expect_equal(length(CFtimestamp(cf, "timestamp")), 4 * 30 * 24)
+
+  expect_error(CFtime("days since 2023-01-01", "366_day", c("2021-01-01", "2021-04-13")))
+  cf <- CFtime("days since 2023-01-01", "366_day", c("2023-01-01", "2023-04-13", "2023-10-30", "2023-05-12"))
+  expect_equal(length(cf@time$year), 4)
+  expect_equal(CFrange(cf), c("2023-01-01", "2023-10-30"))
 })
