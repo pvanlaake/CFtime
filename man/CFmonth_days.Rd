@@ -7,7 +7,7 @@
 CFmonth_days(cf, x = NULL)
 }
 \arguments{
-\item{cf}{CFtime. The CF time definition to use.}
+\item{cf}{CFtime. The CFtime definition to use.}
 
 \item{x}{character. An optional vector of dates as strings with format
 \code{YYYY-MM-DD}. Any time part will be silently ingested.}

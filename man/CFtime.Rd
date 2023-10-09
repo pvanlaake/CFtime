@@ -25,9 +25,10 @@ of the offsets is defined by the time series definition.}
 An instance of the \code{CFtime} class.
 }
 \description{
-This function creates an instance of the \code{CFtime} class. The parameters to
+This function creates an instance of the \code{CFtime} class. The arguments to
 the call are typically read from a CF-compliant data file with climatological
-observations or climate projections.
+observations or climate projections. Specification of arguments can also be
+made manually in a variety of combinations.
 }
 \examples{
 CFtime("days since 1850-01-01", "julian", 0:364)

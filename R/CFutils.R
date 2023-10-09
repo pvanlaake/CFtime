@@ -7,7 +7,7 @@
 #' integer vector of length 12 with the number of days for each month of the
 #' calendar (disregarding the leap day for `standard` and `julian` calendars).
 #'
-#' @param cf CFtime. The CF time definition to use.
+#' @param cf CFtime. The CFtime definition to use.
 #' @param x character. An optional vector of dates as strings with format
 #'  `YYYY-MM-DD`. Any time part will be silently ingested.
 #'

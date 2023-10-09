@@ -9,6 +9,14 @@
 \description{
 Support for all calendars as specified in the Climate and Forecast (CF) Metadata Conventions for climate and forecasting data. The CF Metadata Conventions is widely used for distributing files with climate observations or projections, including the Coupled Model Intercomparison Project (CMIP) data used by climate change scientists and the Intergovernmental Panel on Climate Change (IPCC). This package specifically allows the user to work with any of the CF-compliant calendars (many of which are not compliant with POSIXt). The CF time coordinate is formally defined in the CF Metadata Conventions document available at \url{https://cfconventions.org/Data/cf-conventions/cf-conventions-1.10/cf-conventions.html#time-coordinate}.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/pvanlaake/CFtime}
+  \item Report bugs at \url{https://github.com/pvanlaake/CFtime/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Patrick Van Laake \email{patrick@vanlaake.net} [copyright holder]
 

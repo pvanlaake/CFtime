@@ -15,9 +15,9 @@ v3](https://img.shields.io/badge/License-MIT-blue.svg)](https://mit-license.org)
 [![CRAN
 Status](https://www.r-pkg.org/badges/version/CFtime)](https://cran.r-project.org/package=CFtime)
 [![Commits since
-release](https://img.shields.io/github/commits-since/pvanlaake/CFtime/latest.svg?color=green)](https://GitHub.com/pvanlaake/CFtime/commit/master/)
+release](https://img.shields.io/github/commits-since/pvanlaake/CFtime/latest.svg?color=green)](https://GitHub.com/pvanlaake/CFtime/commit/main/)
 [![Last
-commit](https://img.shields.io/github/last-commit/pvanlaake/CFtime)](https://github.com/pvanlaake/CFtime/commits/master)
+commit](https://img.shields.io/github/last-commit/pvanlaake/CFtime)](https://github.com/pvanlaake/CFtime/commits/main)
 [![R-CMD-check](https://github.com/pvanlaake/CFtime/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/pvanlaake/CFtime/actions/workflows/R-CMD-check.yaml)
 
 <!-- badges: end -->
@@ -129,7 +129,7 @@ attrs$license
 cf <- CFtime(nc$dim$time$units, nc$dim$time$calendar, nc$dim$time$vals)
 cf
 #> CF datum of origin:
-#>   Origin  : 1850-01-01 00:00:00:
+#>   Origin  : 1850-01-01 00:00:00
 #>   Units   : days
 #>   Calendar: noleap
 #> CF time series:

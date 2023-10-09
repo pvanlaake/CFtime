@@ -17,9 +17,10 @@ setClass("CFtime",
 
 #' Create a CFtime object
 #'
-#' This function creates an instance of the `CFtime` class. The parameters to
+#' This function creates an instance of the `CFtime` class. The arguments to
 #' the call are typically read from a CF-compliant data file with climatological
-#' observations or climate projections.
+#' observations or climate projections. Specification of arguments can also be
+#' made manually in a variety of combinations.
 #'
 #' @param definition character. An atomic string describing the time coordinate
 #'   of a CF-compliant data file.
@@ -191,7 +192,10 @@ setMethod("==", c("CFtime", "CFtime"), function(e1, e2)
 #' e1 <- CFtime("days since 1850-01-01", "gregorian", 0:364)
 #' e2 <- CFtime("days since 1850-01-01 00:00:00", "standard", 365:729)
 #' e1 + e2
-setMethod("+", c("CFtime", "CFtime"), function(e1, e2) if (.datum_equivalent(e1@datum, e2@datum)) CFtime(e1@datum@definition, e1@datum@calendar, c(e1@time$offset, e2@time$offset)) else stop('Datums not equivalent'))
+setMethod("+", c("CFtime", "CFtime"), function(e1, e2)
+  if (.datum_equivalent(e1@datum, e2@datum))
+    CFtime(e1@datum@definition, e1@datum@calendar, c(e1@time$offset, e2@time$offset))
+  else stop('Datums not equivalent'))
 
 #' Extend a CFtime object with additional offsets
 #'

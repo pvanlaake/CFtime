@@ -81,15 +81,15 @@ setMethod("show", "CFdatum", function(object) {
 
 #' Equivalence of CFdatum objects
 #'
-#' This function can be used to test if two CFdatum objects represent the same datum
-#' for CF-convention time coordinates. Two CFdatum objects are considered equivalent
+#' This function can be used to test if two `CFdatum` objects represent the same datum
+#' for CF-convention time coordinates. Two `CFdatum` objects are considered equivalent
 #' if they have the same definition string and the same calendar. Calendars
 #' "standard", "gregorian" and "proleptic_gregorian" are considered equivalent,
 #' as are the pairs of "365_day" and "no_leap", and "366_day" and "all_leap".
 #'
 #' @param e1,e2 CFdatum Instances of the CFdatum class.
 #'
-#' @returns `TRUE` if the CFdatum objects are equivalent, `FALSE` otherwise.
+#' @returns `TRUE` if the `CFdatum` objects are equivalent, `FALSE` otherwise.
 #' @noRd
 .datum_equivalent <- function(e1, e2) {
   sum(e1@origin[1,1:6] != e2@origin[1,1:6]) == 0 &&  # Offset column is NA

@@ -4,13 +4,14 @@
 \alias{CFtimestamp}
 \title{Create a vector of character strings that represent CF timestamps}
 \usage{
-CFtimestamp(cf, format = "date")
+CFtimestamp(cf, format = NULL)
 }
 \arguments{
 \item{cf}{CFtime. The \code{CFtime} instance that contains the offsets to use.}
 
 \item{format}{character. An atomic string with either of the values "date",
-"time", "timestamp".}
+"time", "timestamp". If the argument is not specified, the format used is
+"timestamp" if there is time information, "date" otherwise.}
 }
 \value{
 A character vector where each element represents a moment in time
@@ -29,4 +30,9 @@ and \code{2017-03-31} is not.
 \examples{
 cf <- CFtime("hours since 2020-01-01", "standard", seq(0, 24, by = 0.25))
 CFtimestamp(cf, "timestamp")
+
+cf2 <- CFtime("days since 2002-01-21", "standard", 0:20)
+tail(CFtimestamp(cf2))
+
+tail(CFtimestamp(cf2 + 1.5))
 }
