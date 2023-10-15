@@ -56,7 +56,7 @@ CFtimestamp(CFtime("days since 1949-12-01", "360_day", 43289))
 That’s a difference of nearly 21 months! (And yes, 30 February is a
 valid date on a `360_day` calendar.)
 
-All defined calendars of the CF Metadata Convention are supported:
+All defined calendars of the CF Metadata Conventions are supported:
 
 - `standard` or `gregorian`
 - `proleptic_gregorian`
