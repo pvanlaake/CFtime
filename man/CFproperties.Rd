@@ -7,6 +7,7 @@
 \alias{CFunit}
 \alias{CForigin}
 \alias{CFoffsets}
+\alias{CFresolution}
 \title{Properties of a CFtime object}
 \usage{
 CFdefinition(cf)
@@ -18,6 +19,8 @@ CFunit(cf)
 CForigin(cf)
 
 CFoffsets(cf)
+
+CFresolution(cf)
 }
 \arguments{
 \item{cf}{CFtime. An instance of \code{CFtime}.}
@@ -45,6 +48,8 @@ operator.
 
 \item \code{CFoffsets()}: The offsets of the CFtime instance as a vector
 
+\item \code{CFresolution()}: The average separation between the offsets in the CFtime instance
+
 }}
 \examples{
 cf <- CFtime("days since 1850-01-01", "julian", 0:364)
@@ -53,4 +58,5 @@ CFcalendar(cf)
 CFunit(cf)
 CForigin(cf)
 CFoffsets(cf)
+CFresolution(cf)
 }

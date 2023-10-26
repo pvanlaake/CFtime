@@ -55,6 +55,7 @@
 #' CFparse(cf, timestamps)
 CFparse <- function(cf, x) {
   stopifnot(is.character(x), methods::is(cf, "CFtime"))
+  if (cf@datum@unit > 4) stop("Parsing of timestamps on a \"month\" or \"year\" datum is not supported.")
 
   out <- .parse_timestamp(cf@datum, x)
   if (any(is.na(out$year)))
@@ -175,7 +176,9 @@ CFparse <- function(cf, x) {
   cap$second[is.na(cap$second)] <- 0
 
   # Set timezone to default value where needed
-  cap$tz <- paste0(ifelse(cap$tz_sign == "-", "-", ""), ifelse(cap$tz_hour == "", "00", cap$tz_hour), ":", ifelse(cap$tz_min == "", "00", cap$tz_min))
+  cap$tz <- paste0(ifelse(cap$tz_sign == "-", "-", ""),
+                   ifelse(cap$tz_hour == "", "00", cap$tz_hour), ":",
+                   ifelse(cap$tz_min == "", "00", cap$tz_min))
   cap$tz_sign <- cap$tz_hour <- cap$tz_min <- NULL
 
   # Set optional date parts to 1 if not specified

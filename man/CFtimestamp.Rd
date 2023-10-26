@@ -2,36 +2,47 @@
 % Please edit documentation in R/CFformat.R
 \name{CFtimestamp}
 \alias{CFtimestamp}
-\title{Create a vector of character strings that represent CF timestamps}
+\title{Create a vector that represents CF timestamps}
 \usage{
-CFtimestamp(cf, format = NULL)
+CFtimestamp(cf, format = NULL, asPOSIX = FALSE)
 }
 \arguments{
 \item{cf}{CFtime. The \code{CFtime} instance that contains the offsets to use.}
 
-\item{format}{character. An atomic string with either of the values "date",
-"time", "timestamp". If the argument is not specified, the format used is
+\item{format}{character. An atomic string with either of the values "date" or
+"timestamp". If the argument is not specified, the format used is
 "timestamp" if there is time information, "date" otherwise.}
+
+\item{asPOSIX}{logical. If \code{TRUE}, for "standard", "gregorian" and
+"proleptic_gregorian" calendars the output is a vector of \code{POSIXct} - for
+other calendars the result is \code{NULL}. Default value is \code{FALSE}.}
 }
 \value{
 A character vector where each element represents a moment in time
-according to the \code{format} specifier. Time zone information is not represented.
+according to the \code{format} specifier. Time zone information is not
+represented.
 }
 \description{
-This function generates a vector of character strings that represent the date
-and/or time in a selectable combination for each offset.
+This function generates a vector of character strings or \code{Date}s that
+represent the date and time in a selectable combination for each offset.
 }
 \details{
 The character strings use the format \verb{YYYY-MM-DDThh:mm:ss±hh:mm}, depending
 on the \code{format} specifier. The date in the string is not necessarily
 compatible with \code{POSIXt} - in the \verb{360_day} calendar \code{2017-02-30} is valid
 and \code{2017-03-31} is not.
+
+For the "standard", "gregorian" and "proleptic_gregorian" calendars the
+output can also be generated as a vector of \code{POSIXct} values by specifying
+\code{asPOSIX = TRUE}.
 }
 \examples{
 cf <- CFtime("hours since 2020-01-01", "standard", seq(0, 24, by = 0.25))
 CFtimestamp(cf, "timestamp")
 
 cf2 <- CFtime("days since 2002-01-21", "standard", 0:20)
+tail(CFtimestamp(cf2, asPOSIX = TRUE))
+
 tail(CFtimestamp(cf2))
 
 tail(CFtimestamp(cf2 + 1.5))

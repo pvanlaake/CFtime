@@ -3,7 +3,7 @@ test_that("timestamp string parsing to offsets and deparsing of offsets to times
   # decomposing offsets into timestamp elements, generating timestamp strings,
   # parsing timestamp strings back into timestamp elements.
   for (c in CFt$calendars$name) {
-    for (u in unique(CFt$CFunits$id)) {
+    for (u in 1:4) {
       offsets <- 1:10000
       def <- paste(CFt$units$name[u], "since 1953-08-20")
       cf <- CFtime(def, c, offsets)
@@ -37,7 +37,7 @@ test_that("Testing milli-second timestamp string parsing to offsets and deparsin
   # decomposing offsets into milli-second timestamp elements, generating timestamp strings,
   # parsing timestamp strings back into timestamp elements.
   for (c in CFt$calendars$name) {
-    for (u in 3:4) {
+    for (u in 1:2) {
       offsets <- runif(10000, max = 10000)
       def <- paste(CFt$units$name[u], "since 1953-08-20 07:34:12.2")
       cf <- CFtime(def, c, offsets)
@@ -45,6 +45,17 @@ test_that("Testing milli-second timestamp string parsing to offsets and deparsin
       cf2 <- CFtime(def, c)
       tp <- CFparse(cf2, ts)
       expect_equal(tp[1:6], cf@time[1:6])
+    }
+  }
+})
+
+test_that("Disallow parsing of timestamps on month and year datums", {
+  for (c in CFt$calendars$name) {
+    for (u in 5:6) {
+      def <- paste(CFt$units$name[u], "since 2020-01-01")
+      cf <- CFtime(def, c, 0:23)
+      ts <- CFtimestamp(cf, "timestamp")
+      expect_error(CFparse(cf, ts))
     }
   }
 })

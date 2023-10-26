@@ -95,6 +95,7 @@ CFtime <- function(definition, calendar = "standard", offsets = NULL) {
 #' CFunit(cf)
 #' CForigin(cf)
 #' CFoffsets(cf)
+#' CFresolution(cf)
 
 #' @describeIn CFproperties The defintion string of the CFtime instance
 #' @export
@@ -115,6 +116,10 @@ CForigin <- function(cf) cf@datum@origin
 #' @describeIn CFproperties The offsets of the CFtime instance as a vector
 #' @export
 CFoffsets <- function(cf) cf@time$offset
+
+#' @describeIn CFproperties The average separation between the offsets in the CFtime instance
+#' @export
+CFresolution <- function(cf) cf@resolution
 
 setMethod("show", "CFtime", function(object) {
   if (nrow(object@time) == 0) {
@@ -297,35 +302,46 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {if (.validOffsets(e2)) 
 .add_offsets <- function(offsets, datum) {
   len <- length(offsets)
 
-  # First add time: convert to seconds first, then recompute time parts
-  secs <- offsets * CFt$units$seconds[datum@unit]
-  secs <- secs + datum@origin$hour[1] * 3600 + datum@origin$minute[1] * 60 + datum@origin$second[1]
-  days <- secs %/% 86400            # overflow days
-  secs <- round(secs %% 86400, 3)   # drop overflow days from time, round down to milli-seconds avoid errors
+  if (datum@unit <= 4) { # Days, hours, minutes, seconds
+    # First add time: convert to seconds first, then recompute time parts
+    secs <- offsets * CFt$units$seconds[datum@unit]
+    secs <- secs + datum@origin$hour[1] * 3600 + datum@origin$minute[1] * 60 + datum@origin$second[1]
+    days <- secs %/% 86400            # overflow days
+    secs <- round(secs %% 86400, 3)   # drop overflow days from time, round down to milli-seconds avoid errors
 
-  # Time elements for output
-  hrs <- secs %/% 3600
-  mins <- (secs %% 3600) %/% 60
-  secs <- secs %% 60
+    # Time elements for output
+    hrs <- secs %/% 3600
+    mins <- (secs %% 3600) %/% 60
+    secs <- secs %% 60
 
-  # Now add days using the calendar of the datum
-  origin <- unlist(datum@origin[1,1:3]) # origin ymd as a named vector
-  if (any(days > 0)) {
-    switch (datum@cal_id,
-            out <- .offset2date_standard(days, origin),
-            out <- .offset2date_julian(days, origin),
-            out <- .offset2date_360(days, origin),
-            out <- .offset2date_fixed(days, origin, c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31), 365),
-            out <- .offset2date_fixed(days, origin, c(31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31), 366))
-  } else {
-    out <- data.frame(year = rep(origin[1], len), month = rep(origin[2], len), day = rep(origin[3], len))
+    # Now add days using the calendar of the datum
+    origin <- unlist(datum@origin[1,1:3]) # origin ymd as a named vector
+    if (any(days > 0)) {
+      switch (datum@cal_id,
+              out <- .offset2date_standard(days, origin),
+              out <- .offset2date_julian(days, origin),
+              out <- .offset2date_360(days, origin),
+              out <- .offset2date_fixed(days, origin, c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31), 365),
+              out <- .offset2date_fixed(days, origin, c(31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31), 366))
+    } else {
+      out <- data.frame(year = rep(origin[1], len), month = rep(origin[2], len), day = rep(origin[3], len))
+    }
+
+    # Put it all back together again
+    out$hour <- hrs
+    out$minute <- mins
+    out$second <- secs
+    out$tz <- rep(datum@origin$tz, len)
+  } else { # Months, years
+    out <- datum@origin[rep(1, len), ]
+    if (datum@unit == 5) { # Offsets are months
+      months <- out$month + offsets - 1
+      out$month <- months %% 12 + 1
+      out$year <- out$year + months %/% 12
+    } else {               # Offsets are years
+      out$year <- out$year + offsets
+    }
   }
-
-  # Put it all back together again
-  out$hour <- hrs
-  out$minute <- mins
-  out$second <- secs
-  out$tz <- rep(datum@origin$tz, len)
   out$offset <- offsets
   return(out)
 }
