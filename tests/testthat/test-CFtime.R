@@ -39,6 +39,18 @@ test_that("test all variants of creating a CFtime object", {
 
   expect_equal(length(CFoffsets(cf1 + 100:199)), 200)
 
+  # Time series completeness
+  expect_true(is.na(CFcomplete(cf)))
+  expect_true(CFcomplete(cf1))
+  mid_months <- c("1950-01-16T12:00:00", "1950-02-15T00:00:00", "1950-03-16T12:00:00", "1950-04-16T00:00:00", "1950-05-16T12:00:00", "1950-06-16T00:00:00",
+                  "1950-07-16T12:00:00", "1950-08-16T12:00:00", "1950-09-16T00:00:00", "1950-10-16T12:00:00", "1950-11-16T00:00:00", "1950-12-16T12:00:00")
+  cf <- CFtime("days since 1950-01-01", "standard", mid_months)
+  expect_true(CFcomplete(cf))
+  cfy <- CFtime("years since 2020-01-01", "standard", 0:19)
+  expect_true(CFcomplete(cfy))
+  cfy <- cfy + 30:39
+  expect_false(CFcomplete(cfy))
+
   # Range on unsorted offsets
   random <- runif(100, min = 1, max = 99)
   cf <- CFtime("days since 2001-01-01", offsets = c(0, random[1:50], 100, random[51:100]))

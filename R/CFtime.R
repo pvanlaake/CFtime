@@ -154,6 +154,37 @@ setGeneric("CFrange", function(x) standardGeneric("CFrange"))
 #' @describeIn CFrange Extreme values of the time series
 setMethod("CFrange", "CFtime", function(x) .ts_extremes(x))
 
+#' Indicates if the time series is complete
+#'
+#' This function indicates if the time series is complete, meaning that the time
+#' steps are equally spaced and there are thus no gaps in the time series.
+#'
+#' This function gives exact results for time series where the nominal
+#' *unit of separation* between observations in the time series is exact in terms of the
+#' datum unit. As an example, for a datum unit of "days" where the observations
+#' are spaced a fixed number of days apart the result is exact, but if the same
+#' datum unit is used for data that is on monthly a basis, the *assessment* is
+#' approximate because the number of days per month is variable and dependent on
+#' the calendar (the exception being the `360_day` calendar, where the
+#' assessment is exact). The *result* is still correct in most cases (including
+#' all CF-compliant data sets that the developers have seen) although
+#' there may be esoteric constructions of CFtime and offsets that trip up this
+#' implementation.
+#'
+#' @param x An instance of the `CFtime` class
+#'
+#' @returns logical. `TRUE` if the time series is complete, with no gaps;
+#'   `FALSE` otherwise. If no offsets have been added to the CFtime instance,
+#'   `NA` is returned.
+#' @export
+#' @examples
+#' cf <- CFtime("days since 1850-01-01", "julian", 0:364)
+#' CFcomplete(cf)
+CFcomplete <- function(x) {
+  if (nrow(x@time) == 0) NA
+  else .ts_equidistant(x)
+}
+
 #' Equivalence of CFtime objects
 #'
 #' This operator can be used to test if two `CFtime` objects represent the same
@@ -283,21 +314,74 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {if (.validOffsets(e2)) 
   }
 }
 
-#' Decompose a vector of offsets, in units of the datum, to their timestamp values
+#' Indicates if the time series has equidistant time steps
+#'
+#' This function returns `TRUE` if the time series has uniformly distributed
+#' time steps between the extreme values, `FALSE` otherwise. First test without
+#' sorting; this should work for most data sets. If not, only then offsets are
+#' sorted. For most data sets that will work but for implied resolutions of
+#' month, season, year, etc based on a "days" or finer datum unit this will fail
+#' due to the fact that those coarser units have a variable number of days per
+#' time step, in all calendars except for `360_day`. For now, an approximate
+#' solution is used that should work in all but the most non-conformal exotic
+#' arrangements.
+#'
+#' This function should only be called after offsets have been added.
+#'
+#' This is an internal function that should not be used outside of the CFtime
+#' package.
+#'
+#' @param x CFtime. The time series to operate on.
+#'
+#' @returns `TRUE` if all time steps are equidistant, `FALSE` otherwise.
+#'
+#' @noRd
+.ts_equidistant <- function(x) {
+  out <- all(diff(x@time$offset) == x@resolution)
+  if (!out) {
+    srt <- sort(x@time$offset)
+    out <- all(diff(srt) == x@resolution)
+    if (!out) {
+      # Here comes the hard work
+
+      # Don't try to make sense of totally non-standard arrangements such as
+      # datum units "years" or "months" describing sub-daily time steps
+      if (x@datum@unit > 4) {
+        out <- FALSE
+      } else {
+        # Check if we have monthly or yearly data on a finer-scale datum
+        # This is all rather approximate but should be fine in most cases
+        # This accommodates middle-of-the-time-period offsets as per the CF Metadata Conventions
+        # Please report problems at https://github.com/pvanlaake/CFtime/issues
+        sorttime <- x@time[with(x@time, order(offset)), ]
+        rng <- range(diff(sorttime$offset)) * CFt$units$per_day[x@datum@unit]
+        if ((rng[1] >= 28 && rng[2] <= 31) || (rng[1] >= 364.5 && rng[2] <= 366)) {
+          ts <- (sorttime$year * 365.2425 + sorttime$month * 365.2425 / 12 + sorttime$day)
+          out <- all(diff(diff(ts)) <= (2 * CFt$units$per_day[x@datum@unit]))
+        } else out <- FALSE
+      }
+    }
+  }
+  out
+}
+
+#' Decompose a vector of offsets, in units of the datum, to their timestamp
+#' values
 #'
 #' This function adds a specified amount of time to the origin of a CFts object.
 #'
-#' This is an internal function that should not be used outside of the CFtime package.
+#' This is an internal function that should not be used outside of the CFtime
+#' package.
 #'
-#' This functions introduces an error where the datum unit is "months" or "years",
-#' due to the ambiguous definition of these units.
+#' This functions may introduce inaccuracies where the datum unit is "months" or
+#' "years", due to the ambiguous definition of these units.
 #'
 #' @param offsets numeric. Vector of offsets to add to the datum.
 #' @param datum CFdatum. The datum that defines the unit of the offsets and the
-#' origin to add the offsets to.
+#'   origin to add the offsets to.
 #'
 #' @returns A data.frame with columns for the timestamp elements and the offset
-#' value and as many rows as there are offsets.
+#'   value and as many rows as there are offsets.
 #' @noRd
 .add_offsets <- function(offsets, datum) {
   len <- length(offsets)
