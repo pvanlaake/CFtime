@@ -63,7 +63,7 @@ CFtime <- function(definition, calendar = "standard", offsets = NULL) {
     methods::new("CFtime", datum = datum, resolution = resolution, time = time)
   } else if (methods::is(offsets, "character")) {
     time <- .parse_timestamp(datum, offsets)
-    if (any(is.na(time$year))) stop("Offset argument contains invalid timestamps")
+    if (anyNA(time$year)) stop("Offset argument contains invalid timestamps")
 
     if (length(offsets) == 1) {
       ts <- seq(0, time$offset)
@@ -449,7 +449,7 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {if (.validOffsets(e2)) 
   over <- which(m > 12)
   m[over] <- m[over] - 12
   y[over] <- y[over] + 1
-  data.frame(year = y, month = m, day = d)
+  data.frame(year = y, month = m, day = d, row.names = NULL)
 }
 
 #' Fixed year length, either 365_day or 366_day
@@ -482,7 +482,7 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {if (.validOffsets(e2)) 
     }
     return(c(y, m, d))
   }, yr, origin[2], x)
-  data.frame(year = ymd[1,], month = ymd[2,], day = ymd[3,])
+  data.frame(year = ymd[1,], month = ymd[2,], day = ymd[3,], row.names = NULL)
 }
 
 #' Julian calendar offsetting
@@ -531,7 +531,7 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {if (.validOffsets(e2)) 
     }
     return(c(y, m, d))
   }, yr, origin[2], x)
-  data.frame(year = ymd[1,], month = ymd[2,], day = ymd[3,])
+  data.frame(year = ymd[1,], month = ymd[2,], day = ymd[3,], row.names = NULL)
 }
 
 #' Standard calendar offsetting
@@ -576,6 +576,6 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {if (.validOffsets(e2)) 
     }
     return(c(y, m, d))
   }, origin[1], origin[2], x)
-  data.frame(year = ymd[1,], month = ymd[2,], day = ymd[3,])
+  data.frame(year = ymd[1,], month = ymd[2,], day = ymd[3,], row.names = NULL)
 }
 
