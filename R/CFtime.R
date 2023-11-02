@@ -195,6 +195,7 @@ CFcomplete <- function(x) {
 #'
 #' @returns `TRUE` if the `CFtime` objects are equivalent, `FALSE` otherwise.
 #' @export
+#' @aliases CFtime-equivalent
 #'
 #' @examples
 #' e1 <- CFtime("days since 1850-01-01", "gregorian", 0:364)
@@ -223,6 +224,7 @@ setMethod("==", c("CFtime", "CFtime"), function(e1, e2)
 #' instances of `CFtime` that the operator operates on. If the datums of the `CFtime`
 #' instances are not equivalent, an error is thrown.
 #' @export
+#' @aliases CFtime-merge
 #'
 #' @examples
 #' e1 <- CFtime("days since 1850-01-01", "gregorian", 0:364)
@@ -260,6 +262,7 @@ setMethod("+", c("CFtime", "CFtime"), function(e1, e2)
 #' @returns A `CFtime` object with offsets composed of the `CFtime` instance and
 #'   the numeric vector.
 #' @export
+#' @aliases CFtime-append
 #'
 #' @examples
 #' e1 <- CFtime("days since 1850-01-01", "gregorian", 0:364)

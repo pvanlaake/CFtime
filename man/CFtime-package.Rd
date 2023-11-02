@@ -4,10 +4,46 @@
 \name{CFtime-package}
 \alias{CFtime-package}
 \alias{_PACKAGE}
-\alias{CFtime_package}
-\title{CFtime: Using CF-Compliant Calendars with Climate Projection Data}
+\title{CFtime: working with CF Metadata Conventions "time" dimensions}
 \description{
-Support for all calendars as specified in the Climate and Forecast (CF) Metadata Conventions for climate and forecasting data. The CF Metadata Conventions is widely used for distributing files with climate observations or projections, including the Coupled Model Intercomparison Project (CMIP) data used by climate change scientists and the Intergovernmental Panel on Climate Change (IPCC). This package specifically allows the user to work with any of the CF-compliant calendars (many of which are not compliant with POSIXt). The CF time coordinate is formally defined in the CF Metadata Conventions document available at \url{https://cfconventions.org/Data/cf-conventions/cf-conventions-1.10/cf-conventions.html#time-coordinate}.
+Support for all calendars as specified in the Climate and Forecast
+(CF) Metadata Conventions for climate and forecasting data. The CF Metadata
+Conventions is widely used for distributing files with climate observations
+or projections, including the Coupled Model Intercomparison Project (CMIP)
+data used by climate change scientists and the Intergovernmental Panel on
+Climate Change (IPCC). This package specifically allows the user to work
+with any of the CF-compliant calendars (many of which are not compliant with
+POSIXt). The CF time coordinate is formally defined in the
+\href{https://cfconventions.org/Data/cf-conventions/cf-conventions-1.10/cf-conventions.html#time-coordinate}{CF Metadata Conventions document}.
+}
+\details{
+The package can create a \code{CFtime} instance from scratch or, more commonly, it
+can use the dimension attributes and dimension variable values from a NetCDF
+resource. The package does not actually do any of the reading and the user is
+free to use their NetCDF package of preference (with the two main options
+being \href{https://cran.r-project.org/web/packages/RNetCDF}{RNetCDF} and
+\href{https://cran.r-project.org/web/packages/ncdf4}{ncdf4}).
+
+\strong{Create, modify, inquire}
+\itemize{
+\item \code{\link[=CFtime]{CFtime()}}: Create a CFtime instance
+\item \code{\link[=CFproperties]{Properties}} of the CFtime instance
+\item \code{\link[=CFparse]{CFparse()}}: Parse a vector of character timestamps into CFtime elements
+\item \code{\link[=CFtime-equivalent]{Compare}} two CFtime instances
+\item \code{\link[=CFtime-merge]{Merge}} two CFtime instances
+\item \code{\link[=CFtime-append]{Append}} additional time steps to a CFtime instance
+\item \code{\link[=CFtimestamp]{CFtimestamp()}}: Generate a vector of character or \code{POSIXct} timestamps from a CFtime instance
+\item \code{\link[=CFrange]{CFrange()}}: Timestamps of the two endpoints in the time series
+\item \code{\link[=CFcomplete]{CFcomplete()}}: Does the CFtime instance have a complete time series between endpoints?
+\item \code{\link[=CFmonth_days]{CFmonth_days()}}: How many days are there in a month using the CFtime calendar?
+}
+
+\strong{Factors and coverage}
+\itemize{
+\item \code{\link[=CFfactor]{CFfactor()}}: Create factors for different time periods
+\item \code{\link[=CFfactor_units]{CFfactor_units()}}: How many units of time are there in each factor level?
+\item \code{\link[=CFfactor_coverage]{CFfactor_coverage()}}: How much data is available for each level of the factor?
+}
 }
 \seealso{
 Useful links:

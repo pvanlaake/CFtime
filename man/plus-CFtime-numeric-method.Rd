@@ -2,6 +2,7 @@
 % Please edit documentation in R/CFtime.R
 \name{+,CFtime,numeric-method}
 \alias{+,CFtime,numeric-method}
+\alias{CFtime-append}
 \title{Extend a CFtime object with additional offsets}
 \usage{
 \S4method{+}{CFtime,numeric}(e1, e2)

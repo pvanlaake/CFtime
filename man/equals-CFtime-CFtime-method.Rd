@@ -2,6 +2,7 @@
 % Please edit documentation in R/CFtime.R
 \name{==,CFtime,CFtime-method}
 \alias{==,CFtime,CFtime-method}
+\alias{CFtime-equivalent}
 \title{Equivalence of CFtime objects}
 \usage{
 \S4method{==}{CFtime,CFtime}(e1, e2)

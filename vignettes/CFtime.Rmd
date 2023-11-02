@@ -114,7 +114,7 @@ describing the data set included in a single file, including the mandatory
 "Conventions" global attribute which should have a string identifying the version 
 of the CF Metadata Conventions that this file adheres to (among possible others).
 Not surprisingly, all the pieces of interest are contained in the mandatory `time` 
-dimension of the file. Theprocess then becomes as follows, for a CMIP6 file of 
+dimension of the file. The process then becomes as follows, for a CMIP6 file of 
 daily precipitation:
 
 ```{r}
@@ -124,11 +124,8 @@ nc <- nc_open(list.files(path = system.file("extdata", package = "CFtime"), full
 attrs <- ncatt_get(nc, "")
 attrs$title
 
-# "Conventions" global attribute must have a string like "CF-1.7" for this package to work reliably
+# "Conventions" global attribute must have a string like "CF-1.*" for this package to work reliably
 attrs$Conventions
-
-experiment <- attrs$experiment_id
-experiment
 
 # Create the CFtime instance from the metadata in the file.
 cf <- CFtime(nc$dim$time$units, nc$dim$time$calendar, nc$dim$time$vals)
@@ -217,7 +214,7 @@ There are five periods defined for `CFfactor()`:
  - `season`, the meteorological seasons. Note that the month of December will be
  added to the months of January and February of the following year, so the date 
  "2020-12-01" yields the factor value "2021-DJF".
- - `month`, monthly summeries, the default period.
+ - `month`, monthly summaries, the default period.
  - `dekad`, 10-day period. Each month is subdivided in dekads as follows: (1) 
  days 01 - 10; (2) days 11 - 20; (3) remainder of the month.
  - `day`, to summarize sub-daily data.
@@ -230,7 +227,7 @@ example, you might want to filter out months that have fewer than 90% of daily d
 from further processing or apply weights based on the actual coverage. 
 
 ```{r}
-# How many time units fits in a factor level?
+# How many time units fit in a factor level?
 CFfactor_units(cf, baseline)
 
 # What's the absolute and relative coverage of our time series
@@ -290,7 +287,7 @@ cf_days <- CFtimestamp(cf, "date")
 as.Date(cf_days)
 ```
 
-31 January is missing from the vector of `Date`s becasue the `360_day` calendar 
+31 January is missing from the vector of `Date`s because the `360_day` calendar 
 does not include it and 29 and 30 February are `NA`s because POSIXt rejects them.
 This will produce problems later on when processing your data.
 
