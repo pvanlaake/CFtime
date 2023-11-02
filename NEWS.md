@@ -1,6 +1,6 @@
-# Development version
+# CFtime 1.2.0
 
-Changes committed since release 1.1.0:
+Changes since release 1.1.0:
 
 * Datum units "years" and "months" added. While these units are discouraged by
 the CF Metadata Conventions due to their problematic definition, there are quite

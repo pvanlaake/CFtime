@@ -58,7 +58,7 @@ CFparse <- function(cf, x) {
   if (cf@datum@unit > 4) stop("Parsing of timestamps on a \"month\" or \"year\" datum is not supported.")
 
   out <- .parse_timestamp(cf@datum, x)
-  if (any(is.na(out$year)))
+  if (anyNA(out$year))
     warning("Some dates could not be parsed. Result contains `NA` values.")
   return(out)
 }

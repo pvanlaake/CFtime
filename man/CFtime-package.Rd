@@ -21,8 +21,8 @@ The package can create a \code{CFtime} instance from scratch or, more commonly, 
 can use the dimension attributes and dimension variable values from a NetCDF
 resource. The package does not actually do any of the reading and the user is
 free to use their NetCDF package of preference (with the two main options
-being \href{https://cran.r-project.org/web/packages/RNetCDF}{RNetCDF} and
-\href{https://cran.r-project.org/web/packages/ncdf4}{ncdf4}).
+being \href{https://cran.r-project.org/package=RNetCDF}{RNetCDF} and
+\href{https://cran.r-project.org/package=ncdf4}{ncdf4}).
 
 \strong{Create, modify, inquire}
 \itemize{
