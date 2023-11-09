@@ -39,6 +39,13 @@ test_that("test all variants of creating a CFtime object", {
 
   expect_equal(length(CFoffsets(cf1 + 100:199)), 200)
 
+  cf1 <- CFtime("days since 2022-01-01", "365_day", 0:364)
+  cf2 <- CFtime("days since 2023-01-01", "365_day", 0:364)
+  expect_true(length(CFoffsets(cf1 + cf2)) == 730)
+  expect_true(all(range(diff(CFoffsets(cf1 + cf2))) == c(1, 1)))
+  expect_true(length(CFoffsets(cf2 + cf1)) == 730)
+  expect_false((range(diff(CFoffsets(cf2 + cf1))) == c(1, 1))[1])
+
   # Time series completeness
   expect_true(is.na(CFcomplete(cf)))
   expect_true(CFcomplete(cf1))

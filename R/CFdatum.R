@@ -64,7 +64,8 @@ CFdatum <- function(definition, calendar) {
   nw <- methods::new("CFdatum", definition = definition, unit = CFt$CFunits$id[u], origin = data.frame(), calendar = calendar, cal_id = cal)
 
   dt <- .parse_timestamp(nw, paste(parts[3:length(parts)], collapse = " "))
-  if (is.na(dt$year[1])) stop("Definition string does not appear to be a CF-compliant time coordinate description: invalid base date specification")
+  if (is.na(dt$year[1]))
+    stop("Definition string does not appear to be a CF-compliant time coordinate description: invalid base date specification")
   nw@origin <- dt
 
   return(nw)
@@ -96,6 +97,19 @@ setMethod("show", "CFdatum", function(object) {
   e1@unit == e2@unit &&
   e1@cal_id == e2@cal_id
 }
+
+#' Compatibility of CFdatum objects
+#'
+#' This function can be used to test if two `CFdatum` objects have the same unit
+#' and calendar for CF-convention time coordinates. Calendars "standard",
+#' "gregorian" and "proleptic_gregorian" are considered compatible, as are the
+#' pairs of "365_day" and "no_leap", and "366_day" and "all_leap".
+#'
+#' @param e1,e2 CFdatum Instances of the CFdatum class.
+#'
+#' @returns `TRUE` if the `CFdatum` objects are compatible, `FALSE` otherwise.
+#' @noRd
+.datum_compatible <- function(e1, e2) e1@unit == e2@unit && e1@cal_id == e2@cal_id
 
 definition <- function(x) x@definition
 

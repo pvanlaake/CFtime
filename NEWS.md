@@ -1,5 +1,10 @@
 # CFtime (development version)
 
+* Two CFtime instances can be added if they have compatible calendars and units.
+The earlier origin is preserved in the result and offsets from the later instance
+are incremented by the appropriate amount. As before, in the result offsets are 
+in the order of the specified CFtime instances.
+
 # CFtime 1.2.0
 
 Changes since release 1.1.0:

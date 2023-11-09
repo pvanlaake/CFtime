@@ -208,21 +208,28 @@ setMethod("==", c("CFtime", "CFtime"), function(e1, e2)
 
 #' Merge two CFtime objects
 #'
-#' Two `CFtime` instances can be merged into one with this operator, provided that
-#' the datums of the two instances are equivalent.
+#' Two `CFtime` instances can be merged into one with this operator, provided
+#' that the units and calendars of the datums of the two instances are
+#' equivalent.
 #'
-#' The order of the two parameters is indirectly significant. The resulting `CFtime`
-#' will have the offsets of both instances in the order that they are specified.
-#' There is no reordering or removal of duplicates. This is because the time
-#' series are usually associated with a data set and the correspondence between
-#' the two is thus preserved. When merging the data sets described by this time
-#' series, the order must be identical to the ordering here.
+#' If the origins of the two datums are not identical, the earlier origin is
+#' preserved and the offsets of the later origin are updated in the resulting
+#' CFtime instance.
+#'
+#' The order of the two parameters is indirectly significant. The resulting
+#' `CFtime` instance will have the offsets of both instances in the order that
+#' they are specified. There is no reordering or removal of duplicates. This is
+#' because the time series are usually associated with a data set and the
+#' correspondence between the two is thus preserved. When merging the data sets
+#' described by this time series, the order must be identical to the ordering
+#' here.
 #'
 #' @param e1,e2 CFtime. Instances of the `CFtime` class.
 #'
-#' @returns A `CFtime` object with a set of offsets equal to the offsets of the
-#' instances of `CFtime` that the operator operates on. If the datums of the `CFtime`
-#' instances are not equivalent, an error is thrown.
+#' @returns A `CFtime` object with a set of offsets composed of the offsets of
+#'   the instances of `CFtime` that the operator operates on. If the datum units
+#'   or calendars of the `CFtime` instances are not equivalent, an error is
+#'   thrown.
 #' @export
 #' @aliases CFtime-merge
 #'
@@ -230,10 +237,19 @@ setMethod("==", c("CFtime", "CFtime"), function(e1, e2)
 #' e1 <- CFtime("days since 1850-01-01", "gregorian", 0:364)
 #' e2 <- CFtime("days since 1850-01-01 00:00:00", "standard", 365:729)
 #' e1 + e2
-setMethod("+", c("CFtime", "CFtime"), function(e1, e2)
-  if (.datum_equivalent(e1@datum, e2@datum))
+setMethod("+", c("CFtime", "CFtime"), function(e1, e2) {
+  if (!.datum_compatible(e1@datum, e2@datum)) stop('Datums not compatible')
+  if (all(e1@datum@origin[1:6] == e2@datum@origin[1:6]))
     CFtime(e1@datum@definition, e1@datum@calendar, c(e1@time$offset, e2@time$offset))
-  else stop('Datums not equivalent'))
+  else {
+    diff <- .parse_timestamp(e1@datum, paste(origin_date(e2@datum), origin_time(e2@datum)))$offset
+    if (is.na(diff)) {
+      diff <- .parse_timestamp(e2@datum, paste(origin_date(e1@datum), origin_time(e1@datum)))$offset
+      CFtime(e2@datum@definition, e2@datum@calendar, c(e1@time$offset + diff, e2@time$offset))
+    } else
+      CFtime(e1@datum@definition, e1@datum@calendar, c(e1@time$offset, e2@time$offset + diff))
+  }
+})
 
 #' Extend a CFtime object with additional offsets
 #'
