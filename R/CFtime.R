@@ -181,8 +181,41 @@ setMethod("CFrange", "CFtime", function(x) .ts_extremes(x))
 #' cf <- CFtime("days since 1850-01-01", "julian", 0:364)
 #' CFcomplete(cf)
 CFcomplete <- function(x) {
+  if (!methods::is(x, "CFtime")) stop("Argument must be an instance of CFtime")
   if (nrow(x@time) == 0) NA
   else .ts_equidistant(x)
+}
+
+#' Which time steps fall within two extreme values
+#'
+#' Given two extreme character timestamps, return a logical vector of a length
+#' equal to the number of time steps in the CFtime instance with values `TRUE`
+#' for those time steps that fall between the two extreme values, `FALSE`
+#' otherwise. This can be used to select slices from the time series in reading
+#' or analysing data.
+#'
+#' @param x CFtime. The time series to operate on.
+#' @param extremes character. Vector of two timestamps that represent the
+#'   extremes of the time period of interest. The timestamps must be in
+#'   increasing order. The timestamps need not fall in the range of the time
+#'   steps in the CFtime stance.
+#'
+#' @returns A logical vector with a length equal to the number of time steps in
+#'   `x` with values `TRUE` for those time steps that fall between the two
+#'   extreme values, `FALSE` otherwise. The earlier timestamp is included, the
+#'   later timestamp is excluded. A specification of `c("2022-01-01", "2023-01-01")`
+#'   will thus include all time steps that fall in the year 2022.
+#' @export
+#'
+#' @examples
+#' cf <- CFtime("hours since 2023-01-01 00:00:00", "standard", 0:23)
+#' CFsubset(cf, c("2022-12-01", "2023-01-01 03:00"))
+CFsubset <- function(x, extremes) {
+  if (!methods::is(x, "CFtime")) stop("First argument must be an instance of CFtime")
+  if (!is.character(extremes) || length(extremes) != 2)
+    stop("Second argument must be a character vector of two timestamps")
+  if (extremes[2] < extremes[1]) extremes <- c(extremes[2], extremes[1])
+  .ts_subset(x, extremes)
 }
 
 #' Equivalence of CFtime objects
@@ -382,6 +415,36 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {if (.validOffsets(e2)) 
     }
   }
   out
+}
+
+#' Which time steps fall within two extreme values
+#'
+#' Given two extreme character timestamps, return a logical vector of a length
+#' equal to the number of time steps in the CFtime instance with values `TRUE`
+#' for those time steps that fall between the two extreme values, `FALSE`
+#' otherwise.
+#'
+#' **NOTE** Giving crap as the earlier timestamp will set that value to 0. So
+#' invalid input will still generate a result. To be addressed. Crap in later
+#' timestamp is not tolerated.
+#'
+#' @param x CFtime. The time series to operate on.
+#' @param extremes character. Vector of two timestamps that represent the
+#'   extremes of the time period of interest. The timestamps must be in
+#'   increasing order.
+#'
+#' @returns A logical vector with a length equal to the number of time steps in
+#'   `x` with values `TRUE` for those time steps that fall between the two
+#'   extreme values, `FALSE` otherwise. The earlier timestamp is included, the
+#'   later timestamp is excluded. A specification of `c("2022-01-01", "2023-01-01)`
+#'   will thus include all time steps that fall in the year 2022.
+#' @noRd
+.ts_subset <- function(x, extremes) {
+  offsets <- x@time$offset
+  ext <- .parse_timestamp(x@datum, extremes)$offset
+  if (is.na(ext[1])) ext[1] <- 0
+  if (ext[1] > max(offsets) || is.na(ext[2])) rep(FALSE, length(offsets))
+  else offsets >= ext[1] & offsets < ext[2]
 }
 
 #' Decompose a vector of offsets, in units of the datum, to their timestamp

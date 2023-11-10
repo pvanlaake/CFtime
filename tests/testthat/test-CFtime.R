@@ -72,4 +72,13 @@ test_that("test all variants of creating a CFtime object", {
   cf <- CFtime("days since 2023-01-01", "366_day", c("2023-01-01", "2023-04-13", "2023-10-30", "2023-05-12"))
   expect_equal(length(cf@time$year), 4)
   expect_equal(CFrange(cf), c("2023-01-01", "2023-10-30"))
+
+  # Subsetting
+  cf <- CFtime("hours since 2023-01-01 00:00:00", "standard", 0:239)
+  x <- CFsubset(cf, c("2023-01-01", "2023-02-01"))
+  expect_true(all(x))
+  x <- CFsubset(cf, c("2023-01-01", "2023-05-01"))
+  expect_true(length(which(x)) == 240)
+  x <- CFsubset(cf, c("2023-01-01 00:00", "2023-01-01 04:00"))
+  expect_true(length(which(x)) == 4)
 })

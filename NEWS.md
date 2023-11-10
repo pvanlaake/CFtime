@@ -4,6 +4,9 @@
 The earlier origin is preserved in the result and offsets from the later instance
 are incremented by the appropriate amount. As before, in the result offsets are 
 in the order of the specified CFtime instances.
+* A new function CFsubset() can be used to retrieve a logical vector that indicates
+which time steps in a CFtime instance fall between two timestamps. This is useful
+to slice data during reading from file or analysis.
 
 # CFtime 1.2.0
 
