@@ -206,7 +206,8 @@ which should really be included. This function only makes sense for a single
 [domain, GCM/RCM, experiment, variable] combination. Also be aware of data size,
 CORDEX files are huge and stitching all domain data together will easily exhaust
 available memory and it may thus lead to very large swap files and very poor 
-performance.)
+performance - use the `CFsubset()` function to read temporal chunks of data to
+avoid such problems.)
 
 ```{r eval = FALSE}
 library(ncdf4)

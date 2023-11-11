@@ -221,12 +221,22 @@ There are five periods defined for `CFfactor()`:
 
 ##### Incomplete time series
 
-If your time series is incomplete, for instance because it has `NA` values in them
-or missing time steps, you should recognize that in your further processing. As an 
-example, you might want to filter out months that have fewer than 90% of daily data
-from further processing or apply weights based on the actual coverage. 
+You can test if your time series is complete with the function `CFcomplete()`.
+A time series is considered complete if the time steps between the two extreme 
+values are equally spaced. There is a "fuzzy" assessment of completeness for
+time series with a datum unit of "days" or smaller where the time steps are
+months or years apart - these have different lengths in days in different months 
+or years (e.g. a leap year).
+
+If your time series is incomplete, for instance because it has missing time steps, 
+you should recognize that in your further processing. As an example, you might 
+want to filter out months that have fewer than 90% of daily data from further 
+processing or apply weights based on the actual coverage. 
 
 ```{r}
+# Is the time series complete?
+CFcomplete(cf)
+
 # How many time units fit in a factor level?
 CFfactor_units(cf, baseline)
 
@@ -235,9 +245,10 @@ CFfactor_coverage(cf, baseline, "absolute")
 CFfactor_coverage(cf, baseline, "relative")
 ```
 
-The coverage of the baseline epoch is apparently only 20%! Recall that the time
-series starts in 2015 while the baseline period is for `1991:2020` so that's only 
-6 years of data out of 30 years of the baseline period.
+The time series is complete but coverage of the baseline epoch is only 
+20%! Recall that the time series starts in 2015 while the baseline period in the
+factor is for `1991:2020` so that's only 6 years of time series data out of 30 
+years of the baseline factor.
 
 An artificial example of missing data:
 
@@ -260,8 +271,8 @@ Keep in mind, though, that there are data sets where the time unit is lower than
 the intended resolution of the data. Since the CF conventions recommend that the
 coarsest time unit is "day", many files with monthly data sets have a definition
 like `days since 2016-01-01` with offset values for the middle of the month like
-`15, 45, 75, 105, ...`. You can verify this in the information that is printed
-for a `CFtime` object.
+`15, 44, 74, 104, ...`. Even in these scenarios you can verify that your data 
+set is complete with the function `CFcomplete()`.
 
 ## CFtime and POSIXt
 
@@ -331,8 +342,9 @@ A complete example of creating a multi-model ensemble is provided in the vignett
  data. It is not a full implementation of the CF Metadata Conventions "time"
  component.
  - In parsing and deparsing of offsets and timestamps, data is rounded to
- milli-second precision. When using units of "days" or "hours", this may lead to
- some loss of precision due to rounding errors. If milli-second precision is 
+ 3 digits of precision of the unit of the datum. When using a description of time
+ that is very different from the datum unit, this may lead to some loss of 
+ precision due to rounding errors. For instance, if milli-second precision is 
  required, use a unit of "seconds". The authors have no knowledge of published
  climate projection data that requires milli-second precision so for the
  intended use of the package this issue is marginal.

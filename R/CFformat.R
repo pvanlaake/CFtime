@@ -1,6 +1,6 @@
 #' Create a vector that represents CF timestamps
 #'
-#' This function generates a vector of character strings or `Date`s that
+#' This function generates a vector of character strings or `POSIXct`s that
 #' represent the date and time in a selectable combination for each offset.
 #'
 #' The character strings use the format `YYYY-MM-DDThh:mm:ss±hh:mm`, depending

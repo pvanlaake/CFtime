@@ -7,6 +7,7 @@ in the order of the specified CFtime instances.
 * A new function CFsubset() can be used to retrieve a logical vector that indicates
 which time steps in a CFtime instance fall between two timestamps. This is useful
 to slice data during reading from file or analysis.
+* Documentation updated with description of new functions.
 
 # CFtime 1.2.0
 

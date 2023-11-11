@@ -23,7 +23,7 @@ according to the \code{format} specifier. Time zone information is not
 represented.
 }
 \description{
-This function generates a vector of character strings or \code{Date}s that
+This function generates a vector of character strings or \code{POSIXct}s that
 represent the date and time in a selectable combination for each offset.
 }
 \details{
