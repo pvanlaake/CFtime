@@ -42,6 +42,7 @@ setClass("CFtime",
 #'
 #' CFtime("hours since 2023-01-01", "360_day", "2023-01-30T23:00")
 CFtime <- function(definition, calendar = "standard", offsets = NULL) {
+  if (is.null(calendar)) calendar <- "standard" # This may occur when "calendar" attribute is not defined in the NC file
   datum <- CFdatum(definition, calendar)
 
   if (is.array(offsets)) dim(offsets) <- NULL
@@ -51,8 +52,8 @@ CFtime <- function(definition, calendar = "standard", offsets = NULL) {
                  time = data.frame(c(year = integer(), month = integer(), day = integer(),
                                      hour = integer(), minute = integer(), second = numeric(),
                                      tz = character(), offset = numeric())))
-  } else if (methods::is(offsets, "numeric")) {
-    stopifnot(.validOffsets(offsets))
+  } else if (is.numeric(offsets)) {
+    stopifnot(.validOffsets(offsets, CFt$units$per_day[datum@unit]))
 
     if (length(offsets) > 1) {
       resolution <- (max(offsets) - min(offsets)) / (length(offsets) - 1)
@@ -61,7 +62,7 @@ CFtime <- function(definition, calendar = "standard", offsets = NULL) {
     }
     time <- .add_offsets(offsets, datum)
     methods::new("CFtime", datum = datum, resolution = resolution, time = time)
-  } else if (methods::is(offsets, "character")) {
+  } else if (is.character(offsets)) {
     time <- .parse_timestamp(datum, offsets)
     if (anyNA(time$year)) stop("Offset argument contains invalid timestamps")
 
@@ -121,7 +122,7 @@ CFoffsets <- function(cf) cf@time$offset
 #' @export
 CFresolution <- function(cf) cf@resolution
 
-setMethod("show", "CFtime", function(object) {
+setMethod("show", "CFtime", function(object) { #nocov start
   if (nrow(object@time) == 0) {
     el <- "  Elements: (no elements)\n"
   } else {
@@ -134,7 +135,7 @@ setMethod("show", "CFtime", function(object) {
     }
   }
   cat("CF time series:\n", methods::show(object@datum), el, sep = "")
-})
+}) #nocov end
 
 #' @aliases  CFrange
 #'
@@ -317,7 +318,10 @@ setMethod("+", c("CFtime", "CFtime"), function(e1, e2) {
 #' e1 <- CFtime("days since 1850-01-01", "gregorian", 0:364)
 #' e2 <- 365:729
 #' e1 + e2
-setMethod("+", c("CFtime", "numeric"), function(e1, e2) {if (.validOffsets(e2)) CFtime(e1@datum@definition, e1@datum@calendar, c(e1@time$offset, e2))})
+setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
+  if (.validOffsets(e2, CFt$units$per_day[e1@datum@unit]))
+    CFtime(e1@datum@definition, e1@datum@calendar, c(e1@time$offset, e2))
+})
 
 #' Validate offsets passed into a CFtime instance
 #'
@@ -330,8 +334,9 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {if (.validOffsets(e2)) 
 #'
 #' @returns logical. `TRUE` if the offsets are valid, throws an error otherwise.
 #' @noRd
-.validOffsets <- function(offsets) {
+.validOffsets <- function(offsets, upd) {
   if (any(is.na(offsets) | (offsets < 0))) stop("Offsets cannot contain negative or `NA` values.")
+  if (any(offsets > 1000000 * upd)) stop("Offset values are outside of reasonable range (year 1 - 2500).")
   TRUE
 }
 
