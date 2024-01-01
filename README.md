@@ -8,17 +8,18 @@
 [![Lifecycle:
 Stable](https://img.shields.io/badge/Lifecycle-Stable-green.svg)](https://lifecycle.r-lib.org/articles/stages.html)
 [![CRAN
+Status](https://www.r-pkg.org/badges/version/CFtime)](https://cran.r-project.org/package=CFtime)
+[![CRAN
 Downloads](https://cranlogs.r-pkg.org/badges/grand-total/CFtime)](https://cran.r-project.org/package=CFtime)
 [![License: GPL
 v3](https://img.shields.io/badge/License-MIT-blue.svg)](https://mit-license.org)
 
-[![CRAN
-Status](https://www.r-pkg.org/badges/version/CFtime)](https://cran.r-project.org/package=CFtime)
 [![Commits since
 release](https://img.shields.io/github/commits-since/pvanlaake/CFtime/latest.svg?color=green)](https://GitHub.com/pvanlaake/CFtime/commit/main/)
 [![Last
 commit](https://img.shields.io/github/last-commit/pvanlaake/CFtime)](https://github.com/pvanlaake/CFtime/commits/main)
 [![R-CMD-check](https://github.com/pvanlaake/CFtime/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/pvanlaake/CFtime/actions/workflows/R-CMD-check.yaml)
+[![codecov](https://codecov.io/gh/pvanlaake/CFtime/graph/badge.svg?token=WBICJW90AE)](https://codecov.io/gh/pvanlaake/CFtime)
 
 <!-- badges: end -->
 
