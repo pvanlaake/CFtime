@@ -30,9 +30,9 @@ The order of the two parameters is indirectly significant. The resulting
 \code{CFtime} instance will have the offsets of both instances in the order that
 they are specified. There is no reordering or removal of duplicates. This is
 because the time series are usually associated with a data set and the
-correspondence between the two is thus preserved. When merging the data sets
-described by this time series, the order must be identical to the ordering
-here.
+correspondence between the data in the files and the CFtime instance is thus
+preserved. When merging the data sets described by this time series, the
+order must be identical to the merging here.
 }
 \examples{
 e1 <- CFtime("days since 1850-01-01", "gregorian", 0:364)

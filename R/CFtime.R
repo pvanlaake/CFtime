@@ -2,9 +2,7 @@
 #'
 #' @slot datum CFdatum. The atomic origin upon which the `offsets` are based.
 #' @slot resolution numeric. The average number of time units between offsets.
-#' @slot time data.frame. Data frame of numeric date elements year, month, day,
-#' hour, minute, second and time zone from offsets defined by the `datum`, as
-#' well as the offset itself.
+#' @slot offsets numeric. A vector of offsets from the datum.
 #'
 #' @returns An object of class CFtime.
 #' @export
@@ -12,7 +10,7 @@ setClass("CFtime",
          slots = c(
            datum      = "CFdatum",
            resolution = "numeric",
-           time       = "data.frame"
+           offsets    = "numeric"
          ))
 
 #' Create a CFtime object
@@ -48,30 +46,28 @@ CFtime <- function(definition, calendar = "standard", offsets = NULL) {
   if (is.array(offsets)) dim(offsets) <- NULL
 
   if (is.null(offsets)) {
-    methods::new("CFtime", datum = datum, resolution = NA_real_,
-                 time = data.frame(c(year = integer(), month = integer(), day = integer(),
-                                     hour = integer(), minute = integer(), second = numeric(),
-                                     tz = character(), offset = numeric())))
+    methods::new("CFtime", datum = datum, resolution = NA_real_, offsets = numeric())
   } else if (is.numeric(offsets)) {
     stopifnot(.validOffsets(offsets, CFt$units$per_day[datum@unit]))
 
-    if (length(offsets) > 1) {
-      resolution <- (max(offsets) - min(offsets)) / (length(offsets) - 1)
+    if (length(offsets) > 1L) {
+      resolution <- (max(offsets) - min(offsets)) / (length(offsets) - 1L)
     } else {
       resolution <- NA_real_
     }
-    time <- .add_offsets(offsets, datum)
-    methods::new("CFtime", datum = datum, resolution = resolution, time = time)
+    methods::new("CFtime", datum = datum, resolution = resolution, offsets = offsets)
   } else if (is.character(offsets)) {
     time <- .parse_timestamp(datum, offsets)
     if (anyNA(time$year)) stop("Offset argument contains invalid timestamps")
 
-    if (length(offsets) == 1) {
-      ts <- seq(0, time$offset)
-      time <- .add_offsets(ts, datum)
+    if (length(offsets) == 1L) {
+      off <- seq(0L, time$offset[1L])
       resolution <- 1
-    } else resolution <- (max(time$offset) - min(time$offset)) / (length(time$offset) - 1)
-    methods::new("CFtime", datum = datum, resolution = resolution, time = time)
+    } else {
+      off <- time$offset
+      resolution <- (max(time$offset) - min(time$offset)) / (length(time$offset) - 1L)
+    }
+    methods::new("CFtime", datum = datum, resolution = resolution, offsets = off)
   } else stop("Invalid offsets for CFtime object")
 }
 
@@ -116,26 +112,27 @@ CForigin <- function(cf) cf@datum@origin
 
 #' @describeIn CFproperties The offsets of the CFtime instance as a vector
 #' @export
-CFoffsets <- function(cf) cf@time$offset
+CFoffsets <- function(cf) cf@offsets
 
 #' @describeIn CFproperties The average separation between the offsets in the CFtime instance
 #' @export
 CFresolution <- function(cf) cf@resolution
 
-setMethod("show", "CFtime", function(object) { #nocov start
-  if (nrow(object@time) == 0) {
+setMethod("show", "CFtime", function(object) {
+  noff <- length(object@offsets)
+  if (noff == 0L) {
     el <- "  Elements: (no elements)\n"
   } else {
     d <- CFrange(object)
-    if (nrow(object@time) > 1) {
+    if (noff > 1L) {
       el <- sprintf("  Elements: [%s .. %s] (average of %f %s between %d elements)\n",
-                    d[1], d[2], object@resolution, CFt$units$name[object@datum@unit], nrow(object@time))
+                    d[1L], d[2L], object@resolution, CFt$units$name[object@datum@unit], noff)
     } else {
-      el <- paste("  Elements:", d[1], "\n")
+      el <- paste("  Elements:", d[1L], "\n")
     }
   }
   cat("CF time series:\n", methods::show(object@datum), el, sep = "")
-}) #nocov end
+})
 
 #' @aliases  CFrange
 #'
@@ -183,7 +180,7 @@ setMethod("CFrange", "CFtime", function(x) .ts_extremes(x))
 #' CFcomplete(cf)
 CFcomplete <- function(x) {
   if (!methods::is(x, "CFtime")) stop("Argument must be an instance of CFtime")
-  if (nrow(x@time) == 0) NA
+  if (length(x@offsets) == 0L) NA
   else .ts_equidistant(x)
 }
 
@@ -213,9 +210,9 @@ CFcomplete <- function(x) {
 #' CFsubset(cf, c("2022-12-01", "2023-01-01 03:00"))
 CFsubset <- function(x, extremes) {
   if (!methods::is(x, "CFtime")) stop("First argument must be an instance of CFtime")
-  if (!is.character(extremes) || length(extremes) != 2)
+  if (!is.character(extremes) || length(extremes) != 2L)
     stop("Second argument must be a character vector of two timestamps")
-  if (extremes[2] < extremes[1]) extremes <- c(extremes[2], extremes[1])
+  if (extremes[2L] < extremes[1L]) extremes <- c(extremes[2L], extremes[1L])
   .ts_subset(x, extremes)
 }
 
@@ -237,8 +234,8 @@ CFsubset <- function(x, extremes) {
 #' e1 == e2
 setMethod("==", c("CFtime", "CFtime"), function(e1, e2)
   .datum_equivalent(e1@datum, e2@datum) &&
-  nrow(e1@time) == nrow(e2@time) &&
-  all(e1@time$offset == e2@time$offset))
+  length(e1@offsets) == length(e2@offsets) &&
+  all(e1@offsets == e2@offsets))
 
 #' Merge two CFtime objects
 #'
@@ -254,9 +251,9 @@ setMethod("==", c("CFtime", "CFtime"), function(e1, e2)
 #' `CFtime` instance will have the offsets of both instances in the order that
 #' they are specified. There is no reordering or removal of duplicates. This is
 #' because the time series are usually associated with a data set and the
-#' correspondence between the two is thus preserved. When merging the data sets
-#' described by this time series, the order must be identical to the ordering
-#' here.
+#' correspondence between the data in the files and the CFtime instance is thus
+#' preserved. When merging the data sets described by this time series, the
+#' order must be identical to the merging here.
 #'
 #' @param e1,e2 CFtime. Instances of the `CFtime` class.
 #'
@@ -274,14 +271,14 @@ setMethod("==", c("CFtime", "CFtime"), function(e1, e2)
 setMethod("+", c("CFtime", "CFtime"), function(e1, e2) {
   if (!.datum_compatible(e1@datum, e2@datum)) stop('Datums not compatible')
   if (all(e1@datum@origin[1:6] == e2@datum@origin[1:6]))
-    CFtime(e1@datum@definition, e1@datum@calendar, c(e1@time$offset, e2@time$offset))
+    CFtime(e1@datum@definition, e1@datum@calendar, c(e1@offsets, e2@offsets))
   else {
     diff <- .parse_timestamp(e1@datum, paste(origin_date(e2@datum), origin_time(e2@datum)))$offset
     if (is.na(diff)) {
       diff <- .parse_timestamp(e2@datum, paste(origin_date(e1@datum), origin_time(e1@datum)))$offset
-      CFtime(e2@datum@definition, e2@datum@calendar, c(e1@time$offset + diff, e2@time$offset))
+      CFtime(e2@datum@definition, e2@datum@calendar, c(e1@offsets + diff, e2@offsets))
     } else
-      CFtime(e1@datum@definition, e1@datum@calendar, c(e1@time$offset, e2@time$offset + diff))
+      CFtime(e1@datum@definition, e1@datum@calendar, c(e1@offsets, e2@offsets + diff))
   }
 })
 
@@ -319,8 +316,9 @@ setMethod("+", c("CFtime", "CFtime"), function(e1, e2) {
 #' e2 <- 365:729
 #' e1 + e2
 setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
+  if (is.array(e2)) dim(e2) <- NULL
   if (.validOffsets(e2, CFt$units$per_day[e1@datum@unit]))
-    CFtime(e1@datum@definition, e1@datum@calendar, c(e1@time$offset, e2))
+    CFtime(e1@datum@definition, e1@datum@calendar, c(e1@offsets, e2))
 })
 
 #' Validate offsets passed into a CFtime instance
@@ -343,7 +341,7 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
 #' Return the extremes of the time series as character strings
 #'
 #' This function returns the first and last timestamp of the time series as a
-#' vector. Note that the time series is not necessarily sorted.
+#' vector. Note that the offsets do not have to be sorted.
 #'
 #' This is an internal function that should not be used outside of the CFtime
 #' package.
@@ -357,17 +355,15 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
 #'
 #' @noRd
 .ts_extremes <- function(x) {
-  if (nrow(x@time) == 0) return(c(NA_character_, NA_character_))
+  if (length(x@offsets) == 0L) return(c(NA_character_, NA_character_))
 
-  mn <- which.min(x@time$offset)
-  mx <- which.max(x@time$offset)
-  if (sum(x@time$hour, x@time$minute, x@time$second) == 0) { # all times are 00:00:00
-    return(c(sprintf("%04d-%02d-%02d", x@time$year[mn], x@time$month[mn], x@time$day[mn]),
-             sprintf("%04d-%02d-%02d", x@time$year[mx], x@time$month[mx], x@time$day[mx])))
+  time <- .offsets2time(range(x@offsets), x@datum)
+
+  if (sum(time$hour, time$minute, time$second) == 0) { # all times are 00:00:00
+    return(sprintf("%04d-%02d-%02d", time$year, time$month, time$day))
   } else {
-    t <- .format_time(x@time[c(mn, mx), ])
-    return(c(sprintf("%04d-%02d-%02dT%s", x@time$year[mn], x@time$month[mn], x@time$day[mn], t[1]),
-             sprintf("%04d-%02d-%02dT%s", x@time$year[mx], x@time$month[mx], x@time$day[mx], t[2])))
+    t <- .format_time(time)
+    return(sprintf("%04d-%02d-%02dT%s", time$year, time$month, time$day, t))
   }
 }
 
@@ -394,29 +390,24 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
 #'
 #' @noRd
 .ts_equidistant <- function(x) {
-  out <- all(diff(x@time$offset) == x@resolution)
+  out <- all(diff(x@offsets) == x@resolution)
   if (!out) {
-    srt <- sort(x@time$offset)
-    out <- all(diff(srt) == x@resolution)
+    doff <- diff(sort(x@offsets))
+    out <- all(doff == x@resolution)
     if (!out) {
-      # Here comes the hard work
-
       # Don't try to make sense of totally non-standard arrangements such as
-      # datum units "years" or "months" describing sub-daily time steps
-      if (x@datum@unit > 4) {
-        out <- FALSE
-      } else {
-        # Check if we have monthly or yearly data on a finer-scale datum
-        # This is all rather approximate but should be fine in most cases
-        # This accommodates middle-of-the-time-period offsets as per the CF Metadata Conventions
-        # Please report problems at https://github.com/pvanlaake/CFtime/issues
-        sorttime <- x@time[with(x@time, order(offset)), ]
-        rng <- range(diff(sorttime$offset)) * CFt$units$per_day[x@datum@unit]
-        if ((rng[1] >= 28 && rng[2] <= 31) || (rng[1] >= 364.5 && rng[2] <= 366)) {
-          ts <- (sorttime$year * 365.2425 + sorttime$month * 365.2425 / 12 + sorttime$day)
-          out <- all(diff(diff(ts)) <= (2 * CFt$units$per_day[x@datum@unit]))
-        } else out <- FALSE
-      }
+      # datum units "years" or "months" describing sub-daily time steps.
+      # Also, 360_day calendar should be well-behaved so we don't want to get here.
+      if (x@datum@unit > 4L || x@datum@cal_id == 3L) return(FALSE)
+
+      # Check if we have monthly or yearly data on a finer-scale datum
+      # This is all rather approximate but should be fine in most cases
+      # This accommodates middle-of-the-time-period offsets as per the CF Metadata Conventions
+      # Please report problems at https://github.com/pvanlaake/CFtime/issues
+      ddays <- range(doff) * CFt$units$per_day[x@datum@unit]
+      return((ddays[1] >= 28 && ddays[2] <= 31) ||    # months
+             (ddays[1] >= 90 && ddays[2] <= 92) ||    # seasons
+             (ddays[1] >= 365 && ddays[2] <= 366))    # years
     }
   }
   out
@@ -445,11 +436,10 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
 #'   will thus include all time steps that fall in the year 2022.
 #' @noRd
 .ts_subset <- function(x, extremes) {
-  offsets <- x@time$offset
   ext <- .parse_timestamp(x@datum, extremes)$offset
-  if (is.na(ext[1])) ext[1] <- 0
-  if (ext[1] > max(offsets) || is.na(ext[2])) rep(FALSE, length(offsets))
-  else offsets >= ext[1] & offsets < ext[2]
+  if (is.na(ext[1L])) ext[1L] <- 0
+  if (ext[1L] > max(x@offsets) || is.na(ext[2L])) rep(FALSE, length(x@offsets))
+  else x@offsets >= ext[1L] & x@offsets < ext[2L]
 }
 
 #' Decompose a vector of offsets, in units of the datum, to their timestamp
@@ -467,26 +457,26 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
 #' @param datum CFdatum. The datum that defines the unit of the offsets and the
 #'   origin to add the offsets to.
 #'
-#' @returns A data.frame with columns for the timestamp elements and the offset
-#'   value and as many rows as there are offsets.
+#' @returns A data.frame with columns for the timestamp elements and as many
+#' rows as there are offsets.
 #' @noRd
-.add_offsets <- function(offsets, datum) {
+.offsets2time <- function(offsets, datum) {
   len <- length(offsets)
 
-  if (datum@unit <= 4) { # Days, hours, minutes, seconds
+  if (datum@unit <= 4L) { # Days, hours, minutes, seconds
     # First add time: convert to seconds first, then recompute time parts
     secs <- offsets * CFt$units$seconds[datum@unit]
-    secs <- secs + datum@origin$hour[1] * 3600 + datum@origin$minute[1] * 60 + datum@origin$second[1]
-    days <- secs %/% 86400            # overflow days
-    secs <- round(secs %% 86400, 3)   # drop overflow days from time, round down to milli-seconds avoid errors
+    secs <- secs + datum@origin$hour[1L] * 3600L + datum@origin$minute[1L] * 60L + datum@origin$second[1L]
+    days <- secs %/% 86400L            # overflow days
+    secs <- round(secs %% 86400L, 3L)  # drop overflow days from time, round down to milli-seconds avoid errors
 
     # Time elements for output
-    hrs <- secs %/% 3600
-    mins <- (secs %% 3600) %/% 60
-    secs <- secs %% 60
+    hrs <- secs %/% 3600L
+    mins <- (secs %% 3600L) %/% 60L
+    secs <- secs %% 60L
 
     # Now add days using the calendar of the datum
-    origin <- unlist(datum@origin[1,1:3]) # origin ymd as a named vector
+    origin <- unlist(datum@origin[1L,1L:3L]) # origin ymd as a named vector
     if (any(days > 0)) {
       switch (datum@cal_id,
               out <- .offset2date_standard(days, origin),
@@ -495,7 +485,7 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
               out <- .offset2date_fixed(days, origin, c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31), 365),
               out <- .offset2date_fixed(days, origin, c(31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31), 366))
     } else {
-      out <- data.frame(year = rep(origin[1], len), month = rep(origin[2], len), day = rep(origin[3], len))
+      out <- data.frame(year = rep(origin[1L], len), month = rep(origin[2L], len), day = rep(origin[3L], len))
     }
 
     # Put it all back together again
@@ -504,11 +494,11 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
     out$second <- secs
     out$tz <- rep(datum@origin$tz, len)
   } else { # Months, years
-    out <- datum@origin[rep(1, len), ]
-    if (datum@unit == 5) { # Offsets are months
-      months <- out$month + offsets - 1
-      out$month <- months %% 12 + 1
-      out$year <- out$year + months %/% 12
+    out <- datum@origin[rep(1L, len), ]
+    if (datum@unit == 5L) { # Offsets are months
+      months <- out$month + offsets - 1L
+      out$month <- months %% 12L + 1L
+      out$year <- out$year + months %/% 12L
     } else {               # Offsets are years
       out$year <- out$year + offsets
     }
@@ -527,15 +517,15 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
 #' many rows as the length of vector `x`.
 #' @noRd
 .offset2date_360 <- function(x, origin) {
-  y <- origin[1] + x %/% 360
-  m <- origin[2] + (x %% 360) %/% 30
-  d <- origin[3] + x %% 30
-  over <- which(d > 30)
-  d[over] <- d[over] - 30
-  m[over] <- m[over] + 1
-  over <- which(m > 12)
-  m[over] <- m[over] - 12
-  y[over] <- y[over] + 1
+  y <- origin[1L] + x %/% 360L
+  m <- origin[2L] + (x %% 360L) %/% 30L
+  d <- origin[3L] + x %% 30L
+  over <- which(d > 30L)
+  d[over] <- d[over] - 30L
+  m[over] <- m[over] + 1L
+  over <- which(m > 12L)
+  m[over] <- m[over] - 12L
+  y[over] <- y[over] + 1L
   data.frame(year = y, month = m, day = d, row.names = NULL)
 }
 
@@ -553,23 +543,23 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
 #' @noRd
 .offset2date_fixed <- function(x, origin, month, ydays) {
   # First process full years over the vector
-  yr <- origin[1] + (x %/% ydays)
+  yr <- origin[1L] + (x %/% ydays)
   x <- x %% ydays
 
   # Remaining portion per datum
-  x <- x + origin[3]
+  x <- x + origin[3L]
   ymd <- mapply(function(y, m, d) {
     while (d > month[m]) {
       d <- d - month[m]
-      m <- m + 1
-      if (m == 13) {
-        y <- y + 1
-        m <- 1
+      m <- m + 1L
+      if (m == 13L) {
+        y <- y + 1L
+        m <- 1L
       }
     }
     return(c(y, m, d))
-  }, yr, origin[2], x)
-  data.frame(year = ymd[1,], month = ymd[2,], day = ymd[3,], row.names = NULL)
+  }, yr, origin[2L], x)
+  data.frame(year = ymd[1L,], month = ymd[2L,], day = ymd[3L,], row.names = NULL)
 }
 
 #' Julian calendar offsetting
@@ -587,22 +577,22 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
   leap_days   <- c(31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
 
   # Is the leap day to consider ahead in the year from the base date (offset = 0) or in the next year (offset = 1)
-  offset <- as.integer(origin[2] > 2)
+  offset <- as.integer(origin[2L] > 2L)
 
   # First process 4-year cycles of 1,461 days over the vector
-  yr <- origin[1] + (x %/% 1461) * 4
-  x <- x %% 1461
+  yr <- origin[1L] + (x %/% 1461L) * 4L
+  x <- x %% 1461L
 
   # Remaining portion per datum
-  x <- x + origin[3]
+  x <- x + origin[3L]
   ymd <- mapply(function(y, m, d) {
     repeat {
-      leap <- (y + offset) %% 4 == 0
-      ydays <- 365 + as.integer(leap)
+      leap <- (y + offset) %% 4L == 0L
+      ydays <- 365L + as.integer(leap)
 
       if (d > ydays) {
         d <- d - ydays
-        y <- y + 1
+        y <- y + 1L
       } else break
     }
 
@@ -610,15 +600,15 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
 
     while (d > month[m]) {
       d <- d - month[m]
-      m <- m + 1
-      if (m == 13) {
-        y <- y + 1
-        m <- 1
+      m <- m + 1L
+      if (m == 13L) {
+        y <- y + 1L
+        m <- 1L
       }
     }
     return(c(y, m, d))
-  }, yr, origin[2], x)
-  data.frame(year = ymd[1,], month = ymd[2,], day = ymd[3,], row.names = NULL)
+  }, yr, origin[2L], x)
+  data.frame(year = ymd[1L,], month = ymd[2L,], day = ymd[3L,], row.names = NULL)
 }
 
 #' Standard calendar offsetting
@@ -636,18 +626,18 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
   leap_days   <- c(31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
 
   # Is the leap day to consider ahead in the year from the base date (offset = 0) or in the next year (offset = 1)
-  offset <- as.integer(origin[2] > 2)
+  offset <- as.integer(origin[2L] > 2L)
 
-  x <- x + origin[3]
+  x <- x + origin[3L]
   ymd <- mapply(function(y, m, d) {
     repeat {
       test <- y + offset
-      leap <- (test %% 4 == 0 && test %% 100 > 0) || test %% 400 == 0
-      ydays <- 365 + as.integer(leap)
+      leap <- (test %% 4L == 0L && test %% 100L > 0L) || test %% 400L == 0L
+      ydays <- 365L + as.integer(leap)
 
       if (d > ydays) {
         d <- d - ydays
-        y <- y + 1
+        y <- y + 1L
       } else break
     }
 
@@ -655,14 +645,14 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
 
     while (d > month[m]) {
       d <- d - month[m]
-      m <- m + 1
-      if (m == 13) {
-        y <- y + 1
-        m <- 1
+      m <- m + 1L
+      if (m == 13L) {
+        y <- y + 1L
+        m <- 1L
       }
     }
     return(c(y, m, d))
-  }, origin[1], origin[2], x)
-  data.frame(year = ymd[1,], month = ymd[2,], day = ymd[3,], row.names = NULL)
+  }, origin[1L], origin[2L], x)
+  data.frame(year = ymd[1L,], month = ymd[2L,], day = ymd[3L,], row.names = NULL)
 }
 

@@ -7,10 +7,11 @@ test_that("timestamp string parsing to offsets and deparsing of offsets to times
       offsets <- 1:10000
       def <- paste(CFt$units$name[u], "since 1953-08-20")
       cf <- CFtime(def, c, offsets)
+      time <- .offsets2time(cf@offsets, cf@datum)
       ts <- CFtimestamp(cf, "timestamp")
       cf2 <- CFtime(def, c)
       tp <- CFparse(cf2, ts)
-      expect_equal(tp, cf@time)
+      expect_equal(tp, time)
     }
   }
 })
@@ -23,10 +24,11 @@ test_that("testing calendars with leap years", {
     for (d in c("1996-01-15", "1996-02-29", "1996-04-01")) {
       def <- paste("days since", d)
       cf <- CFtime(def, c, c(1:2500, 36501:39000))
+      time <- .offsets2time(cf@offsets, cf@datum)
       ts <- CFtimestamp(cf, "timestamp")
       cf2 <- CFtime(def, c)
       tp <- CFparse(cf2, ts)
-      expect_equal(tp, cf@time)
+      expect_equal(tp, time)
     }
   }
 })
@@ -41,10 +43,11 @@ test_that("Testing milli-second timestamp string parsing to offsets and deparsin
       offsets <- runif(10000, max = 10000)
       def <- paste(CFt$units$name[u], "since 1953-08-20 07:34:12.2")
       cf <- CFtime(def, c, offsets)
+      time <- .offsets2time(cf@offsets, cf@datum)
       ts <- CFtimestamp(cf, "timestamp")
       cf2 <- CFtime(def, c)
       tp <- CFparse(cf2, ts)
-      expect_equal(tp[1:6], cf@time[1:6])
+      expect_equal(tp[1:6], time[1:6])
     }
   }
 })

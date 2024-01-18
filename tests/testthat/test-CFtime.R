@@ -16,11 +16,12 @@ test_that("test all variants of creating a CFtime object and useful functions", 
 
   # CFtime() with only a definition
   cf <- CFtime("d per 1991-01-01")
+  cf
 
   expect_equal(CForigin(cf)[1:3], data.frame(year = 1991, month = 1, day = 1))
   expect_equal(CFunit(cf), "days")
   expect_equal(CFcalendar(cf), "standard")
-  expect_null(CFoffsets(cf))
+  expect_equal(length(CFoffsets(cf)), 0L)
 
   # CFtime with only a definition and a calendar
   cf <- CFtime("d per 1991-01-01", "julian")
@@ -28,7 +29,7 @@ test_that("test all variants of creating a CFtime object and useful functions", 
   expect_equal(CForigin(cf)[1:3], data.frame(year = 1991, month = 1, day = 1))
   expect_equal(CFunit(cf), "days")
   expect_equal(CFcalendar(cf), "julian")
-  expect_null(CFoffsets(cf))
+  expect_equal(length(CFoffsets(cf)), 0L)
 
   # CFtime with a single offset
   cf <- cf + 15
@@ -44,7 +45,6 @@ test_that("test all variants of creating a CFtime object and useful functions", 
 
   expect_error(CFtime("days since 2023-01-01", "366_day", c("2021-01-01", "2021-04-13")))
   cf <- CFtime("days since 2023-01-01", "366_day", c("2023-01-01", "2023-04-13", "2023-10-30", "2023-05-12"))
-  expect_equal(length(cf@time$year), 4)
   expect_equal(CFrange(cf), c("2023-01-01", "2023-10-30"))
 
   # Merge two CFtime instances / extend offsets
@@ -82,7 +82,7 @@ test_that("test all variants of creating a CFtime object and useful functions", 
   # Range on unsorted offsets
   random <- runif(100, min = 1, max = 99)
   cf <- CFtime("days since 2001-01-01", offsets = c(0, random[1:50], 100, random[51:100]))
-  expect_equal(CFrange(cf), c("2001-01-01T00:00:00", paste0(as.Date("2001-01-01") + 100, "T00:00:00")))
+  expect_equal(CFrange(cf), c("2001-01-01", paste0(as.Date("2001-01-01") + 100)))
 
   # Subsetting
   cf <- CFtime("hours since 2023-01-01 00:00:00", "standard", 0:239)

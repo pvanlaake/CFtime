@@ -17,8 +17,6 @@ CF Metadata Conventions time representation
 
 \item{\code{resolution}}{numeric. The average number of time units between offsets.}
 
-\item{\code{time}}{data.frame. Data frame of numeric date elements year, month, day,
-hour, minute, second and time zone from offsets defined by the \code{datum}, as
-well as the offset itself.}
+\item{\code{offsets}}{numeric. A vector of offsets from the datum.}
 }}
 

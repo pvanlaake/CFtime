@@ -81,10 +81,10 @@
 #' ep <- CFfactor(cf, epoch = list(early = 2021:2040, mid = 2041:2060, late = 2061:2080))
 CFfactor <- function(cf, period = "month", epoch = NULL) {
   if (!(methods::is(cf, "CFtime"))) stop("First argument to CFfactor() must be an instance of the `CFtime` class")
-  if (nrow(cf@time) < 10) stop("Cannot create a factor for very short time series")
+  if (length(cf@offsets) < 10L) stop("Cannot create a factor for very short time series")
 
   period <- tolower(period)
-  if (!((length(period) == 1) && (period %in% CFt$factor_periods)))
+  if (!((length(period) == 1L) && (period %in% CFt$factor_periods)))
     stop("Period specifier must be an atomic value of a supported period")
 
   # No fine-grained period factors for coarse source data
@@ -96,16 +96,17 @@ CFfactor <- function(cf, period = "month", epoch = NULL) {
       (period == "day") && (timestep > 86400))           # Must be no longer than a day
     stop("Cannot produce a short period factor from source data with long time interval")
 
+  time <- .offsets2time(cf@offsets, cf@datum)
   seasons <- c("DJF", "DJF", "MAM", "MAM", "MAM", "JJA", "JJA", "JJA", "SON", "SON", "SON", "DJF")
   months <- c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12")
 
   if (is.null(epoch)) {
     f <- switch(period,
-                "year"   = sprintf("%04d", cf@time$year),
-                "season" = ifelse(cf@time$month == 12, sprintf("%04d-DJF", cf@time$year + 1), sprintf("%04d-%s", cf@time$year, seasons[cf@time$month])),
-                "month"  = sprintf("%04d-%s", cf@time$year, months[cf@time$month]),
-                "dekad"  = sprintf("%04dD%02d", cf@time$year, (cf@time$month - 1) * 3 + pmin.int((cf@time$day - 1) %/% 10 + 1, 3)),
-                "day"    = sprintf("%04d-%02d-%02d", cf@time$year, cf@time$month, cf@time$day)
+                "year"   = sprintf("%04d", time$year),
+                "season" = ifelse(time$month == 12L, sprintf("%04d-DJF", time$year + 1L), sprintf("%04d-%s", time$year, seasons[time$month])),
+                "month"  = sprintf("%04d-%s", time$year, months[time$month]),
+                "dekad"  = sprintf("%04dD%02d", time$year, (time$month - 1L) * 3L + pmin.int((time$day - 1L) %/% 10L + 1L, 3L)),
+                "day"    = sprintf("%04d-%02d-%02d", time$year, time$month, time$day)
     )
     out <- as.factor(f)
     attr(out, "epoch") <- -1L
@@ -119,19 +120,19 @@ CFfactor <- function(cf, period = "month", epoch = NULL) {
 
   out <- lapply(ep, function(years) {
     f <- switch(period,
-                "year"   = ifelse(cf@time$year %in% years, sprintf("%04d", cf@time$year), NA_character_),
-                "season" = ifelse((cf@time$month == 12) & ((cf@time$year + 1) %in% years), "DJF",
-                                  ifelse((cf@time$month < 12) & (cf@time$year %in% years), seasons[cf@time$month], NA_character_)),
-                "month"  = ifelse(cf@time$year %in% years, months[cf@time$month], NA_character_),
-                "dekad"  = ifelse(cf@time$year %in% years, sprintf("D%02d", (cf@time$month - 1) * 3 + pmin.int((cf@time$day - 1) %/% 10 + 1, 3)), NA_character_),
-                "day"    = ifelse(cf@time$year %in% years, sprintf("%s-%02d", months[cf@time$month], cf@time$day), NA_character_)
+                "year"   = ifelse(time$year %in% years, sprintf("%04d", time$year), NA_character_),
+                "season" = ifelse((time$month == 12L) & ((time$year + 1L) %in% years), "DJF",
+                                  ifelse((time$month < 12L) & (time$year %in% years), seasons[time$month], NA_character_)),
+                "month"  = ifelse(time$year %in% years, months[time$month], NA_character_),
+                "dekad"  = ifelse(time$year %in% years, sprintf("D%02d", (time$month - 1L) * 3L + pmin.int((time$day - 1L) %/% 10L + 1L, 3L)), NA_character_),
+                "day"    = ifelse(time$year %in% years, sprintf("%s-%02d", months[time$month], time$day), NA_character_)
     )
     f <- as.factor(f)
     attr(f, "epoch") <- length(years)
     attr(f, "period") <- period
     f
   })
-  if (is.numeric(epoch)) out <- out[[1]]
+  if (is.numeric(epoch)) out <- out[[1L]]
   else names(out) <- names(epoch)
   return(out)
 }
@@ -189,7 +190,7 @@ CFfactor_units <- function(cf, f) {
   cal <- cf@datum@cal_id
   upd <- CFt$units$per_day[cf@datum@unit]
   out <- lapply(factors, function(fac) .factor_units(fac, cal, upd))
-  if (is.factor(f)) out <- out[[1]]
+  if (is.factor(f)) out <- out[[1L]]
   return(out)
 }
 
@@ -206,56 +207,59 @@ CFfactor_units <- function(cf, f) {
 #' @noRd
 .factor_units <- function(f, cal, upd) {
   period <- attr(f, "period")
-  if (cal == 3) {
-    res <- rep(c(360, 90, 30, 10, 1)[which(CFt$factor_periods == period)], nlevels(f))
+  if (cal == 3L) {
+    res <- rep(c(360L, 90L, 30L, 10L, 1L)[which(CFt$factor_periods == period)], nlevels(f))
   } else {
-    if (attr(f, "epoch") > 0) {
-      if (cal %in% c(1, 2, 4)) {
+    if (attr(f, "epoch") > 0L) {
+      if (cal %in% c(1L, 2L, 4L)) {
         res <- switch(period,
-                      "year"   = rep(365, nlevels(f)),
-                      "season" = ifelse(levels(f) %in% c("MAM", "JJA"), 92, ifelse(levels(f) == "SON", 91, 90)),
-                      "month"  = c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)[as.integer(levels(f))],
+                      "year"   = rep(365L, nlevels(f)),
+                      "season" = ifelse(levels(f) %in% c("MAM", "JJA"), 92L, ifelse(levels(f) == "SON", 91L, 90L)),
+                      "month"  = c(31L, 28L, 31L, 30L, 31L, 30L, 31L, 31L, 30L, 31L, 30L, 31L)[as.integer(levels(f))],
                       "dekad"  = {
-                        dk <- as.integer(substr(levels(f), 2, 3))
-                        ifelse(dk %% 3 > 0 | dk %in% c(12, 18, 27, 33), 10, ifelse(dk %in% c(3, 9, 15, 21, 24, 30, 36), 11, 8))
+                        dk <- as.integer(substr(levels(f), 2L, 3L))
+                        ifelse(dk %% 3L > 0L | dk %in% c(12L, 18L, 27L, 33L), 10L,
+                               ifelse(dk %in% c(3L, 9L, 15L, 21L, 24L, 30L, 36L), 11L, 8L))
                       },
-                      "day"    = rep(1, nlevels(f))
+                      "day"    = rep(1L, nlevels(f))
         )
-      } else if (cal == 5) {
+      } else if (cal == 5L) {
         res <- switch(period,
-                      "year"   = rep(366, nlevels(f)),
-                      "season" = ifelse(levels(f) %in% c("MAM", "JJA"), 92, 91),
-                      "month"  = c(31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)[as.integer(levels(f))],
+                      "year"   = rep(366L, nlevels(f)),
+                      "season" = ifelse(levels(f) %in% c("MAM", "JJA"), 92L, 91L),
+                      "month"  = c(31L, 29L, 31L, 30L, 31L, 30L, 31L, 31L, 30L, 31L, 30L, 31L)[as.integer(levels(f))],
                       "dekad"  = {
-                        dk <- as.integer(substr(levels(f), 2, 3))
-                        ifelse(dk %% 3 > 0 | dk %in% c(12, 18, 27, 33), 10, ifelse(dk %in% c(3, 9, 15, 21, 24, 30, 36), 11, 9))
+                        dk <- as.integer(substr(levels(f), 2L, 3L))
+                        ifelse(dk %% 3L > 0L | dk %in% c(12L, 18L, 27L, 33L), 10L,
+                               ifelse(dk %in% c(3L, 9L, 15L, 21L, 24L, 30L, 36L), 11L, 9L))
                       },
-                      "day"    = rep(1, nlevels(f))
+                      "day"    = rep(1L, nlevels(f))
         )
       }
     } else {  # not an epoch factor
       res <- switch(period,
-                    "year"   = ifelse(.is_leap_year(as.integer(levels(f)), cal), 366, 365),
+                    "year"   = ifelse(.is_leap_year(as.integer(levels(f)), cal), 366L, 365L),
                     "season" = {
-                      year <- substr(levels(f), 1, 4)
-                      season <- substr(levels(f), 6, 8)
-                      ifelse(season %in% c("MAM", "JJA"), 92,
-                             ifelse(season == "SON", 91,
-                                    ifelse(.is_leap_year(year, cal), 91, 90)))
+                      year <- substr(levels(f), 1L, 4L)
+                      season <- substr(levels(f), 6L, 8L)
+                      ifelse(season %in% c("MAM", "JJA"), 92L,
+                             ifelse(season == "SON", 91L,
+                                    ifelse(.is_leap_year(year, cal), 91L, 90L)))
                     },
                     "month"  = {
-                      year  <- as.integer(substr(levels(f), 1, 4))
-                      month <- as.integer(substr(levels(f), 6, 7))
-                      ifelse(.is_leap_year(year, cal), c(31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)[month],
-                             c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)[month])
+                      year  <- as.integer(substr(levels(f), 1L, 4L))
+                      month <- as.integer(substr(levels(f), 6L, 7L))
+                      ifelse(.is_leap_year(year, cal), c(31L, 29L, 31L, 30L, 31L, 30L, 31L, 31L, 30L, 31L, 30L, 31L)[month],
+                             c(31L, 28L, 31L, 30L, 31L, 30L, 31L, 31L, 30L, 31L, 30L, 31L)[month])
                     },
                     "dekad"  = {
-                      year  <- as.integer(substr(levels(f), 1, 4))
-                      dk <- as.integer(substr(levels(f), 6, 7))
-                      ifelse(dk %% 3 > 0 | dk %in% c(12, 18, 27, 33), 10, ifelse(dk %in% c(3, 9, 15, 21, 24, 30, 36), 11,
-                                                                                 ifelse(.is_leap_year(year, cal), 9, 8)))
+                      year  <- as.integer(substr(levels(f), 1L, 4L))
+                      dk <- as.integer(substr(levels(f), 6L, 7L))
+                      ifelse(dk %% 3L > 0L | dk %in% c(12L, 18L, 27L, 33L), 10L,
+                             ifelse(dk %in% c(3L, 9L, 15L, 21L, 24L, 30L, 36L), 11L,
+                                    ifelse(.is_leap_year(year, cal), 9L, 8L)))
                     },
-                    "day"    = rep(1, nlevels(f))
+                    "day"    = rep(1L, nlevels(f))
       )
     }
   }
@@ -309,6 +313,6 @@ CFfactor_coverage <- function(cf, f, coverage = "absolute") {
     out <- lapply(factors, tabulate)
   }
 
-  if (is.factor(f)) out <- out[[1]]
+  if (is.factor(f)) out <- out[[1L]]
   return(out)
 }

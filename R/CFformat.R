@@ -37,16 +37,18 @@
 #' tail(CFtimestamp(cf2 + 1.5))
 CFtimestamp <- function(cf, format = NULL, asPOSIX = FALSE) {
   if (!(methods::is(cf, "CFtime"))) stop("First argument to CFtimestamp must be an instance of the `CFtime` class")
-  if (is.null(format)) format <- ifelse(.has_time(cf), "timestamp", "date")
+  time <- .offsets2time(cf@offsets, cf@datum)
+
+  if (is.null(format)) format <- ifelse(cf@datum@unit < 4L || .has_time(time), "timestamp", "date")
   else if (!(format %in% c("date", "time", "timestamp"))) stop("Format specifier not recognized")
 
   if (asPOSIX) {
-    if (cf@datum@cal_id != 1) return(NULL)
-    if (format == "date") ISOdate(cf@time$year, cf@time$month, cf@time$day, 0)
-    else ISOdatetime(cf@time$year, cf@time$month, cf@time$day, cf@time$hour, cf@time$minute, cf@time$second, "UTC")
+    if (cf@datum@cal_id != 1L) return(NULL)
+    if (format == "date") ISOdate(time$year, time$month, time$day, 0L)
+    else ISOdatetime(time$year, time$month, time$day, time$hour, time$minute, time$second, "UTC")
   } else {
-    if (format == "date") sprintf("%04d-%02d-%02d", cf@time$year, cf@time$month, cf@time$day)
-    else sprintf("%04d-%02d-%02dT%s", cf@time$year, cf@time$month, cf@time$day, .format_time(cf@time))
+    if (format == "date") sprintf("%04d-%02d-%02d", time$year, time$month, time$day)
+    else sprintf("%04d-%02d-%02dT%s", time$year, time$month, time$day, .format_time(time))
   }
 }
 
@@ -62,8 +64,8 @@ CFtimestamp <- function(cf, format = NULL, asPOSIX = FALSE) {
 #' seconds at milli-second precision.
 #' @noRd
 .format_time <- function(t) {
-  fsec <- t$second %% 1
-  if (any(fsec > 0)) {
+  fsec <- t$second %% 1L
+  if (any(fsec > 0L)) {
     paste0(sprintf("%02d:%02d:", t$hour, t$minute), ifelse(t$second < 10, "0", ""), sprintf("%.3f", t$second))
   } else {
     sprintf("%02d:%02d:%02d", t$hour, t$minute, t$second)
@@ -72,7 +74,7 @@ CFtimestamp <- function(cf, format = NULL, asPOSIX = FALSE) {
 
 #' Do the time elements have time-of-day information?
 #'
-#' If the datum unit is smaller than "days" or if any time information > 0, then T
+#' If any time information > 0, then `TRUE` otherwise `FALSE`
 #'
 #' This is an internal function that should not generally be used outside of
 #' the CFtime package.
@@ -81,6 +83,6 @@ CFtimestamp <- function(cf, format = NULL, asPOSIX = FALSE) {
 #'
 #' @returns `TRUE` if any timestamp has time-of-day information, `FALSE` otherwise.
 #' @noRd
-.has_time <- function(cf) {
-  cf@datum@unit < 4 || any(cf@time$hour > 0) || any(cf@time$minute > 0) || any(cf@time$second > 0)
+.has_time <- function(t) {
+  any(t$hour > 0) || any(t$minute > 0) || any(t$second > 0)
 }
