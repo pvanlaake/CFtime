@@ -1,3 +1,4 @@
+#nocov start
 # Create environment for global CFtime variables
 CFt <- new.env(parent = emptyenv())
 
@@ -11,3 +12,4 @@ CFt <- new.env(parent = emptyenv())
                              per_day  = c(86400, 1440, 24, 1, 1/30, 1/365)), envir = CFt)
   assign("factor_periods", c("year", "season", "month", "dekad", "day"), envir = CFt)
 }
+#nocov end

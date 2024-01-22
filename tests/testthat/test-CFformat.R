@@ -1,3 +1,18 @@
+test_that("Creating timestamps", {
+  expect_error(CFtimestamp("1-2-3"))          # No CFtime as first argument
+
+  cf <- CFtime("hours since 2001-01-01", "365_day")
+  expect_equal(CFtimestamp(cf), character(0)) # No offsets
+  cf <- cf + 0:2399
+  expect_error(CFtimestamp(cf, "d"))          # Wrong format specifier
+  expect_error(CFtimestamp(cf, asPOSIX = T))  # No POSIXt on a non-standard calendar
+  expect_equal(length(CFtimestamp(cf)), 2400)
+
+  cf <- CFtime("days since 2001-01-01", "standard", 0:364)
+  expect_equal(length(CFtimestamp(cf, "date", TRUE)), 365)
+  expect_equal(length(CFtimestamp(cf, "timestamp", TRUE)), 365)
+})
+
 test_that("CFfactor testing", {
   # No offsets
   cf <- CFtime("days since 2001-01-01", "365_day")

@@ -40,8 +40,8 @@ CFmonth_days <- function(cf, x = NULL) {
 
   # No dates supplied: return standard number of days per month
   if (is.null(x)) {
-    if (cf@datum@cal_id %in% c(1, 2, 4)) return(days_in_month)
-    if (cf@datum@cal_id == 3) return(rep(30, 12))
+    if (cf@datum@cal_id %in% c(1L, 2L, 4L)) return(days_in_month)
+    if (cf@datum@cal_id == 3L) return(rep(30L, 12L))
     return(leapdays_in_month)
   }
 
@@ -49,15 +49,16 @@ CFmonth_days <- function(cf, x = NULL) {
   if (!(is.character(x))) stop("Argument `x` must be a character vector of dates in 'YYYY-MM-DD' format")
 
   ymd <- .parse_timestamp(cf@datum, x)
+  if (anyNA(ymd$year)) warning("Some dates could not be parsed. Result contains `NA` values.")
 
-  if (cf@datum@cal_id == 3) {     # 360_day
-    res <- rep(30, length(x))
+  if (cf@datum@cal_id == 3L) {     # 360_day
+    res <- rep(30L, length(x))
     res[which(is.na(ymd$year))] <- NA
     return(res)
   }
 
-  if (cf@datum@cal_id == 4) return(days_in_month[ymd$month])
-  if (cf@datum@cal_id == 5) return(leapdays_in_month[ymd$month])
+  if (cf@datum@cal_id == 4L) return(days_in_month[ymd$month])
+  if (cf@datum@cal_id == 5L) return(leapdays_in_month[ymd$month])
 
   # Standard and julian calendars
   ifelse(.is_leap_year(ymd$year, cf@datum@cal_id), leapdays_in_month[ymd$month], days_in_month[ymd$month])
@@ -79,25 +80,25 @@ CFmonth_days <- function(cf, x = NULL) {
   if (is.na(yr) || is.na(mon)) return(FALSE)
 
   # Check valid date ranges, no extended syntax
-  if ((yr < 1) || (yr > 9999)) return(FALSE)    # year out of range
-  if ((mon < 1) || (mon > 12)) return(FALSE)    # month out of range
-  if (is.na(day)) return(TRUE)                  # day not specified
-  if ((day >= 1) && (day <= 28)) return(TRUE)   # day in safe range, 90% of valid cases
-  else if ((day < 1) || day > 31) return(FALSE) # day out of range
+  if ((yr < 1L) || (yr > 9999L)) return(FALSE)    # year out of range
+  if ((mon < 1L) || (mon > 12L)) return(FALSE)    # month out of range
+  if (is.na(day)) return(TRUE)                    # day not specified
+  if ((day >= 1L) && (day <= 28L)) return(TRUE)   # day in safe range, 90% of valid cases
+  else if ((day < 1L) || day > 31L) return(FALSE) # day out of range
 
   # 360_day calendar: oddball case for month length
-  if (cal_id == 3) return(day <= 30)
+  if (cal_id == 3L) return(day <= 30L)
 
   # Now all dates should be in regular-length months, but check for leap years
   # Day is in range 29:31 because day in range 1:28 already passed
-  if (mon == 2) { # February
-    if (day > 29) return(FALSE)
-    if (cal_id == 5) return(TRUE)         # all_leap
-    if (cal_id == 4) return(FALSE)        # no_leap
-    if (cal_id == 2) return(yr %% 4 == 0) # julian: every 4th year is a leap year
-    return(((yr %% 4 == 0) && (yr %% 100 > 0)) || (yr %% 400 == 0)) # standard calendar
+  if (mon == 2L) { # February
+    if (day > 29L) return(FALSE)
+    if (cal_id == 5L) return(TRUE)           # all_leap
+    if (cal_id == 4L) return(FALSE)          # no_leap
+    if (cal_id == 2L) return(yr %% 4L == 0L) # julian: every 4th year is a leap year
+    return(((yr %% 4L == 0L) && (yr %% 100L > 0L)) || (yr %% 400L == 0L)) # standard calendar
   }
-  return(!((mon %in% c(4, 6, 9, 11)) && (day == 31))) # months other than February
+  return(!((mon %in% c(4L, 6L, 9L, 11L)) && (day == 31L))) # months other than February
 }
 
 #' Flag which years are leap years, given a certain CF calendar
@@ -112,8 +113,8 @@ CFmonth_days <- function(cf, x = NULL) {
 #' @noRd
 .is_leap_year <- function(yr, cal) {
   switch (cal,
-          ((yr %% 4 == 0) & (yr %% 100 > 0)) | (yr %% 400 == 0),
-          yr %% 4 == 0,
+          ((yr %% 4L == 0L) & (yr %% 100L > 0L)) | (yr %% 400L == 0L),
+          yr %% 4L == 0L,
           rep(FALSE, length(yr)),
           rep(FALSE, length(yr)),
           rep(TRUE, length(yr)))

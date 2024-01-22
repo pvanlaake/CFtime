@@ -462,6 +462,9 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
 #' @noRd
 .offsets2time <- function(offsets, datum) {
   len <- length(offsets)
+  if(len == 0L) return(data.frame(year = integer(), month = integer(), day = integer(),
+                                  hour = integer(), minute = integer(), second = numeric(),
+                                  tz = character(), offset = numeric()))
 
   if (datum@unit <= 4L) { # Days, hours, minutes, seconds
     # First add time: convert to seconds first, then recompute time parts
