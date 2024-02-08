@@ -136,7 +136,7 @@ ensemble might well use different calendars. The correct way of constructing an
 ensemble is to perform the desired analysis on every ensemble member individually
 and to combine them only in the final step and to then perform any ensemble operations
 such as computing confidence intervals. The design of the CFtime package makes
-it easy to do this, through it heavy use of lists. Building on the previous
+it easy to do this, through its heavy use of lists. Building on the previous
 example, let's make a multi-model ensemble of 2 models (not much of an ensemble
 but such are the limitations of including data with packages - the example easily
 extends to a larger set of ensemble members).
@@ -253,7 +253,7 @@ produces offsets in chronological order.)
 ## Acknowledgements
 
 The results presented contain modified data from Copernicus Climate Change 
-Service information, 2023. Neither the European Commission nor ECMWF is responsible 
+Service information, 2023-2024. Neither the European Commission nor ECMWF is responsible 
 for any use that may be made of the Copernicus information or data it contains.
 
 We acknowledge the World Climate Research Programme, which, through its Working 

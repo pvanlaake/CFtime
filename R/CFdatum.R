@@ -48,23 +48,23 @@ setClass("CFdatum",
 #' @returns An object of the `CFdatum` class.
 #' @noRd
 CFdatum <- function(definition, calendar) {
-  stopifnot(length(definition) ==  1, length(calendar) == 1)
+  stopifnot(length(definition) ==  1L, length(calendar) == 1L)
   definition <- tolower(definition)
   calendar <- tolower(calendar)
 
-  parts <- strsplit(definition, " ")[[1]]
-  if ((length(parts) < 3) || !(parts[2] %in% c("since", "after", "from", "ref", "per")))
+  parts <- strsplit(definition, " ")[[1L]]
+  if ((length(parts) < 3L) || !(parts[2L] %in% c("since", "after", "from", "ref", "per")))
     stop("Definition string does not appear to be a CF-compliant time coordinate description")
-  u <- which(CFt$CFunits$unit == parts[1])
-  if (length(u) == 0) stop("Unsupported unit: ", parts[1])
+  u <- which(CFt$CFunits$unit == parts[1L])
+  if (length(u) == 0L) stop("Unsupported unit: ", parts[1L])
 
   cal <- CFt$calendars$id[which(calendar == CFt$calendars$name)]
-  if (length(cal) == 0) stop("Invalid calendar specification")
+  if (length(cal) == 0L) stop("Invalid calendar specification")
 
   nw <- methods::new("CFdatum", definition = definition, unit = CFt$CFunits$id[u], origin = data.frame(), calendar = calendar, cal_id = cal)
 
-  dt <- .parse_timestamp(nw, paste(parts[3:length(parts)], collapse = " "))
-  if (is.na(dt$year[1]))
+  dt <- .parse_timestamp(nw, paste(parts[3L:length(parts)], collapse = " "))
+  if (is.na(dt$year[1L]))
     stop("Definition string does not appear to be a CF-compliant time coordinate description: invalid base date specification")
   nw@origin <- dt
 
@@ -72,7 +72,7 @@ CFdatum <- function(definition, calendar) {
 }
 
 setMethod("show", "CFdatum", function(object) {
-  if (object@origin$tz[1] == "00:00") tz = "" else tz = object@origin$tz[1]
+  if (object@origin$tz[1L] == "00:00") tz = "" else tz = object@origin$tz[1L]
   cat("CF datum of origin:",
       "\n  Origin  : ", origin_date(object), " ", origin_time(object), tz,
       "\n  Units   : ", CFt$units$name[object@unit],
@@ -93,7 +93,7 @@ setMethod("show", "CFdatum", function(object) {
 #' @returns `TRUE` if the `CFdatum` objects are equivalent, `FALSE` otherwise.
 #' @noRd
 .datum_equivalent <- function(e1, e2) {
-  sum(e1@origin[1,1:6] != e2@origin[1,1:6]) == 0 &&  # Offset column is NA
+  sum(e1@origin[1L,1L:6L] != e2@origin[1L,1L:6L]) == 0L &&  # Offset column is NA
   e1@unit == e2@unit &&
   e1@cal_id == e2@cal_id
 }
@@ -117,6 +117,6 @@ calendar <- function(x) x@calendar
 
 unit <- function(x) x@unit
 
-origin_date <- function(x) sprintf("%04d-%02d-%02d", x@origin$year[1], x@origin$month[1], x@origin$day[1])
+origin_date <- function(x) sprintf("%04d-%02d-%02d", x@origin$year[1L], x@origin$month[1L], x@origin$day[1L])
 
 origin_time <- function(x) .format_time(x@origin)

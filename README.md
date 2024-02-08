@@ -36,11 +36,11 @@ which other points in time are calculated. This datum takes the form of
 `days since 1949-12-01`, with each data source (Coupled Model
 Intercomparison Project (CMIP) generation, model, etc) having its own
 datum. The data itself has a dimension attribute of “time” with offset
-values such as 43289. To convert this “offset” to a date, using a
-specific calendar, is what this package does. Given that most calendars
-supported by the CF Metadata Conventions are not compatible with
-`POSIXt`, this conversion is not trivial. That it is important account
-for these differences is easily demonstrated:
+values such as 43289. To convert this offset to a date, using a specific
+calendar, is what this package does. Given that most calendars supported
+by the CF Metadata Conventions are not compatible with `POSIXt`, this
+conversion is not trivial. That it is important to account for these
+differences is easily demonstrated:
 
 ``` r
 library(CFtime)
@@ -76,12 +76,12 @@ limitations should not be of any practical concern.
 
 This package IS NOT intended to support the full date and time
 functionality of the CF Metadata Conventions. Instead, it facilitates
-use of a suite of models of climate change projections that use
-different calendars in a consistent manner.
+use of a suite of models of climate projections that use different
+calendars in a consistent manner.
 
-This package is particularly useful for working with climate projections
-having a daily or higher resolution, but it will work equally well on
-data with a lower resolution.
+This package is particularly useful for working with climate projection
+data having a daily or higher resolution, but it will work equally well
+on data with a lower resolution.
 
 Timestamps are generated using the [ISO8601
 standard](https://en.wikipedia.org/wiki/ISO_8601).
