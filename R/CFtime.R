@@ -96,15 +96,15 @@ CFtime <- function(definition, calendar = "standard", offsets = NULL) {
 
 #' @describeIn CFproperties The defintion string of the CFtime instance
 #' @export
-CFdefinition <- function(cf) cf@datum@definition
+CFdefinition <- function(cf) definition(cf@datum)
 
 #' @describeIn CFproperties The calendar of the CFtime instance
 #' @export
-CFcalendar <- function(cf) cf@datum@calendar
+CFcalendar <- function(cf) calendar(cf@datum)
 
 #' @describeIn CFproperties The unit of the CFtime instance
 #' @export
-CFunit <- function(cf) CFt$units$name[cf@datum@unit]
+CFunit <- function(cf) CFt$units$name[unit(cf@datum)]
 
 #' @describeIn CFproperties The origin of the CFtime instance in timestamp elements
 #' @export
@@ -126,7 +126,7 @@ setMethod("show", "CFtime", function(object) {
     d <- CFrange(object)
     if (noff > 1L) {
       el <- sprintf("  Elements: [%s .. %s] (average of %f %s between %d elements)\n",
-                    d[1L], d[2L], object@resolution, CFt$units$name[object@datum@unit], noff)
+                    d[1L], d[2L], object@resolution, CFt$units$name[unit(object@datum)], noff)
     } else {
       el <- paste("  Elements:", d[1L], "\n")
     }
@@ -271,14 +271,14 @@ setMethod("==", c("CFtime", "CFtime"), function(e1, e2)
 setMethod("+", c("CFtime", "CFtime"), function(e1, e2) {
   if (!.datum_compatible(e1@datum, e2@datum)) stop('Datums not compatible')
   if (all(e1@datum@origin[1:6] == e2@datum@origin[1:6]))
-    CFtime(e1@datum@definition, e1@datum@calendar, c(e1@offsets, e2@offsets))
+    CFtime(definition(e1@datum), calendar(e1@datum), c(e1@offsets, e2@offsets))
   else {
     diff <- .parse_timestamp(e1@datum, paste(origin_date(e2@datum), origin_time(e2@datum)))$offset
     if (is.na(diff)) {
       diff <- .parse_timestamp(e2@datum, paste(origin_date(e1@datum), origin_time(e1@datum)))$offset
-      CFtime(e2@datum@definition, e2@datum@calendar, c(e1@offsets + diff, e2@offsets))
+      CFtime(definition(e2@datum), calendar(e2@datum), c(e1@offsets + diff, e2@offsets))
     } else
-      CFtime(e1@datum@definition, e1@datum@calendar, c(e1@offsets, e2@offsets + diff))
+      CFtime(definition(e1@datum), calendar(e1@datum), c(e1@offsets, e2@offsets + diff))
   }
 })
 
@@ -317,8 +317,8 @@ setMethod("+", c("CFtime", "CFtime"), function(e1, e2) {
 #' e1 + e2
 setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
   if (is.array(e2)) dim(e2) <- NULL
-  if (.validOffsets(e2, CFt$units$per_day[e1@datum@unit]))
-    CFtime(e1@datum@definition, e1@datum@calendar, c(e1@offsets, e2))
+  if (.validOffsets(e2, CFt$units$per_day[unit(e1@datum)]))
+    CFtime(definition(e1@datum), calendar(e1@datum), c(e1@offsets, e2))
 })
 
 #' Validate offsets passed into a CFtime instance
@@ -398,13 +398,13 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
       # Don't try to make sense of totally non-standard arrangements such as
       # datum units "years" or "months" describing sub-daily time steps.
       # Also, 360_day calendar should be well-behaved so we don't want to get here.
-      if (x@datum@unit > 4L || x@datum@cal_id == 3L) return(FALSE)
+      if (unit(x@datum) > 4L || calendar_id(x@datum) == 3L) return(FALSE)
 
       # Check if we have monthly or yearly data on a finer-scale datum
       # This is all rather approximate but should be fine in most cases
       # This accommodates middle-of-the-time-period offsets as per the CF Metadata Conventions
       # Please report problems at https://github.com/pvanlaake/CFtime/issues
-      ddays <- range(doff) * CFt$units$per_day[x@datum@unit]
+      ddays <- range(doff) * CFt$units$per_day[unit(x@datum)]
       return((ddays[1] >= 28 && ddays[2] <= 31) ||    # months
              (ddays[1] >= 90 && ddays[2] <= 92) ||    # seasons
              (ddays[1] >= 365 && ddays[2] <= 366))    # years
@@ -466,9 +466,9 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
                                   hour = integer(), minute = integer(), second = numeric(),
                                   tz = character(), offset = numeric()))
 
-  if (datum@unit <= 4L) { # Days, hours, minutes, seconds
+  if (unit(datum) <= 4L) { # Days, hours, minutes, seconds
     # First add time: convert to seconds first, then recompute time parts
-    secs <- offsets * CFt$units$seconds[datum@unit]
+    secs <- offsets * CFt$units$seconds[unit(datum)]
     secs <- secs + datum@origin$hour[1L] * 3600L + datum@origin$minute[1L] * 60L + datum@origin$second[1L]
     days <- secs %/% 86400L            # overflow days
     secs <- round(secs %% 86400L, 3L)  # drop overflow days from time, round down to milli-seconds avoid errors
@@ -481,7 +481,7 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
     # Now add days using the calendar of the datum
     origin <- unlist(datum@origin[1L,1L:3L]) # origin ymd as a named vector
     if (any(days > 0)) {
-      switch (datum@cal_id,
+      switch (calendar_id(datum),
               out <- .offset2date_standard(days, origin),
               out <- .offset2date_julian(days, origin),
               out <- .offset2date_360(days, origin),
@@ -498,7 +498,7 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
     out$tz <- rep(datum@origin$tz, len)
   } else { # Months, years
     out <- datum@origin[rep(1L, len), ]
-    if (datum@unit == 5L) { # Offsets are months
+    if (unit(datum) == 5L) { # Offsets are months
       months <- out$month + offsets - 1L
       out$month <- months %% 12L + 1L
       out$year <- out$year + months %/% 12L

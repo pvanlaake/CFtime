@@ -115,6 +115,8 @@ definition <- function(x) x@definition
 
 calendar <- function(x) x@calendar
 
+calendar_id <- function(x) x@cal_id
+
 unit <- function(x) x@unit
 
 origin_date <- function(x) sprintf("%04d-%02d-%02d", x@origin$year[1L], x@origin$month[1L], x@origin$day[1L])

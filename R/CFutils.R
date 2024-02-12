@@ -34,14 +34,15 @@
 #' CFmonth_days(cf)
 CFmonth_days <- function(cf, x = NULL) {
   stopifnot(methods::is(cf, "CFtime"))
+  cal_id <- calendar_id(cf@datum)
 
   days_in_month <- c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
   leapdays_in_month <- c(31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
 
   # No dates supplied: return standard number of days per month
   if (is.null(x)) {
-    if (cf@datum@cal_id %in% c(1L, 2L, 4L)) return(days_in_month)
-    if (cf@datum@cal_id == 3L) return(rep(30L, 12L))
+    if (cal_id %in% c(1L, 2L, 4L)) return(days_in_month)
+    if (cal_id == 3L) return(rep(30L, 12L))
     return(leapdays_in_month)
   }
 
@@ -51,17 +52,17 @@ CFmonth_days <- function(cf, x = NULL) {
   ymd <- .parse_timestamp(cf@datum, x)
   if (anyNA(ymd$year)) warning("Some dates could not be parsed. Result contains `NA` values.")
 
-  if (cf@datum@cal_id == 3L) {     # 360_day
+  if (cal_id == 3L) {     # 360_day
     res <- rep(30L, length(x))
     res[which(is.na(ymd$year))] <- NA
     return(res)
   }
 
-  if (cf@datum@cal_id == 4L) return(days_in_month[ymd$month])
-  if (cf@datum@cal_id == 5L) return(leapdays_in_month[ymd$month])
+  if (cal_id == 4L) return(days_in_month[ymd$month])
+  if (cal_id == 5L) return(leapdays_in_month[ymd$month])
 
   # Standard and julian calendars
-  ifelse(.is_leap_year(ymd$year, cf@datum@cal_id), leapdays_in_month[ymd$month], days_in_month[ymd$month])
+  ifelse(.is_leap_year(ymd$year, cal_id), leapdays_in_month[ymd$month], days_in_month[ymd$month])
 }
 
 #' Check if the supplied year, month and day form a valid date in the specified
