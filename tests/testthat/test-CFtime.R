@@ -4,6 +4,8 @@ test_that("test all variants of creating a CFtime object and useful functions", 
 
   # Call CFtime() with an invalid definition
   expect_error(CFtime("foo"))
+  expect_error(CFtime("zxcv since 1991-01-01"))
+  expect_error(CFtime("days since -991-01-01"))
 
   # Call CFtime() with a valid definition and an invalid calendar
   expect_error(CFtime("days since 1991-01-01", "foo"))

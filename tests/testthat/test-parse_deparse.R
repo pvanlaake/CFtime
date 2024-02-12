@@ -62,3 +62,20 @@ test_that("Disallow parsing of timestamps on month and year datums", {
     }
   }
 })
+
+test_that("Things can go wrong too", {
+  expect_false(.is_valid_calendar_date(0, 0, 0, 1))   # Bad year
+  expect_false(.is_valid_calendar_date(5, 13, 0, 1))  # Bad month
+  expect_true(.is_valid_calendar_date(5, 10, NA, 1))  # No day so ok
+  expect_false(.is_valid_calendar_date(5, 10, 0, 1))  # Bad day
+  expect_false(.is_valid_calendar_date(5, 2, 31, 1))  # No Feb 31
+  expect_false(.is_valid_calendar_date(5, 2, 29, 4))  # noleap
+
+  years <- c(1900, 2000, 2001, 2002, 2003, 2004, 2100)
+  expect_equal(.is_leap_year(years, 1), c(F, T, F, F, F, T, F))
+  expect_equal(.is_leap_year(years, 2), c(T, T, F, F, F, T, T))
+  expect_equal(.is_leap_year(years, 3), c(F, F, F, F, F, F, F))
+  expect_equal(.is_leap_year(years, 4), c(F, F, F, F, F, F, F))
+  expect_equal(.is_leap_year(years, 5), c(T, T, T, T, T, T, T))
+
+})
