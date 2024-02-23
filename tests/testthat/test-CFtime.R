@@ -9,6 +9,9 @@ test_that("test all variants of creating a CFtime object and useful functions", 
 
   # Call CFtime() with a valid definition and an invalid calendar
   expect_error(CFtime("days since 1991-01-01", "foo"))
+  expect_equal(CFcalendar(CFtime("days since 1991-01-01", NULL, NULL)), "standard")
+  expect_equal(CFdefinition(CFtime("days since 1991-01-01", NULL, NULL)), "days since 1991-01-01")
+  expect_equal(CFresolution(CFtime("days since 1991-01-01", NULL, NULL)), NA_real_)
 
   # Call CFtime() with a valid definition and calendar but faulty offsets
   expect_error(CFtime("days since 1991-01-01", "standard", -9:10))
@@ -18,7 +21,6 @@ test_that("test all variants of creating a CFtime object and useful functions", 
 
   # CFtime() with only a definition
   cf <- CFtime("d per 1991-01-01")
-  cf
 
   expect_equal(CForigin(cf)[1:3], data.frame(year = 1991, month = 1, day = 1))
   expect_equal(CFunit(cf), "days")
@@ -27,6 +29,8 @@ test_that("test all variants of creating a CFtime object and useful functions", 
 
   # CFtime with only a definition and a calendar
   cf <- CFtime("d per 1991-01-01", "julian")
+  expect_match(capture_output(methods::show(cf)), "^CF datum of origin:")
+  expect_match(capture_output(methods::show(cf)), "Elements: \\(no elements\\)$")
 
   expect_equal(CForigin(cf)[1:3], data.frame(year = 1991, month = 1, day = 1))
   expect_equal(CFunit(cf), "days")
@@ -36,6 +40,7 @@ test_that("test all variants of creating a CFtime object and useful functions", 
   # CFtime with a single offset
   cf <- cf + 15
   expect_equal(CFtimestamp(cf, "date"), "1991-01-16")
+  expect_match(capture_output(methods::show(cf)), "Elements: 1991-01-16 $")
 
   # Invalid offsets
   expect_error(CFtime("d per 1991-01-01", "julian", c(TRUE, FALSE, FALSE)))
@@ -63,6 +68,7 @@ test_that("test all variants of creating a CFtime object and useful functions", 
 
   cf1 <- CFtime("days since 2022-01-01", "365_day", 0:364)
   cf2 <- CFtime("days since 2023-01-01", "365_day", 0:364)
+  expect_match(capture_output(methods::show(cf1)), "between 365 elements\\)$")
   expect_true(length(CFoffsets(cf1 + cf2)) == 730)
   expect_true(all(range(diff(CFoffsets(cf1 + cf2))) == c(1, 1)))
   expect_true(length(CFoffsets(cf2 + cf1)) == 730)
@@ -70,6 +76,7 @@ test_that("test all variants of creating a CFtime object and useful functions", 
 
   # Time series completeness
   cf <- CFtime("d per 1991-01-01", "julian")
+  expect_error(CFcomplete("zxcv"))
   expect_true(is.na(CFcomplete(cf)))
   expect_true(CFcomplete(cf1))
   mid_months <- c("1950-01-16T12:00:00", "1950-02-15T00:00:00", "1950-03-16T12:00:00", "1950-04-16T00:00:00", "1950-05-16T12:00:00", "1950-06-16T00:00:00",
@@ -88,6 +95,7 @@ test_that("test all variants of creating a CFtime object and useful functions", 
 
   # Subsetting
   cf <- CFtime("hours since 2023-01-01 00:00:00", "standard", 0:239)
+  expect_error(CFsubset("zxcv"))
   x <- CFsubset(cf, c("2023-01-01", "2023-02-01"))
   expect_true(all(x))
   x <- CFsubset(cf, c("2023-01-01", "2023-05-01"))

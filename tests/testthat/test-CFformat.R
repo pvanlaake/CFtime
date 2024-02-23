@@ -9,6 +9,8 @@ test_that("Creating timestamps", {
   expect_equal(length(CFtimestamp(cf)), 2400L)
 
   cf <- CFtime("days since 2001-01-01", "standard", 0L:364L)
+  expect_equal(length(CFtimestamp(cf)), 365L)
+  expect_equal(nchar(CFtimestamp(cf)[1]), 10L) # date string
   expect_equal(length(CFtimestamp(cf, "date", TRUE)), 365L)
   expect_equal(length(CFtimestamp(cf, "timestamp", TRUE)), 365L)
 })

@@ -40,7 +40,7 @@ CFtimestamp <- function(cf, format = NULL, asPOSIX = FALSE) {
   time <- .offsets2time(cf@offsets, cf@datum)
   if (nrow(time) == 0L) return()
 
-  if (is.null(format)) format <- ifelse(cf@datum@unit < 4L || .has_time(time), "timestamp", "date")
+  if (is.null(format)) format <- ifelse(unit(cf@datum) < 4L || .has_time(time), "timestamp", "date")
   else if (!(format %in% c("date", "time", "timestamp"))) stop("Format specifier not recognized")
 
   if (asPOSIX) {
