@@ -74,27 +74,29 @@ CFtime <- function(definition, calendar = "standard", offsets = NULL) {
 #' @aliases CFproperties
 #' @title Properties of a CFtime object
 #'
-#' @description These functions return the properties of an instance of the `CFtime` class.
-#' The properties are all read-only, but offsets can be added using the `+`
-#' operator.
+#' @description These functions return the properties of an instance of the
+#'   `CFtime` class. The properties are all read-only, but offsets can be added
+#'   using the `+` operator.
 #'
 #' @param cf CFtime. An instance of `CFtime`.
 #'
 #' @returns `CFcalendar()` and `CFunit()` return an atomic character string.
-#' `CForigin()` returns a data frame of timestamp elements with a single row of
-#' data. `CFoffsets()` returns a vector of offsets or `NULL` if no offsets have
-#' been set.
+#'   `CForigin()` returns a data frame of timestamp elements with a single row
+#'   of data. `CFtimezone()` returns the datum time zone as an atomic character
+#'   string. `CFoffsets()` returns a vector of offsets or `NULL` if no offsets
+#'   have been set.
 #'
 #' @examples
 #' cf <- CFtime("days since 1850-01-01", "julian", 0:364)
 #' CFdefinition(cf)
 #' CFcalendar(cf)
 #' CFunit(cf)
+#' CFtimezone(cf)
 #' CForigin(cf)
 #' CFoffsets(cf)
 #' CFresolution(cf)
 
-#' @describeIn CFproperties The defintion string of the CFtime instance
+#' @describeIn CFproperties The definition string of the CFtime instance
 #' @export
 CFdefinition <- function(cf) definition(cf@datum)
 
@@ -109,6 +111,10 @@ CFunit <- function(cf) CFt$units$name[unit(cf@datum)]
 #' @describeIn CFproperties The origin of the CFtime instance in timestamp elements
 #' @export
 CForigin <- function(cf) cf@datum@origin
+
+#' @describeIn CFproperties The time zone of the datum of the CFtime instance as a character string
+#' @export
+CFtimezone <- function(cf) timezone(cf@datum)
 
 #' @describeIn CFproperties The offsets of the CFtime instance as a vector
 #' @export

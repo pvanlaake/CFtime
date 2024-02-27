@@ -122,3 +122,5 @@ unit <- function(x) x@unit
 origin_date <- function(x) sprintf("%04d-%02d-%02d", x@origin$year[1L], x@origin$month[1L], x@origin$day[1L])
 
 origin_time <- function(x) .format_time(x@origin)
+
+timezone <- function(x) x@origin$tz[1L]

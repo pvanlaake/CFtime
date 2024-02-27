@@ -6,6 +6,7 @@
 \alias{CFcalendar}
 \alias{CFunit}
 \alias{CForigin}
+\alias{CFtimezone}
 \alias{CFoffsets}
 \alias{CFresolution}
 \title{Properties of a CFtime object}
@@ -18,6 +19,8 @@ CFunit(cf)
 
 CForigin(cf)
 
+CFtimezone(cf)
+
 CFoffsets(cf)
 
 CFresolution(cf)
@@ -27,24 +30,27 @@ CFresolution(cf)
 }
 \value{
 \code{CFcalendar()} and \code{CFunit()} return an atomic character string.
-\code{CForigin()} returns a data frame of timestamp elements with a single row of
-data. \code{CFoffsets()} returns a vector of offsets or \code{NULL} if no offsets have
-been set.
+\code{CForigin()} returns a data frame of timestamp elements with a single row
+of data. \code{CFtimezone()} returns the datum time zone as an atomic character
+string. \code{CFoffsets()} returns a vector of offsets or \code{NULL} if no offsets
+have been set.
 }
 \description{
-These functions return the properties of an instance of the \code{CFtime} class.
-The properties are all read-only, but offsets can be added using the \code{+}
-operator.
+These functions return the properties of an instance of the
+\code{CFtime} class. The properties are all read-only, but offsets can be added
+using the \code{+} operator.
 }
 \section{Functions}{
 \itemize{
-\item \code{CFdefinition()}: The defintion string of the CFtime instance
+\item \code{CFdefinition()}: The definition string of the CFtime instance
 
 \item \code{CFcalendar()}: The calendar of the CFtime instance
 
 \item \code{CFunit()}: The unit of the CFtime instance
 
 \item \code{CForigin()}: The origin of the CFtime instance in timestamp elements
+
+\item \code{CFtimezone()}: The time zone of the datum of the CFtime instance as a character string
 
 \item \code{CFoffsets()}: The offsets of the CFtime instance as a vector
 
@@ -56,6 +62,7 @@ cf <- CFtime("days since 1850-01-01", "julian", 0:364)
 CFdefinition(cf)
 CFcalendar(cf)
 CFunit(cf)
+CFtimezone(cf)
 CForigin(cf)
 CFoffsets(cf)
 CFresolution(cf)

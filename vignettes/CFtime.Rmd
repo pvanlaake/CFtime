@@ -89,6 +89,17 @@ by the CF Metadata Conventions. It properly formats dates and times (even oddbal
 dates like `2070-02-30`) and it can generate calendar-aware factors for further 
 processing of the data.
 
+##### Time zones
+
+The character of CF time series - a number of numerical offsets from a base date -
+implies that there should only be a single time zone associated with the time
+series. The time zone offset from UTC is stored in the datum and can be retrieved
+with the `CFtimezone()` function. If a vector of character timestamps with time
+zone information is parsed with the `CFparse()` function and the time zones are 
+found to be different from the datum time zone, a warning message is generated
+but the timestamp is interpreted as being in the datum time zone. No correction 
+of timestamp to datum time zone is performed.
+
 ## Using CFtime to deal with calendars
 
 Data sets that are compliant with the CF Metadata Conventions always include a 

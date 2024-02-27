@@ -60,6 +60,10 @@ CFparse <- function(cf, x) {
   out <- .parse_timestamp(cf@datum, x)
   if (anyNA(out$year))
     warning("Some dates could not be parsed. Result contains `NA` values.")
+  if (length(unique(out$tz)) > 1)
+    warning("Timestamps have multiple time zones. Some or all may be different from the datum time zone.")
+  else if (out$tz[1] != CFtimezone(cf))
+    warning("Timestamps have time zone that is different from the datum.")
   return(out)
 }
 

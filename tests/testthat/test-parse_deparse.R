@@ -78,4 +78,7 @@ test_that("Things can go wrong too", {
   expect_equal(.is_leap_year(years, 4), c(F, F, F, F, F, F, F))
   expect_equal(.is_leap_year(years, 5), c(T, T, T, T, T, T, T))
 
+  cf <- CFtime("days since 0001-01-01", "proleptic_gregorian")
+  suppressWarnings(expect_warning(CFparse(cf, c("12-1-23", "today")))) # Suppress timezone warning
+  expect_warning(CFparse(cf, c("2022-08-16T11:07:34.45-10", "2022-08-16 10.5+04")))
 })
