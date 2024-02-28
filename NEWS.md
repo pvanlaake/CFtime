@@ -1,4 +1,6 @@
-# CFtime (development version)
+# CFtime 1.3.0
+
+Changes since release 1.2.0:
 
 * Two CFtime instances can be added if they have compatible calendars and units.
 The earlier origin is preserved in the result and offsets from the later instance
@@ -7,7 +9,12 @@ in the order of the specified CFtime instances.
 * A new function CFsubset() can be used to retrieve a logical vector that indicates
 which time steps in a CFtime instance fall between two timestamps. This is useful
 to slice data during reading from file or analysis.
-* Documentation updated with description of new functions.
+* Time zone information is managed at the level of the datum. If a vector of character
+timestamps is parsed and found to have different time zones, a warning is generated.
+* Much reduced memory footprint.
+* Minor code fixes, see GitHub commits.
+* Codecov.io test coverage monitoring added.
+* Documentation updated, with description of new functions.
 
 # CFtime 1.2.0
 
