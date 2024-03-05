@@ -124,6 +124,20 @@ CFoffsets <- function(cf) cf@offsets
 #' @export
 CFresolution <- function(cf) cf@resolution
 
+#' The length of the offsets contained in the CFtime instance.
+#'
+#' @param x The CFtime instance whose length will be returned
+#'
+#' @return The number of offsets in the specified CFtime instance.
+#' @export
+#'
+#' @examples
+#' cf <- CFtime("days since 1850-01-01", "julian", 0:364)
+#' length(cf)
+setMethod("length", "CFtime", function(x) {
+  length(x@offsets)
+})
+
 setMethod("show", "CFtime", function(object) {
   noff <- length(object@offsets)
   if (noff == 0L) {

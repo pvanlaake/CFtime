@@ -3,7 +3,6 @@
 \docType{package}
 \name{CFtime-package}
 \alias{CFtime-package}
-\alias{_PACKAGE}
 \title{CFtime: working with CF Metadata Conventions "time" dimensions}
 \description{
 Support for all calendars as specified in the Climate and Forecast
