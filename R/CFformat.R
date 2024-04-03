@@ -37,6 +37,8 @@
 #' tail(CFtimestamp(cf2 + 1.5))
 CFtimestamp <- function(cf, format = NULL, asPOSIX = FALSE) {
   if (!(methods::is(cf, "CFtime"))) stop("First argument to CFtimestamp must be an instance of the `CFtime` class")
+  if (asPOSIX && calendar_id(cf@datum) != 1L) stop("Cannot make a POSIX timestamp on a non-standard calendar")
+
   time <- .offsets2time(cf@offsets, cf@datum)
   if (nrow(time) == 0L) return()
 
@@ -44,7 +46,6 @@ CFtimestamp <- function(cf, format = NULL, asPOSIX = FALSE) {
   else if (!(format %in% c("date", "time", "timestamp"))) stop("Format specifier not recognized")
 
   if (asPOSIX) {
-    if (calendar_id(cf@datum) != 1L) stop("Cannot make a POSIX timestamp on a non-standard calendar")
     if (format == "date") ISOdate(time$year, time$month, time$day, 0L)
     else ISOdatetime(time$year, time$month, time$day, time$hour, time$minute, time$second, "UTC")
   } else {

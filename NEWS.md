@@ -1,8 +1,13 @@
 # CFtime (development version)
 
-# CFtime 1.3.0
+Changes since release 1.3.0:
 
-Changes since release 1.2.0:
+* as.character() and length() methods added that return a vector of timestamps 
+or the number of offsets in a CFtime instance, respectively.
+* Minor code fixes, see GitHub commits.
+* Documentation updated, with description of new functions.
+
+# CFtime 1.3.0
 
 * Two CFtime instances can be added if they have compatible calendars and units.
 The earlier origin is preserved in the result and offsets from the later instance
@@ -19,8 +24,6 @@ timestamps is parsed and found to have different time zones, a warning is genera
 * Documentation updated, with description of new functions.
 
 # CFtime 1.2.0
-
-Changes since release 1.1.0:
 
 * Datum units "years" and "months" added. While these units are discouraged by
 the CF Metadata Conventions due to their problematic definition, there are quite
@@ -45,8 +48,6 @@ previous behaviour so the API is not broken.
 * Assorted minor code fixes, see GitHub commits.
 
 # CFtime 1.1.0
-
-Changes since release 1.0.0:
 
 * CFtime() can now also be invoked with a vector of character timestamps as offsets, or
 with a single timestamp to create a complete time series from the datum to the

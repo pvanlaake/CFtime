@@ -138,6 +138,21 @@ setMethod("length", "CFtime", function(x) {
   length(x@offsets)
 })
 
+#' Return the timestamps contained in the CFtime instance.
+#'
+#' @param x The CFtime instance whose timestamps will be returned
+#'
+#' @return The timestamps in the specified CFtime instance.
+#' @export
+#'
+#' @examples
+#' cf <- CFtime("days since 1850-01-01", "julian", 0:364)
+#' as.character(cf)
+setMethod("as.character", "CFtime", function(x) {
+  if (length(x@offsets) > 0)
+    CFtimestamp(x)
+})
+
 setMethod("show", "CFtime", function(object) {
   noff <- length(object@offsets)
   if (noff == 0L) {
