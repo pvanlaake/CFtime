@@ -3,10 +3,10 @@
 #' This function generates a vector of character strings or `POSIXct`s that
 #' represent the date and time in a selectable combination for each offset.
 #'
-#' The character strings use the format `YYYY-MM-DDThh:mm:ss±hh:mm`, depending
-#' on the `format` specifier. The date in the string is not necessarily
-#' compatible with `POSIXt` - in the `360_day` calendar `2017-02-30` is valid
-#' and `2017-03-31` is not.
+#' The character strings use the format `YYYY-MM-DDThh:mm:ss±hhmm`, depending on
+#' the `format` specifier. The date in the string is not necessarily compatible
+#' with `POSIXt` - in the `360_day` calendar `2017-02-30` is valid and
+#' `2017-03-31` is not.
 #'
 #' For the "standard", "gregorian" and "proleptic_gregorian" calendars the
 #' output can also be generated as a vector of `POSIXct` values by specifying
@@ -20,9 +20,10 @@
 #'   "proleptic_gregorian" calendars the output is a vector of `POSIXct` - for
 #'   other calendars the result is `NULL`. Default value is `FALSE`.
 #'
+#' @seealso The [format()] function gives greater flexibility through the use of
+#' strptime-like format specifiers.
 #' @returns A character vector where each element represents a moment in time
-#'   according to the `format` specifier. Time zone information is not
-#'   represented.
+#'   according to the `format` specifier.
 #' @export
 #'
 #' @examples

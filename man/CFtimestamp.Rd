@@ -19,18 +19,17 @@ other calendars the result is \code{NULL}. Default value is \code{FALSE}.}
 }
 \value{
 A character vector where each element represents a moment in time
-according to the \code{format} specifier. Time zone information is not
-represented.
+according to the \code{format} specifier.
 }
 \description{
 This function generates a vector of character strings or \code{POSIXct}s that
 represent the date and time in a selectable combination for each offset.
 }
 \details{
-The character strings use the format \verb{YYYY-MM-DDThh:mm:ss±hh:mm}, depending
-on the \code{format} specifier. The date in the string is not necessarily
-compatible with \code{POSIXt} - in the \verb{360_day} calendar \code{2017-02-30} is valid
-and \code{2017-03-31} is not.
+The character strings use the format \verb{YYYY-MM-DDThh:mm:ss±hhmm}, depending on
+the \code{format} specifier. The date in the string is not necessarily compatible
+with \code{POSIXt} - in the \verb{360_day} calendar \code{2017-02-30} is valid and
+\code{2017-03-31} is not.
 
 For the "standard", "gregorian" and "proleptic_gregorian" calendars the
 output can also be generated as a vector of \code{POSIXct} values by specifying
@@ -46,4 +45,8 @@ tail(CFtimestamp(cf2, asPOSIX = TRUE))
 tail(CFtimestamp(cf2))
 
 tail(CFtimestamp(cf2 + 1.5))
+}
+\seealso{
+The \code{\link[=format]{format()}} function gives greater flexibility through the use of
+strptime-like format specifiers.
 }

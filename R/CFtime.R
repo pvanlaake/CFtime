@@ -169,6 +169,120 @@ setMethod("show", "CFtime", function(object) {
   cat("CF time series:\n", methods::show(object@datum), el, sep = "")
 })
 
+#' Format the time elements using format specifiers.
+#'
+#' Format timestamps using a specific format string, using the specifiers
+#' defined for the [base::strptime()] function, with limitations. The only
+#' supported specifiers are `bBdeFhHIjmMpRSTYz%`. Modifiers 'E' and 'O' are
+#' silently ignored. Other specifiers, including their percent sign, are copied
+#' to the output as if they were adorning text.
+#'
+#' The formatting is largely oblivious to locale. The reason for this is that
+#' certain dates in certain calendars are not POSIX-compliant and the system
+#' functions necessary for locale information thus do not work consistently. The
+#' main exception to this is the (abbreviated) names of months (`bB`), which
+#' could be useful for pretty printing in the local language. For separators and
+#' other locale-specific adornments, use local knowledge instead of depending on
+#' system locale settings; e.g. specify `%m/%d/%Y` instead of `%D`.
+#'
+#' Week information, including weekday names, is not supported at all as a
+#' "week" is not defined for non-standard CF calendars and not generally useful
+#' for climate projection data. If you are working with observed data and want
+#' to get pretty week formats, use the [CFtimestamp()] function to generate
+#' `POSIXct` timestamps (observed data generally uses a standard calendar) and
+#' then use the [base::format()] function which supports the full set of
+#' specifiers.
+#'
+#' @param x CFtime. A CFtime instance whose offsets will be returned as
+#'   timestamps.
+#' @param fmt character. An atomic character string with sprintf format
+#'   specifiers.
+#'
+#' @returns A vector of character strings with a properly formatted time. Any
+#'   format specifiers not recognized or supported will be returned verbatim.
+#' @export
+#'
+#' @examples
+#' cf <- CFtime("days since 2020-01-01", "standard", 0:365)
+#' format(cf, "%Y-%b")
+#'
+#' # Use system facilities on a standard calendar
+#' format(CFtimestamp(cf, asPOSIX = TRUE), "%A, %x")
+#'
+setMethod("format", "CFtime", function(x, fmt) {
+  if (!requireNamespace("stringi", quietly = TRUE))
+    stop("package `stringi` is required - please install it first")
+
+  if (missing(fmt) || !is.character(fmt) || length(fmt) != 1)
+    stop("`fmt` parameter must be an atomic string with formatting specifiers")
+
+  ts <- .offsets2time(x@offsets, x@datum)
+  if (nrow(ts) == 0L) return()
+
+  # Expand any composite specifiers
+  F <- stringi::stri_locate_all(fmt, fixed = "%F")
+  if (!is.na(F[[1]][1,1])) {
+    fmt <- stringi::stri_sub_replace_all(fmt, from = F, value = "%Y-%m-%d")
+  }
+  R <- stringi::stri_locate_all(fmt, fixed = "%R")
+  if (!is.na(R[[1]][1,1])) {
+    fmt <- stringi::stri_sub_replace_all(fmt, from = R, value = "%H:%M")
+  }
+  T <- stringi::stri_locate_all(fmt, fixed = "%T")
+  if (!is.na(T[[1]][1,1])) {
+    fmt <- stringi::stri_sub_replace_all(fmt, from = T, value = "%H:%M:%S")
+  }
+
+  # Splice in timestamp values for specifiers
+  b <- stringi::stri_locate_all(fmt, regex = "%b|%h")
+  if (!is.na(b[[1]][1,1])) {
+    mon <- strftime(ISOdatetime(2024, 1:12, 1, 0, 0, 0), "%b")
+    fmt <- stringi::stri_sub_replace_all(fmt, from = b, value = as.list(mon[ts$month]))
+  }
+  B <- stringi::stri_locate_all(fmt, fixed = "%B")
+  if (!is.na(B[[1]][1,1])) {
+    mon <- strftime(ISOdatetime(2024, 1:12, 1, 0, 0, 0), "%B")
+    fmt <- stringi::stri_sub_replace_all(fmt, from = B, value = as.list(mon[ts$month]))
+  }
+  d <- stringi::stri_locate_all(fmt, regex = "%[O]?d")
+  if (!is.na(d[[1]][1,1]))
+    fmt <- stringi::stri_sub_replace_all(fmt, from = d, value = as.list(sprintf("%02d", ts$day)))
+  e <- stringi::stri_locate_all(fmt, fixed = "%e")
+  if (!is.na(e[[1]][1,1]))
+    fmt <- stringi::stri_sub_replace_all(fmt, from = e, value = as.list(sprintf("%2d", ts$day)))
+  H <- stringi::stri_locate_all(fmt, regex = "%[O]?H")
+  if (!is.na(H[[1]][1,1]))
+    fmt <- stringi::stri_sub_replace_all(fmt, from = H, value = as.list(sprintf("%02d", ts$hour)))
+  I <- stringi::stri_locate_all(fmt, regex = "%[O]?I")
+  if (!is.na(I[[1]][1,1]))
+    fmt <- stringi::stri_sub_replace_all(fmt, from = I, value = as.list(sprintf("%02d", ts$hour %% 12)))
+  # j <- stringi::stri_locate_all(fmt, fixed = "%j")
+  # if (!is.na(j[[1]][1,1]))
+  #   fmt <- stringi::stri_sub_replace_all(fmt, from = j, value = as.list(ts$year))
+  m <- stringi::stri_locate_all(fmt, regex = "%[O]?m")
+  if (!is.na(m[[1]][1,1]))
+    fmt <- stringi::stri_sub_replace_all(fmt, from = m, value = as.list(sprintf("%02d", ts$month)))
+  M <- stringi::stri_locate_all(fmt, regex = "%[O]?M")
+  if (!is.na(M[[1]][1,1]))
+    fmt <- stringi::stri_sub_replace_all(fmt, from = M, value = as.list(sprintf("%02d", ts$minute)))
+  p <- stringi::stri_locate_all(fmt, fixed = "%p")
+  if (!is.na(p[[1]][1,1]))
+    fmt <- stringi::stri_sub_replace_all(fmt, from = p, value = as.list(ifelse(ts$hour < 12, "AM", "PM")))
+  S <- stringi::stri_locate_all(fmt, fixed = "%S")
+  if (!is.na(S[[1]][1,1]))
+    fmt <- stringi::stri_sub_replace_all(fmt, from = S, value = as.list(sprintf("%02d", ts$second)))
+  Y <- stringi::stri_locate_all(fmt, regex = "%[E]?Y")
+  if (!is.na(Y[[1]][1,1]))
+    fmt <- stringi::stri_sub_replace_all(fmt, from = Y, value = as.list(ts$year))
+  z <- stringi::stri_locate_all(fmt, fixed = "%z")
+  if (!is.na(z[[1]][1,1]))
+    fmt <- stringi::stri_sub_replace_all(fmt, from = z, value = CFtimezone(x))
+  oo <- stringi::stri_locate_all(fmt, fixed = "%%")
+  if (!is.na(oo[[1]][1,1]))
+    fmt <- stringi::stri_sub_replace_all(fmt, from = oo, value = "%")
+  fmt
+})
+
 #' @aliases  CFrange
 #'
 #' @title Extreme time series values

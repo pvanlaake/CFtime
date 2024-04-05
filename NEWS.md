@@ -2,6 +2,10 @@
 
 Changes since release 1.3.0:
 
+* format() method added that generates a character vector of timestamps for the
+offsets in a CFtime instance. The format is specified using the flags used in
+strptime(), with some limitations. In particular, locale-specific formatting is
+limited to month names and no weekday information can be generated.
 * as.character() and length() methods added that return a vector of timestamps 
 or the number of offsets in a CFtime instance, respectively.
 * Minor code fixes, see GitHub commits.

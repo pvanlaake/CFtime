@@ -24,7 +24,8 @@ Suggests:
     rmarkdown,
     ncdf4,
     RNetCDF,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    stringi
 URL: https://github.com/pvanlaake/CFtime
 BugReports: https://github.com/pvanlaake/CFtime/issues
 VignetteBuilder: knitr
