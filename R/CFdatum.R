@@ -72,7 +72,7 @@ CFdatum <- function(definition, calendar) {
 }
 
 setMethod("show", "CFdatum", function(object) {
-  if (object@origin$tz[1L] == "00:00") tz = "" else tz = object@origin$tz[1L]
+  if (object@origin$tz[1L] == "+0000") tz = "" else tz = object@origin$tz[1L]
   cat("CF datum of origin:",
       "\n  Origin  : ", origin_date(object), " ", origin_time(object), tz,
       "\n  Units   : ", CFt$units$name[object@unit],

@@ -122,7 +122,7 @@ CFparse <- function(cf, x) {
     "(?::([0-5][0-9]))?",
     "(?:\\.([0-9]*))?",
     ")?",
-    "(?:([Z+-])([01][0-9]|2[0-3])?(?::(00|15|30|45))?",
+    "(?:([Z+-])([01][0-9]|2[0-3])?(?::(00|15|30|45))?", ## FIXME: Z, smaller number of captures
     ")?$"
   )
 
@@ -180,8 +180,14 @@ CFparse <- function(cf, x) {
   cap$second[is.na(cap$second)] <- 0
 
   # Set timezone to default value where needed
-  cap$tz <- paste0(ifelse(cap$tz_sign == "-", "-", ""),
-                   ifelse(cap$tz_hour == "", "00", cap$tz_hour), ":",
+  ndx <- which(cap$tz_sign == "Z")
+  if (length(ndx) > 0) {
+    cap$tz_sign[ndx] <- "+"
+    cap$tz_hour[ndx] <- "00"
+    cap$tz_min[ndx] <- "00"
+  }
+  cap$tz <- paste0(ifelse(cap$tz_sign == "", "+", cap$tz_sign),
+                   ifelse(cap$tz_hour == "", "00", cap$tz_hour),
                    ifelse(cap$tz_min == "", "00", cap$tz_min))
   cap$tz_sign <- cap$tz_hour <- cap$tz_min <- NULL
 
