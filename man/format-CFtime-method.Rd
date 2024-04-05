@@ -2,25 +2,25 @@
 % Please edit documentation in R/CFtime.R
 \name{format,CFtime-method}
 \alias{format,CFtime-method}
-\title{Format the time elements using format specifiers.}
+\title{Format time elements using format specifiers}
 \usage{
-\S4method{format}{CFtime}(x, fmt)
+\S4method{format}{CFtime}(x, format)
 }
 \arguments{
 \item{x}{CFtime. A CFtime instance whose offsets will be returned as
 timestamps.}
 
-\item{fmt}{character. An atomic character string with sprintf format
+\item{format}{character. An atomic character string with strptime format
 specifiers.}
 }
 \value{
-A vector of character strings with a properly formatted time. Any
-format specifiers not recognized or supported will be returned verbatim.
+A vector of character strings with a properly formatted timestamp.
+Any format specifiers not recognized or supported will be returned verbatim.
 }
 \description{
 Format timestamps using a specific format string, using the specifiers
 defined for the \code{\link[base:strptime]{base::strptime()}} function, with limitations. The only
-supported specifiers are \verb{bBdeFhHIjmMpRSTYz\%}. Modifiers 'E' and 'O' are
+supported specifiers are \verb{bBdeFhHIjmMpRSTYz\%}. Modifiers \code{E} and \code{O} are
 silently ignored. Other specifiers, including their percent sign, are copied
 to the output as if they were adorning text.
 }

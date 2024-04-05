@@ -20,8 +20,8 @@
 #'   "proleptic_gregorian" calendars the output is a vector of `POSIXct` - for
 #'   other calendars the result is `NULL`. Default value is `FALSE`.
 #'
-#' @seealso The [format()] function gives greater flexibility through the use of
-#' strptime-like format specifiers.
+#' @seealso The [CFtime::format()] function gives greater flexibility through
+#'   the use of strptime-like format specifiers.
 #' @returns A character vector where each element represents a moment in time
 #'   according to the `format` specifier.
 #' @export

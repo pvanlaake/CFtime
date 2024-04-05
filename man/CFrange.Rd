@@ -5,12 +5,14 @@
 \alias{CFrange,CFtime-method}
 \title{Extreme time series values}
 \usage{
-CFrange(x)
+CFrange(x, format = "")
 
-\S4method{CFrange}{CFtime}(x)
+\S4method{CFrange}{CFtime}(x, format = "")
 }
 \arguments{
 \item{x}{An instance of the \code{CFtime} class}
+
+\item{format}{Atomic character string with format specifiers, optional}
 }
 \value{
 character. Vector of two character representations of the extremes of the time series.
@@ -26,4 +28,5 @@ Character representation of the extreme values in the time series
 \examples{
 cf <- CFtime("days since 1850-01-01", "julian", 0:364)
 CFrange(cf)
+CFrange(cf, "\%Y-\%b-\%e")
 }

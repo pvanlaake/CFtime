@@ -47,6 +47,6 @@ tail(CFtimestamp(cf2))
 tail(CFtimestamp(cf2 + 1.5))
 }
 \seealso{
-The \code{\link[=format]{format()}} function gives greater flexibility through the use of
-strptime-like format specifiers.
+The \code{\link[=format]{format()}} function gives greater flexibility through
+the use of strptime-like format specifiers.
 }
