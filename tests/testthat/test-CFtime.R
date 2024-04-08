@@ -74,6 +74,11 @@ test_that("test all variants of creating a CFtime object and useful functions", 
   expect_true(length(CFoffsets(cf2 + cf1)) == 730)
   expect_false((range(diff(CFoffsets(cf2 + cf1))) == c(1, 1))[1])
 
+  # Timezones
+  expect_false(grepl("+0000", capture_output(methods::show(cf1)), fixed = TRUE))
+  cf1 <- CFtime("days since 2022-01-01 00:00:00+04", "365_day", 0:364)
+  expect_true(grepl("+0400", capture_output(methods::show(cf1)), fixed = TRUE))
+
   # Time series completeness
   cf <- CFtime("d per 1991-01-01", "julian")
   expect_error(CFcomplete("zxcv"))
@@ -88,6 +93,14 @@ test_that("test all variants of creating a CFtime object and useful functions", 
   cfy <- cfy + 30:39
   expect_false(CFcomplete(cfy))
 
+  # Range
+  cf <- CFtime("days since 2001-01-01")
+  expect_equal(CFrange(cf), c(NA_character_, NA_character_))
+  cf <- cf + 0:1
+  expect_error(CFrange(cf, 123))
+  expect_error(CFrange(cf, c("asd %d", "%F")))
+  expect_equal(CFrange(cf, "%Y-%B-%Od"), c("2001-January-01", "2001-January-02"))
+
   # Range on unsorted offsets
   random <- runif(100, min = 1, max = 99)
   cf <- CFtime("days since 2001-01-01", offsets = c(0, random[1:50], 100, random[51:100]))
@@ -96,14 +109,12 @@ test_that("test all variants of creating a CFtime object and useful functions", 
   # Subsetting
   cf <- CFtime("hours since 2023-01-01 00:00:00", "standard", 0:239)
   expect_error(CFsubset("zxcv"))
-  x <- CFsubset(cf, c("2023-01-01", "2023-02-01"))
-  expect_true(all(x))
-  x <- CFsubset(cf, c("2023-01-01", "2023-05-01"))
-  expect_true(length(which(x)) == 240)
-  x <- CFsubset(cf, c("2023-01-01 00:00", "2023-01-01 04:00"))
-  expect_true(length(which(x)) == 4)
-  x <- CFsubset(cf, c("2023-01-01 04:00", "2023-01-01 00:00")) # extremes in reverse order
-  expect_true(length(which(x)) == 4)
+  expect_true(all(CFsubset(cf, c("2023-01-01", "2023-02-01"))))
+  expect_true(length(which(CFsubset(cf, c("2023-01-01", "2023-05-01")))) == 240)
+  expect_true(length(which(CFsubset(cf, c("2023-01-01 00:00", "2023-01-01 04:00")))) == 4)
+  expect_true(length(which(CFsubset(cf, c("2023-01-01 04:00", "2023-01-01 00:00")))) == 4) # extremes in reverse order
+  expect_true(CFsubset(cf, c("2022-01-01", "2023-01-02"))[1]) # early extreme before timeseries
+  expect_true(all(!CFsubset(cf, c("2023-02-01", "2023-03-01")))) # both extremes outside time series
   expect_error(CFsubset(cf, c("2023-01-01 00:00", "2023-01-01 04:00", "2023-01-02 00:00"))) # 3 extremes
 })
 

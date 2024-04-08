@@ -15,6 +15,22 @@ test_that("Creating timestamps", {
   expect_equal(length(CFtimestamp(cf, "timestamp", TRUE)), 365L)
 })
 
+test_that("Using format()", {
+  cf <- CFtime("days since 2001-01-01 18:10:30-04", "365_day", 0:364)
+
+  expect_error(format(cf))      # format parameter missing
+  expect_error(format(cf, 123)) # format parameter must be character
+  expect_error(format(cf, c("doesn't", "work", "either")))
+
+  expect_equal(format(cf, "Timestamp is: %%%F%%")[1], "Timestamp is: %2001-01-01%")
+  expect_equal(format(cf, "Timestamp is: %R")[1], "Timestamp is: 18:10")
+  expect_equal(format(cf, "%T%z")[1], "18:10:30-0400")
+  expect_equal(format(cf, "%b")[c(1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335)], month.abb)  # en_EN only
+  expect_equal(format(cf, "%B")[c(1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335)], month.name) #
+  expect_equal(format(cf, "%Od-%e-%I%p")[5], "05- 5-06PM")
+
+})
+
 test_that("CFfactor testing", {
   # No offsets
   cf <- CFtime("days since 2001-01-01", "365_day")

@@ -211,7 +211,7 @@ setMethod("show", "CFtime", function(object) {
 #'
 setMethod("format", "CFtime", function(x, format) {
   if (!requireNamespace("stringi", quietly = TRUE))
-    stop("package `stringi` is required - please install it first")
+    stop("package `stringi` is required - please install it first") # nocov
 
   if (missing(format) || !is.character(format) || length(format) != 1)
     stop("`format` parameter must be an atomic string with formatting specifiers")
@@ -219,7 +219,7 @@ setMethod("format", "CFtime", function(x, format) {
   ts <- .offsets2time(x@offsets, x@datum)
   if (nrow(ts) == 0L) return()
 
-  .format_format(ts, x@datum@timezone, format)
+  .format_format(ts, timezone(x@datum), format)
 })
 
 #' Do the actual formatting with format specifiers
@@ -461,9 +461,14 @@ setMethod("+", c("CFtime", "CFtime"), function(e1, e2) {
 #' Note that when adding multiple vectors of offsets to a `CFtime` instance, it
 #' is more efficient to first concatenate the vectors and then do a final
 #' addition to the `CFtime` instance. So avoid `CFtime(definition, calendar, e1) + CFtime(definition, calendar, e2) + CFtime(definition, calendar, e3) + ...`
-#' but rather do `CFtime(definition, calendar, e1) + c(e2, e3, ...)`. It is the
+#' but rather do `CFtime(definition, calendar) + c(e1, e2, e3, ...)`. It is the
 #' responsibility of the operator to ensure that the offsets of the different
 #' data sets are in reference to the same datum.
+#'
+#' Note also that `RNetCDF` and `ncdf4` packages both return the values of the
+#' "time" dimension as a 1-dimensional array. You have to `dim(time_values) <- NULL`
+#' to de-class the array to a vector before adding offsets to an existing CFtime
+#' instance.
 #'
 #' Negative offsets will generate an error.
 #'
@@ -480,7 +485,6 @@ setMethod("+", c("CFtime", "CFtime"), function(e1, e2) {
 #' e2 <- 365:729
 #' e1 + e2
 setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
-  if (is.array(e2)) dim(e2) <- NULL
   if (.validOffsets(e2, CFt$units$per_day[unit(e1@datum)]))
     CFtime(definition(e1@datum), calendar(e1@datum), c(e1@offsets, e2))
 })
