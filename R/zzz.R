@@ -10,6 +10,6 @@ CFt <- new.env(parent = emptyenv())
   assign("units", data.frame(name     = c("seconds", "minutes", "hours", "days", "months", "years"),
                              seconds  = c(1, 60, 3600, 86400, 86400 * 30, 86400 * 365),
                              per_day  = c(86400, 1440, 24, 1, 1/30, 1/365)), envir = CFt)
-  assign("factor_periods", c("year", "season", "month", "dekad", "day"), envir = CFt)
+  assign("factor_periods", c("year", "season", "quarter", "month", "dekad", "day"), envir = CFt)
 }
 #nocov end

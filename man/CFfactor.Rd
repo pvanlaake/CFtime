@@ -11,7 +11,7 @@ CFfactor(cf, period = "month", epoch = NULL)
 be used to construct the factor.}
 
 \item{period}{character. An atomic character string with one of the values
-"year", "season", "month" (the default), "dekad" or "day".}
+"year", "season", "quarter", "month" (the default), "dekad" or "day".}
 
 \item{epoch}{numeric or list, optional. Vector of years for which to construct
 the factor, or a list whose elements are each a vector of years. If \code{epoch}
@@ -36,7 +36,7 @@ process daily CF data sets using, for instance, \code{tapply()}.
 The factor will respect the calendar of the datum that the time series is
 built on. For \code{period}s longer than a day this will result in a factor where
 the calendar is no longer relevant (because calendars impacts days, not
-dekads, months or seasons).
+dekads, months, quarters, seasons or years).
 
 The factor will be generated in the order of the offsets of the \code{CFtime}
 instance. While typical CF-compliant data sources use ordered time series
@@ -62,6 +62,8 @@ that for standard CMIP files having one or more full years of data the
 first season will have data for the first two months (January and
 February), while the final season will have only a single month of data
 (December).
+\item \code{quarter}, the calendar quarter of each offset is returned as "Qx",
+with x being 1-4, preceeded by "YYYY" if no \code{epoch} is specified.
 \item \code{month}, the month of each offset is returned as "01" to
 "12", preceeded by "YYYY-" if no \code{epoch} is specified. This is the default
 period.

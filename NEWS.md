@@ -1,7 +1,8 @@
 # CFtime (development version)
 
-Changes since release 1.3.0:
-
+* New cut() method added to generate a factor, similar to cut.POSIXt() but with
+differences in the arguments.
+* CFfactor() now supports a period "quarter", for calendar quarters.
 * format() method added that generates a character vector of timestamps for the
 offsets in a CFtime instance. The format is specified using the flags used in
 strptime(), with some limitations. In particular, locale-specific formatting is

@@ -9,7 +9,7 @@
 #' The factor will respect the calendar of the datum that the time series is
 #' built on. For `period`s longer than a day this will result in a factor where
 #' the calendar is no longer relevant (because calendars impacts days, not
-#' dekads, months or seasons).
+#' dekads, months, quarters, seasons or years).
 #'
 #' The factor will be generated in the order of the offsets of the `CFtime`
 #' instance. While typical CF-compliant data sources use ordered time series
@@ -35,6 +35,8 @@
 #'   first season will have data for the first two months (January and
 #'   February), while the final season will have only a single month of data
 #'   (December).
+#'   \item `quarter`, the calendar quarter of each offset is returned as "Qx",
+#'   with x being 1-4, preceeded by "YYYY" if no `epoch` is specified.
 #'   \item `month`, the month of each offset is returned as "01" to
 #'   "12", preceeded by "YYYY-" if no `epoch` is specified. This is the default
 #'   period.
@@ -58,7 +60,7 @@
 #' @param cf CFtime. An atomic instance of the `CFtime` class whose offsets will
 #'   be used to construct the factor.
 #' @param period character. An atomic character string with one of the values
-#'   "year", "season", "month" (the default), "dekad" or "day".
+#'   "year", "season", "quarter", "month" (the default), "dekad" or "day".
 #' @param epoch numeric or list, optional. Vector of years for which to construct
 #'   the factor, or a list whose elements are each a vector of years. If `epoch`
 #'   is not specified, the factor will use the entire time series for the
@@ -90,7 +92,7 @@ CFfactor <- function(cf, period = "month", epoch = NULL) {
   # No fine-grained period factors for coarse source data
   timestep <- CFt$units$seconds[unit(cf@datum)] * cf@resolution;
   if ((period == "year") && (timestep > 86400 * 366) ||
-      (period == "season") && (timestep > 86400 * 90) || # Somewhat arbitrary
+      (period %in% c("season", "quarter")) && (timestep > 86400 * 90) || # Somewhat arbitrary
       (period == "month") && (timestep > 86400 * 31) ||
       (period == "dekad") && (timestep > 86400) ||       # Must be constructed from daily or finer data
       (period == "day") && (timestep > 86400))           # Must be no longer than a day
@@ -102,11 +104,12 @@ CFfactor <- function(cf, period = "month", epoch = NULL) {
 
   if (is.null(epoch)) {
     f <- switch(period,
-                "year"   = sprintf("%04d", time$year),
-                "season" = ifelse(time$month == 12L, sprintf("%04d-DJF", time$year + 1L), sprintf("%04d-%s", time$year, seasons[time$month])),
-                "month"  = sprintf("%04d-%s", time$year, months[time$month]),
-                "dekad"  = sprintf("%04dD%02d", time$year, (time$month - 1L) * 3L + pmin.int((time$day - 1L) %/% 10L + 1L, 3L)),
-                "day"    = sprintf("%04d-%02d-%02d", time$year, time$month, time$day)
+                "year"    = sprintf("%04d", time$year),
+                "season"  = ifelse(time$month == 12L, sprintf("%04d-DJF", time$year + 1L), sprintf("%04d-%s", time$year, seasons[time$month])),
+                "quarter" = sprintf("%04dQ%d", time$year, (time$month - 1L) %/% 3L + 1L),
+                "month"   = sprintf("%04d-%s", time$year, months[time$month]),
+                "dekad"   = sprintf("%04dD%02d", time$year, (time$month - 1L) * 3L + pmin.int((time$day - 1L) %/% 10L + 1L, 3L)),
+                "day"     = sprintf("%04d-%02d-%02d", time$year, time$month, time$day)
     )
     out <- as.factor(f)
     attr(out, "epoch") <- -1L
@@ -120,12 +123,13 @@ CFfactor <- function(cf, period = "month", epoch = NULL) {
 
   out <- lapply(ep, function(years) {
     f <- switch(period,
-                "year"   = ifelse(time$year %in% years, sprintf("%04d", time$year), NA_character_),
-                "season" = ifelse((time$month == 12L) & ((time$year + 1L) %in% years), "DJF",
-                                  ifelse((time$month < 12L) & (time$year %in% years), seasons[time$month], NA_character_)),
-                "month"  = ifelse(time$year %in% years, months[time$month], NA_character_),
-                "dekad"  = ifelse(time$year %in% years, sprintf("D%02d", (time$month - 1L) * 3L + pmin.int((time$day - 1L) %/% 10L + 1L, 3L)), NA_character_),
-                "day"    = ifelse(time$year %in% years, sprintf("%s-%02d", months[time$month], time$day), NA_character_)
+                "year"    = ifelse(time$year %in% years, sprintf("%04d", time$year), NA_character_),
+                "season"  = ifelse((time$month == 12L) & ((time$year + 1L) %in% years), "DJF",
+                                   ifelse((time$month < 12L) & (time$year %in% years), seasons[time$month], NA_character_)),
+                "quarter" = ifelse(time$year %in% years, sprintf("Q%d", (time$month - 1L) %/% 3L + 1L), NA_character_),
+                "month"   = ifelse(time$year %in% years, months[time$month], NA_character_),
+                "dekad"   = ifelse(time$year %in% years, sprintf("D%02d", (time$month - 1L) * 3L + pmin.int((time$day - 1L) %/% 10L + 1L, 3L)), NA_character_),
+                "day"     = ifelse(time$year %in% years, sprintf("%s-%02d", months[time$month], time$day), NA_character_)
     )
     f <- as.factor(f)
     attr(f, "epoch") <- length(years)
@@ -208,58 +212,65 @@ CFfactor_units <- function(cf, f) {
 .factor_units <- function(f, cal, upd) {
   period <- attr(f, "period")
   if (cal == 3L) {
-    res <- rep(c(360L, 90L, 30L, 10L, 1L)[which(CFt$factor_periods == period)], nlevels(f))
+    res <- rep(c(360L, 90L, 90L, 30L, 10L, 1L)[which(CFt$factor_periods == period)], nlevels(f))
   } else {
     if (attr(f, "epoch") > 0L) {
       if (cal %in% c(1L, 2L, 4L)) {
         res <- switch(period,
-                      "year"   = rep(365L, nlevels(f)),
-                      "season" = ifelse(levels(f) %in% c("MAM", "JJA"), 92L, ifelse(levels(f) == "SON", 91L, 90L)),
-                      "month"  = c(31L, 28L, 31L, 30L, 31L, 30L, 31L, 31L, 30L, 31L, 30L, 31L)[as.integer(levels(f))],
-                      "dekad"  = {
+                      "year"    = rep(365L, nlevels(f)),
+                      "season"  = ifelse(levels(f) %in% c("MAM", "JJA"), 92L, ifelse(levels(f) == "SON", 91L, 90L)),
+                      "quarter" = c(90L, 91L, 92L, 92L)[as.integer(levels(f))],
+                      "month"   = c(31L, 28L, 31L, 30L, 31L, 30L, 31L, 31L, 30L, 31L, 30L, 31L)[as.integer(levels(f))],
+                      "dekad"   = {
                         dk <- as.integer(substr(levels(f), 2L, 3L))
                         ifelse(dk %% 3L > 0L | dk %in% c(12L, 18L, 27L, 33L), 10L,
                                ifelse(dk %in% c(3L, 9L, 15L, 21L, 24L, 30L, 36L), 11L, 8L))
                       },
-                      "day"    = rep(1L, nlevels(f))
+                      "day"     = rep(1L, nlevels(f))
         )
       } else if (cal == 5L) {
         res <- switch(period,
-                      "year"   = rep(366L, nlevels(f)),
-                      "season" = ifelse(levels(f) %in% c("MAM", "JJA"), 92L, 91L),
-                      "month"  = c(31L, 29L, 31L, 30L, 31L, 30L, 31L, 31L, 30L, 31L, 30L, 31L)[as.integer(levels(f))],
-                      "dekad"  = {
+                      "year"    = rep(366L, nlevels(f)),
+                      "season"  = ifelse(levels(f) %in% c("MAM", "JJA"), 92L, 91L),
+                      "quarter" = c(91L, 91L, 92L, 92L)[as.integer(levels(f))],
+                      "month"   = c(31L, 29L, 31L, 30L, 31L, 30L, 31L, 31L, 30L, 31L, 30L, 31L)[as.integer(levels(f))],
+                      "dekad"   = {
                         dk <- as.integer(substr(levels(f), 2L, 3L))
                         ifelse(dk %% 3L > 0L | dk %in% c(12L, 18L, 27L, 33L), 10L,
                                ifelse(dk %in% c(3L, 9L, 15L, 21L, 24L, 30L, 36L), 11L, 9L))
                       },
-                      "day"    = rep(1L, nlevels(f))
+                      "day"     = rep(1L, nlevels(f))
         )
       }
     } else {  # not an epoch factor
       res <- switch(period,
-                    "year"   = ifelse(.is_leap_year(as.integer(levels(f)), cal), 366L, 365L),
-                    "season" = {
+                    "year"    = ifelse(.is_leap_year(as.integer(levels(f)), cal), 366L, 365L),
+                    "season"  = {
                       year <- substr(levels(f), 1L, 4L)
                       season <- substr(levels(f), 6L, 8L)
                       ifelse(season %in% c("MAM", "JJA"), 92L,
                              ifelse(season == "SON", 91L,
                                     ifelse(.is_leap_year(year, cal), 91L, 90L)))
                     },
-                    "month"  = {
+                    "quarter" = {
+                      year <- as.integer(substr(levels(f), 1L, 4L))
+                      qtr  <- as.integer(substr(levels(f), 6L, 6L))
+                      ifelse(.is_leap_year(year, cal), c(91L, 91L, 92L, 92L)[qtr], c(90L, 91L, 92L, 92L)[qtr])
+                    },
+                    "month"   = {
                       year  <- as.integer(substr(levels(f), 1L, 4L))
                       month <- as.integer(substr(levels(f), 6L, 7L))
                       ifelse(.is_leap_year(year, cal), c(31L, 29L, 31L, 30L, 31L, 30L, 31L, 31L, 30L, 31L, 30L, 31L)[month],
                              c(31L, 28L, 31L, 30L, 31L, 30L, 31L, 31L, 30L, 31L, 30L, 31L)[month])
                     },
-                    "dekad"  = {
+                    "dekad"   = {
                       year  <- as.integer(substr(levels(f), 1L, 4L))
                       dk <- as.integer(substr(levels(f), 6L, 7L))
                       ifelse(dk %% 3L > 0L | dk %in% c(12L, 18L, 27L, 33L), 10L,
                              ifelse(dk %in% c(3L, 9L, 15L, 21L, 24L, 30L, 36L), 11L,
                                     ifelse(.is_leap_year(year, cal), 9L, 8L)))
                     },
-                    "day"    = rep(1L, nlevels(f))
+                    "day"     = rep(1L, nlevels(f))
       )
     }
   }

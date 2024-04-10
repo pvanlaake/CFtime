@@ -296,6 +296,64 @@ setMethod("format", "CFtime", function(x, format) {
   format
 }
 
+#' Create a factor for a CFtime instance
+#'
+#' Method for [base::cut()] applied to CFtime objects.
+#'
+#' When `breaks` is one of `c("year", "season", "quarter", "month", "dekad", "day")`
+#' a factor is generated like by [CFfactor()].
+#'
+#' When `breaks` is a vector of character timestamps a factor is produced with a
+#' level for every interval between timestamps. The last timestamp, therefore,
+#' is only used to close the interval stared by the pen-ultimate timestamp - use
+#' a distant timestamp (e.g. "2301-01-01") to ensure that you get all offsets to
+#' the end of the CFtime time series, if so desired. The earliest timestamp
+#' cannot be smaller than the origin of the CFtime datum.
+#'
+#' This method works similar to [base::cut.POSIXt()] but there are some
+#' differences in the arguments: for `breaks` the set of options is different
+#' and no preceding integer is allowed, `labels` are always assigned using
+#' values of `breaks`, and the interval is always left-closed.
+#'
+#' @param x An instance of CFtime.
+#' @param breaks A character string of a factor period, or a character vector of
+#'   timestamps that conform to the calendar of `x`, with a length of at least
+#'   2. Timestamps must be given in ISO8601 format, e.g. "2024-04-10 21:31:43".
+#' @param ... Ignored.
+#'
+#' @returns A factor with the levels according to the 'breaks' argument.
+#' @seealso [CFfactor()] produces a factor for several fixed periods, including
+#' for epochs.
+#' @export
+#'
+#' @examples
+#' x <- CFtime("days since 2021-01-01", "365_day", 0:729)
+#' breaks <- c("2022-02-01", "2021-12-01", "2401-01-01")
+#' cut(x, breaks)
+setMethod("cut", "CFtime", function (x, breaks, ...) {
+  if (!inherits(x, "CFtime"))
+    stop("Argument 'x' must be a CFtime instance")
+
+  if (missing(breaks) || !is.character(breaks) || (len <- length(breaks)) < 1)
+    stop("Argument 'breaks' must be a character vector with at least 1 value")
+
+  if(len == 1) {
+    breaks <- sub("s$", "", tolower(breaks))
+    if (breaks %in% CFt$factor_periods)
+      return(CFfactor(x, breaks))
+    else stop("Invalid specification of 'breaks'")
+  }
+
+  # breaks is a character vector of multiple timestamps
+  time <- CFparse(x, breaks)
+  if (anyNA(time$year))
+    stop("Invalid specification of 'breaks'")
+  sorted <- order(time$offset)
+  intv <- findInterval(CFoffsets(x), time$offset[sorted])
+  intv[which(intv %in% c(0, len))] <- NA
+  factor(intv, labels = breaks[sorted][0:(len-1)])
+})
+
 #' @aliases  CFrange
 #'
 #' @title Extreme time series values

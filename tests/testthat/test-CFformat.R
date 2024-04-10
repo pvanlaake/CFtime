@@ -52,9 +52,9 @@ test_that("CFfactor testing", {
   cf <- cf + 5L:7299L # 20 years of offsets
 
   # Regular factors for all available periods
-  first <- c("2001", "2001-DJF", "2001-01", "2001D01", "2001-01-01")
-  last <-  c("2020", "2021-DJF", "2020-12", "2020D36", "2020-12-31")
-  for (p in 1:5) {
+  first <- c("2001", "2001-DJF", "2001Q1", "2001-01", "2001D01", "2001-01-01")
+  last <-  c("2020", "2021-DJF", "2020Q4", "2020-12", "2020D36", "2020-12-31")
+  for (p in 1:6) {
     f <- CFfactor(cf, CFt$factor_periods[p])
     expect_equal(as.character(f)[1L], first[p])
     expect_equal(as.character(f)[7300L], last[p])
@@ -62,8 +62,8 @@ test_that("CFfactor testing", {
 
   # Epoch factors for all available periods
   epochs <- list(first = 2001L, double = 2002L:2003L, final3 = 2018L:2020L, outside = 2022L)
-  lvls <- c(1L, 4L, 12L, 36L, 365L)
-  for (p in 1:5) { # year, season, month, dekad, day
+  lvls <- c(1L, 4L, 4L, 12L, 36L, 365L)
+  for (p in 1:6) { # year, season, quarter, month, dekad, day
     f <- CFfactor(cf, CFt$factor_periods[p], epochs)
     expect_type(f, "list")
     expect_equal(length(f), 4L)
@@ -76,7 +76,7 @@ test_that("CFfactor testing", {
       expect_equal(length(levels(f$double)), 2L)
       expect_equal(length(levels(f$final3)), 3L)
       expect_equal(length(levels(f$outside)), 0L)
-    } else if (p == 2L) {
+    } else if (p %in% c(2L, 3L)) {
       expect_equal(length(levels(f$first)), 4L)
       expect_equal(length(levels(f$double)), 4L)
       expect_equal(length(levels(f$final3)), 4L)
@@ -90,8 +90,7 @@ test_that("CFfactor testing", {
   }
 
   # Single epoch value for all available periods
-  lvls <- c(1L, 4L, 12L, 36L, 365L)
-  for (p in 1:5) { # year, season, month, dekad, day
+  for (p in 1:6) { # year, season, quarter, month, dekad, day
     f <- CFfactor(cf, CFt$factor_periods[p], 2002L)
     expect_s3_class(f, "factor")
     expect_equal(length(f), 7300L)
@@ -123,6 +122,16 @@ test_that("CFfactor testing", {
   x <- CFfactor_coverage(cf, f, "relative")
   expect_equal(x[1L] + x[81L], 1L)
   expect_true(all(x[2L:80L] == 1L))
+
+  f <- CFfactor(cf, "quarter")
+  expect_equal(sum(CFfactor_units(cf, f)), 7300L)
+  expect_true(all(CFfactor_units(cf, f) %in% 90L:92L))
+  x <- CFfactor_coverage(cf, f, "absolute")
+  expect_equal(x[1L], 90L)
+  expect_equal(x[80L], 92L)
+  expect_true(all(x %in% 90L:92L))
+  x <- CFfactor_coverage(cf, f, "relative")
+  expect_true(all(x == 1L))
 
   f <- CFfactor(cf, "month")
   expect_equal(sum(CFfactor_units(cf, f)), 7300L)
@@ -238,4 +247,25 @@ test_that("CFfactor testing", {
   expect_equal(sum(x), n * cov)
   x <- CFfactor_coverage(cf, f, "relative")
   expect_true((cov - 0.01) < mean(x) && mean(x) < (cov + 0.01))
+})
+
+test_that("cut() works", {
+  cf <- CFtime("days since 2020-01-01", "360_day", 0:719)
+  expect_error(cut("sfg"))
+  expect_error(cut(cf))
+  expect_error(cut(cf, breaks = 5))
+  expect_error(cut(cf, ""))
+  expect_error(cut(cf, "blah"))
+  expect_error(suppressWarnings(cut(cf, c("1900-01-01", "2020-04-03")))) # pre-datum break
+
+  f <- cut(cf, "quarter")
+  expect_equal(nlevels(f), 8)
+  expect_equal(levels(f), c("2020Q1", "2020Q2", "2020Q3", "2020Q4", "2021Q1", "2021Q2", "2021Q3", "2021Q4"))
+
+  f <- cut(cf, c("2021-01-01", "2020-04-03")) # out of order
+  expect_s3_class(f, "factor")
+  expect_equal(levels(f), "2020-04-03")
+
+  f <- cut(cf, c("2020-01-01", "2020-06-17", "2021-01-01", "2021-04-12", "2401-01-01"))
+  expect_equal(levels(f), c("2020-01-01", "2020-06-17", "2021-01-01", "2021-04-12"))
 })
