@@ -31,11 +31,20 @@ only if the data sets are merged in the same order.
 Note that when adding multiple vectors of offsets to a \code{CFtime} instance, it
 is more efficient to first concatenate the vectors and then do a final
 addition to the \code{CFtime} instance. So avoid \code{CFtime(definition, calendar, e1) + CFtime(definition, calendar, e2) + CFtime(definition, calendar, e3) + ...}
-but rather do \code{CFtime(definition, calendar, e1) + c(e2, e3, ...)}. It is the
+but rather do \code{CFtime(definition, calendar) + c(e1, e2, e3, ...)}. It is the
 responsibility of the operator to ensure that the offsets of the different
 data sets are in reference to the same datum.
 
+Note also that \code{RNetCDF} and \code{ncdf4} packages both return the values of the
+"time" dimension as a 1-dimensional array. You have to \code{dim(time_values) <- NULL}
+to de-class the array to a vector before adding offsets to an existing CFtime
+instance.
+
 Negative offsets will generate an error.
+
+Any bounds that were set will be removed. Use \code{\link[=bounds]{bounds()}} to retrieve
+the bounds of the individual \code{CFtime} instances and then set them again after
+merging the two instances.
 }
 \examples{
 e1 <- CFtime("days since 1850-01-01", "gregorian", 0:364)

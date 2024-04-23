@@ -30,7 +30,7 @@ test_that("test all variants of creating a CFtime object and useful functions", 
   # CFtime with only a definition and a calendar
   cf <- CFtime("d per 1991-01-01", "julian")
   expect_match(capture_output(methods::show(cf)), "^CF datum of origin:")
-  expect_match(capture_output(methods::show(cf)), "Elements: \\(no elements\\)$")
+  expect_match(capture_output(methods::show(cf)), "Elements: \\(no elements\\)\\n  Bounds  : \\(not set\\)$")
 
   expect_equal(CForigin(cf)[1:3], data.frame(year = 1991, month = 1, day = 1))
   expect_equal(CFunit(cf), "days")
@@ -40,14 +40,14 @@ test_that("test all variants of creating a CFtime object and useful functions", 
   # CFtime with a single offset
   cf <- cf + 15
   expect_equal(CFtimestamp(cf, "date"), "1991-01-16")
-  expect_match(capture_output(methods::show(cf)), "Elements: 1991-01-16 $")
+  expect_match(capture_output(methods::show(cf)), "Elements: 1991-01-16 \\n  Bounds  : not set$")
 
   # Invalid offsets
   expect_error(CFtime("d per 1991-01-01", "julian", c(TRUE, FALSE, FALSE)))
 
   # Character offsets
   cf <- CFtime("hours since 2023-01-01", "360_day", "2023-04-30T23:00")
-  expect_equal(CFrange(cf), c("2023-01-01T00:00:00", "2023-04-30T23:00:00"))
+  expect_equal(CFrange(cf), c("2023-01-01 00:00:00", "2023-04-30 23:00:00"))
   expect_equal(length(CFtimestamp(cf, "timestamp")), 4 * 30 * 24)
 
   expect_error(CFtime("days since 2023-01-01", "366_day", c("2021-01-01", "2021-04-13")))
@@ -68,7 +68,7 @@ test_that("test all variants of creating a CFtime object and useful functions", 
 
   cf1 <- CFtime("days since 2022-01-01", "365_day", 0:364)
   cf2 <- CFtime("days since 2023-01-01", "365_day", 0:364)
-  expect_match(capture_output(methods::show(cf1)), "between 365 elements\\)$")
+  expect_match(capture_output(methods::show(cf1)), "between 365 elements\\)\\n  Bounds  : not set$")
   expect_true(length(CFoffsets(cf1 + cf2)) == 730)
   expect_true(all(range(diff(CFoffsets(cf1 + cf2))) == c(1, 1)))
   expect_true(length(CFoffsets(cf2 + cf1)) == 730)

@@ -3,6 +3,12 @@
 #' @slot datum CFdatum. The atomic origin upon which the `offsets` are based.
 #' @slot resolution numeric. The average number of time units between offsets.
 #' @slot offsets numeric. A vector of offsets from the datum.
+#' @slot bounds Optional, the bounds for the offsets. If not set, it is the
+#' logical value `FALSE`. If set, it is the logical value `TRUE` if the bounds
+#' are regular with respect to the regularly spaced offsets (e.g. successive
+#' bounds are contiguous and at mid-points between the offsets); otherwise a
+#' `matrix` with columns for `offsets` and low values in the first row, high
+#' values in the second row.
 #'
 #' @returns An object of class CFtime.
 #' @export
@@ -10,7 +16,8 @@ setClass("CFtime",
          slots = c(
            datum      = "CFdatum",
            resolution = "numeric",
-           offsets    = "numeric"
+           offsets    = "numeric",
+           bounds     = "ANY"
          ))
 
 #' Create a CFtime object
@@ -46,7 +53,7 @@ CFtime <- function(definition, calendar = "standard", offsets = NULL) {
   if (is.array(offsets)) dim(offsets) <- NULL
 
   if (is.null(offsets)) {
-    methods::new("CFtime", datum = datum, resolution = NA_real_, offsets = numeric())
+    methods::new("CFtime", datum = datum, resolution = NA_real_, offsets = numeric(), bounds = FALSE)
   } else if (is.numeric(offsets)) {
     stopifnot(.validOffsets(offsets, CFt$units$per_day[datum@unit]))
 
@@ -55,7 +62,7 @@ CFtime <- function(definition, calendar = "standard", offsets = NULL) {
     } else {
       resolution <- NA_real_
     }
-    methods::new("CFtime", datum = datum, resolution = resolution, offsets = offsets)
+    methods::new("CFtime", datum = datum, resolution = resolution, offsets = offsets, bounds = FALSE)
   } else if (is.character(offsets)) {
     time <- .parse_timestamp(datum, offsets)
     if (anyNA(time$year)) stop("Offset argument contains invalid timestamps")
@@ -67,7 +74,7 @@ CFtime <- function(definition, calendar = "standard", offsets = NULL) {
       off <- time$offset
       resolution <- (max(time$offset) - min(time$offset)) / (length(time$offset) - 1L)
     }
-    methods::new("CFtime", datum = datum, resolution = resolution, offsets = off)
+    methods::new("CFtime", datum = datum, resolution = resolution, offsets = off, bounds = FALSE)
   } else stop("Invalid offsets for CFtime object")
 }
 
@@ -124,6 +131,52 @@ CFoffsets <- function(cf) cf@offsets
 #' @export
 CFresolution <- function(cf) cf@resolution
 
+#' Bounds of the time offsets
+#'
+#' CF-compliant NetCDF files store time information as a single offset value for
+#' each step along the dimension, typically centered on the valid interval of
+#' the data (e.g. 12-noon for day data). Optionally, the lower and upper values
+#' of the valid interval are stored in a so-called "bounds" variable, as an
+#' array with two rows (lower and higher value) and a column for each offset.
+#' With function `bounds()<-` those bounds can be set for a CFtime instance. The
+#' bounds can be retrieved with the `bounds()` function.
+#'
+#' @param x A `CFtime` instance
+#' @param format Optional. A single string with format specifiers, see
+#'   [CFtime::format()] for details.
+#'
+#' @returns If bounds have been set, an array of bounds values with dimensions
+#'   (2, length(offsets)). The first row gives the lower bound, the second row
+#'   the upper bound, with each column representing an offset of `x`. If the
+#'   `format` argument is specified, the bounds values are returned as strings
+#'   according to the format. `NULL` when no bounds have been set.
+#' @aliases bounds
+#'
+#' @examples
+#' cf <- CFtime("days since 2024-01-01", "standard", seq(0.5, by = 1, length.out = 366))
+#' CFtimestamp(cf)[1:3]
+#' bounds(cf) <- rbind(0:365, 1:366)
+#' bounds(cf)[, 1:3]
+#' bounds(cf, "%d-%b-%Y")[, 1:3]
+setGeneric("bounds", function(x, format) standardGeneric("bounds"), signature = "x")
+
+#' @rdname bounds
+#' @export
+setMethod("bounds", "CFtime", function (x, format) .get_bounds(x, format))
+
+#' @rdname bounds
+#' @param value A `matrix` (or `array`) with dimensions (2, length(offsets))
+#'   giving the lower (first row) and higher (second row) bounds of each offset
+#'   (this is the format that the CF Metadata Conventions uses for storage in
+#'   NetCDF files). Use `FALSE` to unset any previously set bounds, `TRUE` to
+#'   set regular bounds at mid-points between the offsets (which must be regular
+#'   as well).
+setGeneric("bounds<-", function(x, value) standardGeneric("bounds<-"), signature = c("x"))
+
+#' @rdname bounds
+#' @export
+setMethod("bounds<-", "CFtime", function (x, value) invisible(.set_bounds(x, value)))
+
 #' The length of the offsets contained in the CFtime instance.
 #'
 #' @param x The CFtime instance whose length will be returned
@@ -134,9 +187,7 @@ CFresolution <- function(cf) cf@resolution
 #' @examples
 #' cf <- CFtime("days since 1850-01-01", "julian", 0:364)
 #' length(cf)
-setMethod("length", "CFtime", function(x) {
-  length(x@offsets)
-})
+setMethod("length", "CFtime", function(x) length(x@offsets))
 
 #' Return the timestamps contained in the CFtime instance.
 #'
@@ -157,6 +208,7 @@ setMethod("show", "CFtime", function(object) {
   noff <- length(object@offsets)
   if (noff == 0L) {
     el <- "  Elements: (no elements)\n"
+    b  <- "  Bounds  : (not set)\n"
   } else {
     d <- CFrange(object)
     if (noff > 1L) {
@@ -165,8 +217,12 @@ setMethod("show", "CFtime", function(object) {
     } else {
       el <- paste("  Elements:", d[1L], "\n")
     }
+    if (is.logical(object@bounds)) {
+      if (object@bounds) b <- "  Bounds  : regular and consecutive\n"
+      else b <- "  Bounds  : not set\n"
+    } else b <- "  Bounds  : irregular\n"
   }
-  cat("CF time series:\n", methods::show(object@datum), el, sep = "")
+  cat("CF time series:\n", methods::show(object@datum), el, b, sep = "")
 })
 
 #' Format time elements using format specifiers
@@ -214,87 +270,13 @@ setMethod("format", "CFtime", function(x, format) {
     stop("package `stringi` is required - please install it first") # nocov
 
   if (missing(format) || !is.character(format) || length(format) != 1)
-    stop("`format` parameter must be an atomic string with formatting specifiers")
+    stop("`format` argument must be an atomic string with formatting specifiers")
 
   ts <- .offsets2time(x@offsets, x@datum)
   if (nrow(ts) == 0L) return()
 
   .format_format(ts, timezone(x@datum), format)
 })
-
-#' Do the actual formatting with format specifiers
-#'
-#' Internal function
-#'
-#' @param ts data.frame of decomposed offsets
-#' @param tz character. Atomic time zone string
-#' @param format character. Atomic character string with the format specifiers
-#' @returns Character vector of formatted timestamps
-#' @noRd
-.format_format <- function(ts, tz, format) {
-  # Expand any composite specifiers
-  F <- stringi::stri_locate_all(format, fixed = "%F")
-  if (!is.na(F[[1]][1,1])) {
-    format <- stringi::stri_sub_replace_all(format, from = F, value = "%Y-%m-%d")
-  }
-  R <- stringi::stri_locate_all(format, fixed = "%R")
-  if (!is.na(R[[1]][1,1])) {
-    format <- stringi::stri_sub_replace_all(format, from = R, value = "%H:%M")
-  }
-  T <- stringi::stri_locate_all(format, fixed = "%T")
-  if (!is.na(T[[1]][1,1])) {
-    format <- stringi::stri_sub_replace_all(format, from = T, value = "%H:%M:%S")
-  }
-
-  # Splice in timestamp values for specifiers
-  b <- stringi::stri_locate_all(format, regex = "%b|%h")
-  if (!is.na(b[[1]][1,1])) {
-    mon <- strftime(ISOdatetime(2024, 1:12, 1, 0, 0, 0), "%b")
-    format <- stringi::stri_sub_replace_all(format, from = b, value = as.list(mon[ts$month]))
-  }
-  B <- stringi::stri_locate_all(format, fixed = "%B")
-  if (!is.na(B[[1]][1,1])) {
-    mon <- strftime(ISOdatetime(2024, 1:12, 1, 0, 0, 0), "%B")
-    format <- stringi::stri_sub_replace_all(format, from = B, value = as.list(mon[ts$month]))
-  }
-  d <- stringi::stri_locate_all(format, regex = "%[O]?d")
-  if (!is.na(d[[1]][1,1]))
-    format <- stringi::stri_sub_replace_all(format, from = d, value = as.list(sprintf("%02d", ts$day)))
-  e <- stringi::stri_locate_all(format, fixed = "%e")
-  if (!is.na(e[[1]][1,1]))
-    format <- stringi::stri_sub_replace_all(format, from = e, value = as.list(sprintf("%2d", ts$day)))
-  H <- stringi::stri_locate_all(format, regex = "%[O]?H")
-  if (!is.na(H[[1]][1,1]))
-    format <- stringi::stri_sub_replace_all(format, from = H, value = as.list(sprintf("%02d", ts$hour)))
-  I <- stringi::stri_locate_all(format, regex = "%[O]?I")
-  if (!is.na(I[[1]][1,1]))
-    format <- stringi::stri_sub_replace_all(format, from = I, value = as.list(sprintf("%02d", ts$hour %% 12)))
-  # j <- stringi::stri_locate_all(format, fixed = "%j")
-  # if (!is.na(j[[1]][1,1]))
-  #   format <- stringi::stri_sub_replace_all(format, from = j, value = as.list(ts$year))
-  m <- stringi::stri_locate_all(format, regex = "%[O]?m")
-  if (!is.na(m[[1]][1,1]))
-    format <- stringi::stri_sub_replace_all(format, from = m, value = as.list(sprintf("%02d", ts$month)))
-  M <- stringi::stri_locate_all(format, regex = "%[O]?M")
-  if (!is.na(M[[1]][1,1]))
-    format <- stringi::stri_sub_replace_all(format, from = M, value = as.list(sprintf("%02d", ts$minute)))
-  p <- stringi::stri_locate_all(format, fixed = "%p")
-  if (!is.na(p[[1]][1,1]))
-    format <- stringi::stri_sub_replace_all(format, from = p, value = as.list(ifelse(ts$hour < 12, "AM", "PM")))
-  S <- stringi::stri_locate_all(format, fixed = "%S")
-  if (!is.na(S[[1]][1,1]))
-    format <- stringi::stri_sub_replace_all(format, from = S, value = as.list(sprintf("%02d", ts$second)))
-  Y <- stringi::stri_locate_all(format, regex = "%[E]?Y")
-  if (!is.na(Y[[1]][1,1]))
-    format <- stringi::stri_sub_replace_all(format, from = Y, value = as.list(ts$year))
-  z <- stringi::stri_locate_all(format, fixed = "%z")
-  if (!is.na(z[[1]][1,1]))
-    format <- stringi::stri_sub_replace_all(format, from = z, value = tz)
-  oo <- stringi::stri_locate_all(format, fixed = "%%")
-  if (!is.na(oo[[1]][1,1]))
-    format <- stringi::stri_sub_replace_all(format, from = oo, value = "%")
-  format
-}
 
 #' Create a factor for a CFtime instance
 #'
@@ -305,10 +287,10 @@ setMethod("format", "CFtime", function(x, format) {
 #'
 #' When `breaks` is a vector of character timestamps a factor is produced with a
 #' level for every interval between timestamps. The last timestamp, therefore,
-#' is only used to close the interval stared by the pen-ultimate timestamp - use
+#' is only used to close the interval started by the pen-ultimate timestamp - use
 #' a distant timestamp (e.g. "2301-01-01") to ensure that you get all offsets to
 #' the end of the CFtime time series, if so desired. The earliest timestamp
-#' cannot be smaller than the origin of the CFtime datum.
+#' cannot be earlier than the origin of the datum of `x`.
 #'
 #' This method works similar to [base::cut.POSIXt()] but there are some
 #' differences in the arguments: for `breaks` the set of options is different
@@ -316,12 +298,19 @@ setMethod("format", "CFtime", function(x, format) {
 #' values of `breaks`, and the interval is always left-closed.
 #'
 #' @param x An instance of CFtime.
-#' @param breaks A character string of a factor period, or a character vector of
-#'   timestamps that conform to the calendar of `x`, with a length of at least
-#'   2. Timestamps must be given in ISO8601 format, e.g. "2024-04-10 21:31:43".
+#' @param breaks A character string of a factor period (see [CFfactor()] for a
+#'   description), or a character vector of timestamps that conform to the
+#'   calendar of `x`, with a length of at least 2. Timestamps must be given in
+#'   ISO8601 format, e.g. "2024-04-10 21:31:43".
 #' @param ... Ignored.
 #'
-#' @returns A factor with the levels according to the 'breaks' argument.
+#' @aliases cut
+#' @returns A factor with levels according to the `breaks` argument, with
+#' attributes 'period', 'epoch' and 'CFtime'. When `breaks` is a factor period,
+#' attribute 'period' has that value, otherwise it is '"day"'. When `breaks` is
+#' a character vector of timestamps, attribute 'CFtime' holds an instance of
+#' CFtime that has the same definition as `x`, but with (ordered) offsets
+#' generated from the `breaks`. Attribute 'epoch' is always -1.
 #' @seealso [CFfactor()] produces a factor for several fixed periods, including
 #' for epochs.
 #' @export
@@ -330,6 +319,9 @@ setMethod("format", "CFtime", function(x, format) {
 #' x <- CFtime("days since 2021-01-01", "365_day", 0:729)
 #' breaks <- c("2022-02-01", "2021-12-01", "2401-01-01")
 #' cut(x, breaks)
+setGeneric("cut", function(x, breaks, ...) standardGeneric("cut"), signature = c("x", "breaks"))
+
+#' @rdname cut
 setMethod("cut", "CFtime", function (x, breaks, ...) {
   if (!inherits(x, "CFtime"))
     stop("Argument 'x' must be a CFtime instance")
@@ -345,13 +337,19 @@ setMethod("cut", "CFtime", function (x, breaks, ...) {
   }
 
   # breaks is a character vector of multiple timestamps
-  time <- CFparse(x, breaks)
+  if (x@datum@unit > 4L) stop("Factorizing on a 'month' or 'year' datum is not supported")
+  time <- .parse_timestamp(x@datum, breaks)
   if (anyNA(time$year))
     stop("Invalid specification of 'breaks'")
   sorted <- order(time$offset)
-  intv <- findInterval(CFoffsets(x), time$offset[sorted])
-  intv[which(intv %in% c(0, len))] <- NA
-  factor(intv, labels = breaks[sorted][0:(len-1)])
+  ooff <- time$offset[sorted]
+  intv <- findInterval(CFoffsets(x), ooff)
+  intv[which(intv %in% c(0L, len))] <- NA
+  f <- factor(intv, labels = breaks[sorted][1L:(len-1L)])
+  attr(f, "period") <- "day"
+  attr(f, "epoch")  <- -1L
+  attr(f, "CFtime") <- CFtime(definition(x@datum), calendar(x@datum), ooff[1L:(len-1L)])
+  f
 })
 
 #' @aliases  CFrange
@@ -383,12 +381,12 @@ setMethod("CFrange", "CFtime", function(x, format = "") .ts_extremes(x, format))
 #' *unit of separation* between observations in the time series is exact in terms of the
 #' datum unit. As an example, for a datum unit of "days" where the observations
 #' are spaced a fixed number of days apart the result is exact, but if the same
-#' datum unit is used for data that is on monthly a basis, the *assessment* is
+#' datum unit is used for data that is on a monthly basis, the *assessment* is
 #' approximate because the number of days per month is variable and dependent on
 #' the calendar (the exception being the `360_day` calendar, where the
 #' assessment is exact). The *result* is still correct in most cases (including
-#' all CF-compliant data sets that the developers have seen) although
-#' there may be esoteric constructions of CFtime and offsets that trip up this
+#' all CF-compliant data sets that the developers have seen) although there may
+#' be esoteric constructions of CFtime and offsets that trip up this
 #' implementation.
 #'
 #' @param x An instance of the `CFtime` class
@@ -477,6 +475,10 @@ setMethod("==", c("CFtime", "CFtime"), function(e1, e2)
 #' preserved. When merging the data sets described by this time series, the
 #' order must be identical to the merging here.
 #'
+#' Any bounds that were set will be removed. Use [CFtime::bounds()] to retrieve
+#' the bounds of the individual `CFtime` instances and then set them again after
+#' merging the two instances.
+#'
 #' @param e1,e2 CFtime. Instances of the `CFtime` class.
 #'
 #' @returns A `CFtime` object with a set of offsets composed of the offsets of
@@ -529,6 +531,10 @@ setMethod("+", c("CFtime", "CFtime"), function(e1, e2) {
 #' instance.
 #'
 #' Negative offsets will generate an error.
+#'
+#' Any bounds that were set will be removed. Use [CFtime::bounds()] to retrieve
+#' the bounds of the individual `CFtime` instances and then set them again after
+#' merging the two instances.
 #'
 #' @param e1 CFtime. Instance of the `CFtime` class.
 #' @param e2 numeric. Vector of offsets to be added to the `CFtime` instance.
@@ -596,54 +602,8 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
     sprintf("%04d-%02d-%02d", time$year, time$month, time$day)
   else {
     t <- .format_time(time)
-    sprintf("%04d-%02d-%02dT%s", time$year, time$month, time$day, t)
+    sprintf("%04d-%02d-%02d %s", time$year, time$month, time$day, t)
   }
-}
-
-#' Indicates if the time series has equidistant time steps
-#'
-#' This function returns `TRUE` if the time series has uniformly distributed
-#' time steps between the extreme values, `FALSE` otherwise. First test without
-#' sorting; this should work for most data sets. If not, only then offsets are
-#' sorted. For most data sets that will work but for implied resolutions of
-#' month, season, year, etc based on a "days" or finer datum unit this will fail
-#' due to the fact that those coarser units have a variable number of days per
-#' time step, in all calendars except for `360_day`. For now, an approximate
-#' solution is used that should work in all but the most non-conformal exotic
-#' arrangements.
-#'
-#' This function should only be called after offsets have been added.
-#'
-#' This is an internal function that should not be used outside of the CFtime
-#' package.
-#'
-#' @param x CFtime. The time series to operate on.
-#'
-#' @returns `TRUE` if all time steps are equidistant, `FALSE` otherwise.
-#'
-#' @noRd
-.ts_equidistant <- function(x) {
-  out <- all(diff(x@offsets) == x@resolution)
-  if (!out) {
-    doff <- diff(sort(x@offsets))
-    out <- all(doff == x@resolution)
-    if (!out) {
-      # Don't try to make sense of totally non-standard arrangements such as
-      # datum units "years" or "months" describing sub-daily time steps.
-      # Also, 360_day calendar should be well-behaved so we don't want to get here.
-      if (unit(x@datum) > 4L || calendar_id(x@datum) == 3L) return(FALSE)
-
-      # Check if we have monthly or yearly data on a finer-scale datum
-      # This is all rather approximate but should be fine in most cases
-      # This accommodates middle-of-the-time-period offsets as per the CF Metadata Conventions
-      # Please report problems at https://github.com/pvanlaake/CFtime/issues
-      ddays <- range(doff) * CFt$units$per_day[unit(x@datum)]
-      return((ddays[1] >= 28 && ddays[2] <= 31) ||    # months
-             (ddays[1] >= 90 && ddays[2] <= 92) ||    # seasons
-             (ddays[1] >= 365 && ddays[2] <= 366))    # years
-    }
-  }
-  out
 }
 
 #' Which time steps fall within two extreme values
@@ -667,12 +627,23 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
 #'   extreme values, `FALSE` otherwise. The earlier timestamp is included, the
 #'   later timestamp is excluded. A specification of `c("2022-01-01", "2023-01-01)`
 #'   will thus include all time steps that fall in the year 2022.
+#'
+#'   An attribute 'CFtime' will have the same definition as `x` but with offsets
+#'   corresponding to the time steps falling between the two extremes. If there
+#'   are no values between the extremes, the attribute is `NULL`.
 #' @noRd
 .ts_subset <- function(x, extremes) {
   ext <- .parse_timestamp(x@datum, extremes)$offset
   if (is.na(ext[1L])) ext[1L] <- 0
-  if (ext[1L] > max(x@offsets) || is.na(ext[2L])) rep(FALSE, length(x@offsets))
-  else x@offsets >= ext[1L] & x@offsets < ext[2L]
+  off <- x@offsets
+  if (ext[1L] > max(off) || is.na(ext[2L])) {
+    out <- rep(FALSE, length(off))
+    attr(out, "CFtime") <- NULL
+  } else {
+    out <- off >= ext[1L] & off < ext[2L]
+    attr(out, "CFtime") <- CFtime(definition(x@datum), calendar(x@datum), off[out])
+  }
+  out
 }
 
 #' Decompose a vector of offsets, in units of the datum, to their timestamp

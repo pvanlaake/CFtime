@@ -1,5 +1,7 @@
 # CFtime (development version)
 
+* Bounds that define intervals around offsets can be associated with a CFtime
+instance and retrieved as raw offset values or as formatted timestamps.
 * New cut() method added to generate a factor, similar to cut.POSIXt() but with
 differences in the arguments.
 * CFfactor() now supports a period "quarter", for calendar quarters.

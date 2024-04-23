@@ -23,12 +23,12 @@ This function gives exact results for time series where the nominal
 \emph{unit of separation} between observations in the time series is exact in terms of the
 datum unit. As an example, for a datum unit of "days" where the observations
 are spaced a fixed number of days apart the result is exact, but if the same
-datum unit is used for data that is on monthly a basis, the \emph{assessment} is
+datum unit is used for data that is on a monthly basis, the \emph{assessment} is
 approximate because the number of days per month is variable and dependent on
 the calendar (the exception being the \verb{360_day} calendar, where the
 assessment is exact). The \emph{result} is still correct in most cases (including
-all CF-compliant data sets that the developers have seen) although
-there may be esoteric constructions of CFtime and offsets that trip up this
+all CF-compliant data sets that the developers have seen) although there may
+be esoteric constructions of CFtime and offsets that trip up this
 implementation.
 }
 \examples{

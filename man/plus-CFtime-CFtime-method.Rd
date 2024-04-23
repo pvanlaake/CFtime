@@ -33,6 +33,10 @@ because the time series are usually associated with a data set and the
 correspondence between the data in the files and the CFtime instance is thus
 preserved. When merging the data sets described by this time series, the
 order must be identical to the merging here.
+
+Any bounds that were set will be removed. Use \code{\link[=bounds]{bounds()}} to retrieve
+the bounds of the individual \code{CFtime} instances and then set them again after
+merging the two instances.
 }
 \examples{
 e1 <- CFtime("days since 1850-01-01", "gregorian", 0:364)
