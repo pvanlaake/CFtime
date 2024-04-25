@@ -13,17 +13,25 @@ be used to construct the factor.}
 \item{period}{character. An atomic character string with one of the values
 "year", "season", "quarter", "month" (the default), "dekad" or "day".}
 
-\item{epoch}{numeric or list, optional. Vector of years for which to construct
-the factor, or a list whose elements are each a vector of years. If \code{epoch}
-is not specified, the factor will use the entire time series for the
-factor.}
+\item{epoch}{numeric or list, optional. Vector of years for which to
+construct the factor, or a list whose elements are each a vector of years.
+If \code{epoch} is not specified, the factor will use the entire time series for
+the factor.}
 }
 \value{
 If \code{epoch} is a single vector or not specified, a factor with a
-length equal to the number of offsets in \code{cf}. If \code{epoch} is a list, a
-list with the same number of elements and names as \code{epoch}, each containing
-a factor. Elements in the factor will be set to \code{NA} for time series values
+length equal to the number of offsets in \code{cf}. If \code{epoch} is a list, a list
+with the same number of elements and names as \code{epoch}, each containing a
+factor. Elements in the factor will be set to \code{NA} for time series values
 outside of the range of specified years.
+
+The factor, or factors in the list, have attributes 'period', 'epoch' and
+'CFtime'. Attribute 'period' holds the value of the \code{period} argument.
+Attribute 'epoch' indicates the number of years that are included in the
+epoch, or -1 if no \code{epoch} is provided. Attribute 'CFtime' holds an
+instance of CFtime that has the same definition as \code{cf}, but with offsets
+corresponding to the mid-point of non-epoch factor levels; if the \code{epoch}
+argument is specified, attribute 'CFtime' is \code{NULL}.
 }
 \description{
 With this function a factor can be generated for the time series, or a part
@@ -40,8 +48,8 @@ dekads, months, quarters, seasons or years).
 
 The factor will be generated in the order of the offsets of the \code{CFtime}
 instance. While typical CF-compliant data sources use ordered time series
-there is, however, no guarantee that the factor is ordered as multiple \code{CFtime}
-objects may have been merged out of order.
+there is, however, no guarantee that the factor is ordered as multiple
+\code{CFtime} objects may have been merged out of order.
 
 If the \code{epoch} parameter is specified, either as a vector of years to include
 in the factor, or as a list of such vectors, the factor will only consider
@@ -55,9 +63,9 @@ The following periods are supported by this function:
 \itemize{
 \item \code{year}, the year of each offset is returned as "YYYY".
 \item \code{season}, the meteorological season of each offset is returned as
-"DJF", "MAM", "JJA" or "SON", preceeded by "YYYY-" if no \code{epoch} is
+"Sx", with x being 1-4, preceeded by "YYYY" if no \code{epoch} is
 specified. Note that December dates are labeled as belonging to the
-subsequent year, so the date "2020-12-01" yields "2021-DJF". This implies
+subsequent year, so the date "2020-12-01" yields "2021S1". This implies
 that for standard CMIP files having one or more full years of data the
 first season will have data for the first two months (January and
 February), while the final season will have only a single month of data
@@ -83,6 +91,14 @@ day factor cannot be created.
 Creating factors for other periods is not supported by this function. Factors
 based on the timestamp information and not dependent on the calendar can
 trivially be constructed from the output of the \code{\link[=CFtimestamp]{CFtimestamp()}} function.
+
+For non-epoch factors the attribute 'CFtime' of the result contains a CFtime
+instance that is valid for the result of applying the factor to a data set
+that the \code{cf} argument is associated with. In other words, if CFtime instance
+'Acf' describes the temporal dimension of data set 'A' and a factor 'Af' is
+generated from 'Acf', then \code{attr(Af, "CFtime")} describes the temporal
+dimension of the result of, say, \code{apply(A, 1:2, tapply, Af, FUN)}. The
+'CFtime' attribute is \code{NULL} for epoch factors.
 }
 \examples{
 cf <- CFtime("days since 1949-12-01", "360_day", 19830:54029)
@@ -92,4 +108,7 @@ f <- CFfactor(cf, "dekad")
 
 # Create three monthly factors for early, mid and late 21st century epochs
 ep <- CFfactor(cf, epoch = list(early = 2021:2040, mid = 2041:2060, late = 2061:2080))
+}
+\seealso{
+\code{\link[=cut]{cut()}} creates a non-epoch factor for arbitrary cut points.
 }

@@ -1,3 +1,8 @@
+---
+editor_options: 
+  markdown: 
+    wrap: 72
+---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
@@ -19,6 +24,7 @@ release](https://img.shields.io/github/commits-since/pvanlaake/CFtime/latest.svg
 commit](https://img.shields.io/github/last-commit/pvanlaake/CFtime)](https://github.com/pvanlaake/CFtime/commits/main)
 [![R-CMD-check](https://github.com/pvanlaake/CFtime/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/pvanlaake/CFtime/actions/workflows/R-CMD-check.yaml)
 [![codecov](https://codecov.io/gh/pvanlaake/CFtime/branch/main/graph/badge.svg)](https://app.codecov.io/gh/pvanlaake/CFtime)
+
 <!-- badges: end -->
 
 CFtime is an R package that supports working with [CF Metadata
@@ -57,12 +63,12 @@ valid date on a `360_day` calendar.)
 
 All defined calendars of the CF Metadata Conventions are supported:
 
-- `standard` or `gregorian`
-- `proleptic_gregorian`
-- `julian`
-- `365_day` or `noleap`
-- `366_day` or `all_leap`
-- `360_day`
+-   `standard` or `gregorian`
+-   `proleptic_gregorian`
+-   `julian`
+-   `365_day` or `noleap`
+-   `366_day` or `all_leap`
+-   `360_day`
 
 Use of custom calendars is not supported. This package is also not
 suitable for paleo-calendars. Time periods prior to the introduction of
@@ -203,10 +209,11 @@ dimnames(pr_month)[[3]] <- levels(f_month)
 
 This package has been tested with the following data sets:
 
-- ERA5 (including multiple variables, levels, and mixed ERA5/ERA5T data)
-- CMIP5
-- CORDEX
-- CMIP6
+-   ERA5 (including multiple variables, levels, and mixed ERA5/ERA5T
+    data)
+-   CMIP5
+-   CORDEX
+-   CMIP6
 
 The package also operates on geographical and/or temporal subsets of
 data sets so long as the subsetted data complies with the CF Metadata

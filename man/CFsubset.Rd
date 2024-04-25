@@ -28,6 +28,9 @@ for those time steps that fall between the two extreme values, \code{FALSE}
 otherwise. This can be used to select slices from the time series in reading
 or analysing data.
 }
+\details{
+If bounds were set these will be preserved.
+}
 \examples{
 cf <- CFtime("hours since 2023-01-01 00:00:00", "standard", 0:23)
 CFsubset(cf, c("2022-12-01", "2023-01-01 03:00"))

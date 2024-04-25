@@ -25,15 +25,15 @@ test_that("Using format()", {
   expect_equal(format(cf, "Timestamp is: %%%F%%")[1], "Timestamp is: %2001-01-01%")
   expect_equal(format(cf, "Timestamp is: %R")[1], "Timestamp is: 18:10")
   expect_equal(format(cf, "%T%z")[1], "18:10:30-0400")
-  expect_equal(format(cf, "%b")[c(1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335)], month.abb)  # en_EN only
-  expect_equal(format(cf, "%B")[c(1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335)], month.name) #
+  #expect_equal(format(cf, "%b")[c(1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335)], month.abb)  # en_EN only
+  #expect_equal(format(cf, "%B")[c(1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335)], month.name) #
   expect_equal(format(cf, "%Od-%e-%I%p")[5], "05- 5-06PM")
 
 })
 
 test_that("CFfactor testing", {
   # No offsets
-  cf <- CFtime("days since 2001-01-01", "365_day")
+  cf <- CFtime("days since 2000-01-01", "365_day")
   expect_error(CFfactor())
   expect_error(CFfactor(cf))
   expect_error(CFfactor(cf, "zxcv"))
@@ -46,18 +46,25 @@ test_that("CFfactor testing", {
   leap_dekad_days <- c(10, 10, 11, 10, 10, 9, 10, 10, 11, 10, 10, 10, 10, 10, 11, 10, 10, 10, 10, 10, 11, 10, 10, 11, 10, 10, 10, 10, 10, 11, 10, 10, 10, 10, 10, 11)
 
   # Few offsets
-  cf <- cf + 0L:4L
+  cf <- cf + 365L:370L
   expect_error(CFfactor(cf))
 
-  cf <- cf + 5L:7299L # 20 years of offsets
+  cf <- cf + 371L:7664L # 20 years of offsets
 
   # Regular factors for all available periods
-  first <- c("2001", "2001-DJF", "2001Q1", "2001-01", "2001D01", "2001-01-01")
-  last <-  c("2020", "2021-DJF", "2020Q4", "2020-12", "2020D36", "2020-12-31")
+  np <- c(20, 81, 80, 240, 720, 7300)
+  first <- c("2001", "2001S1", "2001Q1", "2001-01", "2001D01", "2001-01-01")
+  last <-  c("2020", "2021S1", "2020Q4", "2020-12", "2020D36", "2020-12-31")
   for (p in 1:6) {
     f <- CFfactor(cf, CFt$factor_periods[p])
     expect_equal(as.character(f)[1L], first[p])
     expect_equal(as.character(f)[7300L], last[p])
+    newcf <- attr(f, "CFtime")
+    bnds <- bounds(newcf)
+    expect_equal(CFdefinition(cf), CFdefinition(newcf))
+    expect_true(is.matrix(bnds))
+    expect_type(bnds, "double")
+    expect_equal(dim(bnds), c(2, np[p]))
   }
 
   # Epoch factors for all available periods

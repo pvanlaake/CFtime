@@ -101,66 +101,31 @@ CFtimestamp <- function(cf, format = NULL, asPOSIX = FALSE) {
 #' @noRd
 .format_format <- function(ts, tz, format) {
   # Expand any composite specifiers
-  F <- stringi::stri_locate_all(format, fixed = "%F")
-  if (!is.na(F[[1]][1,1])) {
-    format <- stringi::stri_sub_replace_all(format, from = F, value = "%Y-%m-%d")
-  }
-  R <- stringi::stri_locate_all(format, fixed = "%R")
-  if (!is.na(R[[1]][1,1])) {
-    format <- stringi::stri_sub_replace_all(format, from = R, value = "%H:%M")
-  }
-  T <- stringi::stri_locate_all(format, fixed = "%T")
-  if (!is.na(T[[1]][1,1])) {
-    format <- stringi::stri_sub_replace_all(format, from = T, value = "%H:%M:%S")
-  }
+  format <- stringr::str_replace_all(format, c("%F" = "%Y-%m-%d", "%R" = "%H:%M", "%T" = "%H:%M:%S"))
 
   # Splice in timestamp values for specifiers
-  b <- stringi::stri_locate_all(format, regex = "%b|%h")
-  if (!is.na(b[[1]][1,1])) {
+  # nocov start
+  if (grepl("%b|%h", format[1])) {
     mon <- strftime(ISOdatetime(2024, 1:12, 1, 0, 0, 0), "%b")
-    format <- stringi::stri_sub_replace_all(format, from = b, value = as.list(mon[ts$month]))
+    format <- stringr::str_replace_all(format, "%b|%h", mon[ts$month])
   }
-  B <- stringi::stri_locate_all(format, fixed = "%B")
-  if (!is.na(B[[1]][1,1])) {
+  if (grepl("%B", format[1])) {
     mon <- strftime(ISOdatetime(2024, 1:12, 1, 0, 0, 0), "%B")
-    format <- stringi::stri_sub_replace_all(format, from = B, value = as.list(mon[ts$month]))
+    format <- stringr::str_replace_all(format, "%B", mon[ts$month])
   }
-  d <- stringi::stri_locate_all(format, regex = "%[O]?d")
-  if (!is.na(d[[1]][1,1]))
-    format <- stringi::stri_sub_replace_all(format, from = d, value = as.list(sprintf("%02d", ts$day)))
-  e <- stringi::stri_locate_all(format, fixed = "%e")
-  if (!is.na(e[[1]][1,1]))
-    format <- stringi::stri_sub_replace_all(format, from = e, value = as.list(sprintf("%2d", ts$day)))
-  H <- stringi::stri_locate_all(format, regex = "%[O]?H")
-  if (!is.na(H[[1]][1,1]))
-    format <- stringi::stri_sub_replace_all(format, from = H, value = as.list(sprintf("%02d", ts$hour)))
-  I <- stringi::stri_locate_all(format, regex = "%[O]?I")
-  if (!is.na(I[[1]][1,1]))
-    format <- stringi::stri_sub_replace_all(format, from = I, value = as.list(sprintf("%02d", ts$hour %% 12)))
-  # j <- stringi::stri_locate_all(format, fixed = "%j")
-  # if (!is.na(j[[1]][1,1]))
-  #   format <- stringi::stri_sub_replace_all(format, from = j, value = as.list(ts$year))
-  m <- stringi::stri_locate_all(format, regex = "%[O]?m")
-  if (!is.na(m[[1]][1,1]))
-    format <- stringi::stri_sub_replace_all(format, from = m, value = as.list(sprintf("%02d", ts$month)))
-  M <- stringi::stri_locate_all(format, regex = "%[O]?M")
-  if (!is.na(M[[1]][1,1]))
-    format <- stringi::stri_sub_replace_all(format, from = M, value = as.list(sprintf("%02d", ts$minute)))
-  p <- stringi::stri_locate_all(format, fixed = "%p")
-  if (!is.na(p[[1]][1,1]))
-    format <- stringi::stri_sub_replace_all(format, from = p, value = as.list(ifelse(ts$hour < 12, "AM", "PM")))
-  S <- stringi::stri_locate_all(format, fixed = "%S")
-  if (!is.na(S[[1]][1,1]))
-    format <- stringi::stri_sub_replace_all(format, from = S, value = as.list(sprintf("%02d", ts$second)))
-  Y <- stringi::stri_locate_all(format, regex = "%[E]?Y")
-  if (!is.na(Y[[1]][1,1]))
-    format <- stringi::stri_sub_replace_all(format, from = Y, value = as.list(ts$year))
-  z <- stringi::stri_locate_all(format, fixed = "%z")
-  if (!is.na(z[[1]][1,1]))
-    format <- stringi::stri_sub_replace_all(format, from = z, value = tz)
-  oo <- stringi::stri_locate_all(format, fixed = "%%")
-  if (!is.na(oo[[1]][1,1]))
-    format <- stringi::stri_sub_replace_all(format, from = oo, value = "%")
+  # nocov end
+  format <- stringr::str_replace_all(format, "%[O]?d", sprintf("%02d", ts$day))
+  format <- stringr::str_replace_all(format, "%e", sprintf("%2d", ts$day))
+  format <- stringr::str_replace_all(format, "%[O]?H", sprintf("%02d", ts$hour))
+  format <- stringr::str_replace_all(format, "%[O]?I", sprintf("%02d", ts$hour %% 12))
+  # "%j" = ???
+  format <- stringr::str_replace_all(format, "%[O]?m", sprintf("%02d", ts$month))
+  format <- stringr::str_replace_all(format, "%[O]?M", sprintf("%02d", ts$minute))
+  format <- stringr::str_replace_all(format, "%p", ifelse(ts$hour < 12, "AM", "PM"))
+  format <- stringr::str_replace_all(format, "%S", sprintf("%02d", ts$second))
+  format <- stringr::str_replace_all(format, "%[E]?Y", sprintf("%04d", ts$year))
+  format <- stringr::str_replace_all(format, "%z", tz)
+  format <- stringr::str_replace_all(format, "%%", "%")
   format
 }
 

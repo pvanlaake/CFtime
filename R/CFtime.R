@@ -266,8 +266,8 @@ setMethod("show", "CFtime", function(object) {
 #' format(CFtimestamp(cf, asPOSIX = TRUE), "%A, %x")
 #'
 setMethod("format", "CFtime", function(x, format) {
-  if (!requireNamespace("stringi", quietly = TRUE))
-    stop("package `stringi` is required - please install it first") # nocov
+  if (!requireNamespace("stringr", quietly = TRUE))
+    stop("package `stringr` is required - please install it first") # nocov
 
   if (missing(format) || !is.character(format) || length(format) != 1)
     stop("`format` argument must be an atomic string with formatting specifiers")
@@ -411,6 +411,8 @@ CFcomplete <- function(x) {
 #' for those time steps that fall between the two extreme values, `FALSE`
 #' otherwise. This can be used to select slices from the time series in reading
 #' or analysing data.
+#'
+#' If bounds were set these will be preserved.
 #'
 #' @param x CFtime. The time series to operate on.
 #' @param extremes character. Vector of two timestamps that represent the
@@ -597,7 +599,7 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
   time <- .offsets2time(range(x@offsets), x@datum)
 
   if (nchar(format) > 0)
-    .format_format(time, x@datum@timezone, format)
+    .format_format(time, timezone(x@datum), format)
   else if (sum(time$hour, time$minute, time$second) == 0)  # all times are 00:00:00
     sprintf("%04d-%02d-%02d", time$year, time$month, time$day)
   else {
@@ -641,7 +643,11 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
     attr(out, "CFtime") <- NULL
   } else {
     out <- off >= ext[1L] & off < ext[2L]
-    attr(out, "CFtime") <- CFtime(definition(x@datum), calendar(x@datum), off[out])
+    cf <- CFtime(definition(x@datum), calendar(x@datum), off[out])
+    xb <- bounds(x)
+    if (!is.null(xb))
+      bounds(cf) <- xb[, out]
+    attr(out, "CFtime") <- cf
   }
   out
 }
