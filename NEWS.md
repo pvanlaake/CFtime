@@ -2,15 +2,26 @@
 
 * Bounds that define intervals around offsets can be associated with a CFtime
 instance and retrieved as raw offset values or as formatted timestamps.
-* New cut() method added to generate a factor, similar to cut.POSIXt() but with
+* New `indexOf()` method added that returns the indexes of supplied timestamps
+in a CFtime instance, optionally with a fractional part. This can be used to
+extract specific time steps, or to interpolate between time steps using the
+fractional part, from the time dimension of the data set associated with the
+CFtime instance.
+* New `cut()` method added to generate a factor, similar to `cut.POSIXt()` but with
 differences in the arguments.
-* CFfactor() now supports a period "quarter", for calendar quarters.
-* format() method added that generates a character vector of timestamps for the
+* `CFfactor()` now supports a period "quarter", for calendar quarters.
+* Methods that subset a CF time series (e.g. `CFfactor()`, `cut()`, `CFsubset()`)
+now have an attribute "CFtime" (among possible others) that describes the "time"
+dimension of the analysis result applying the subset. In other words, if CFtime 
+instance 'Acf' describes the temporal dimension of data set 'A' and a factor 'Af'
+is generated from 'Acf', then `Bcf <- attr(Af, "CFtime")` describes the temporal
+dimension of the result of, say, `B <- apply(A, 1:2, tapply, Af, FUN)`.
+* `format()` method added that generates a character vector of timestamps for the
 offsets in a CFtime instance. The format is specified using the flags used in
-strptime(), with some limitations. In particular, locale-specific formatting is
-limited to month names and no weekday information can be generated. The CFrange()
+`strptime()`, with some limitations. In particular, locale-specific formatting is
+limited to month names and no weekday information can be generated. The `CFrange()`
 function has a new "format" parameter to support the same functionality.
-* as.character() and length() methods added that return a vector of timestamps 
+* `as.character()` and `length()` methods added that return a vector of timestamps 
 or the number of offsets in a CFtime instance, respectively.
 * Minor code fixes, see GitHub commits.
 * Documentation updated, with description of new functions.

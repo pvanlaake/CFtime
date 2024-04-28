@@ -304,7 +304,6 @@ setMethod("format", "CFtime", function(x, format) {
 #'   ISO8601 format, e.g. "2024-04-10 21:31:43".
 #' @param ... Ignored.
 #'
-#' @aliases cut
 #' @returns A factor with levels according to the `breaks` argument, with
 #' attributes 'period', 'epoch' and 'CFtime'. When `breaks` is a factor period,
 #' attribute 'period' has that value, otherwise it is '"day"'. When `breaks` is
@@ -319,9 +318,6 @@ setMethod("format", "CFtime", function(x, format) {
 #' x <- CFtime("days since 2021-01-01", "365_day", 0:729)
 #' breaks <- c("2022-02-01", "2021-12-01", "2401-01-01")
 #' cut(x, breaks)
-setGeneric("cut", function(x, breaks, ...) standardGeneric("cut"), signature = c("x", "breaks"))
-
-#' @rdname cut
 setMethod("cut", "CFtime", function (x, breaks, ...) {
   if (!inherits(x, "CFtime"))
     stop("Argument 'x' must be a CFtime instance")
@@ -350,6 +346,76 @@ setMethod("cut", "CFtime", function (x, breaks, ...) {
   attr(f, "epoch")  <- -1L
   attr(f, "CFtime") <- CFtime(definition(x@datum), calendar(x@datum), ooff[1L:(len-1L)])
   f
+})
+
+#' Find the index of timestamps in the time series
+#'
+#' In the CFtime instance `cf`, find the index in the time series for each
+#' timestamp given in argument `x`.
+#'
+#' Matching also returns index values for timestamps that fall between two
+#' elements of the time series - this can lead to surprising results when time
+#' series elements are positioned in the middle of an interval (as the CF
+#' Metadata Conventions instruct us to "reasonably assume"): a time series of
+#' days in January would be encoded in a NetCDF file as
+#' `c("2024-01-01 12:00:00", "2024-01-02 12:00:00", "2024-01-03 12:00:00", ...)`
+#' so `x <- c("2024-01-01", "2024-01-02", "2024-01-03")` would result in
+#' `(NA, 1, 2)` (or `(NA, 1.5, 2.5)` with `method = "linear"`) because the date
+#' values in `x` are at midnight. This situation is easily avoided by ensuring
+#' that the `cf` has bounds set (use `bounds(cf) <- TRUE` as a proximate
+#' solution if bounds are not stored in the NetCDF file). See the Examples.
+#'
+#' Values of `x` that are not valid timestamps according to the calendar of
+#' `cf` will be returned as `NA`.
+#'
+#' When bounds are set for `cf` these will be used to find indexes for the
+#' values of `x`. When bounds are not contiguous, values of `x` that do not fall
+#' within bounds are returned as `NA`.
+#'
+#' @param x Vector of character, POSIXt or Date values to find indexes for.
+#' @param cf CFtime instance.
+#' @param method Single value of "constant" or "linear". If `"constant"` or when
+#'   bounds are set on argument `cf`, return the index value for each match.
+#'   If `"linear"`, return the index value with any fractional value.
+#'
+#' @returns A numeric vector giving indexes into the "time" dimension of the
+#'   data set associated with `cf` for the values of `x`.
+#' @aliases indexOf
+#' @export
+#'
+#' @examples
+#' cf <- CFtime("days since 2020-01-01", "360_day", 1440:1799 + 0.5)
+#' CFtimestamp(cf)[1:3]
+#' x <- c("2024-01-01", "2024-01-02", "2024-01-03")
+#' indexOf(x, cf)
+#' indexOf(x, cf, method = "linear")
+#'
+#' bounds(cf) <- TRUE
+#' indexOf(x, cf)
+#'
+#' # Non-existent calendar day in a `360_day` calendar
+#' x <- c("2024-03-30", "2024-03-31", "2024-04-01")
+#' indexOf(x, cf)
+setGeneric("indexOf", function(x, cf, method = "constant") standardGeneric("indexOf"), signature = c("x", "cf"))
+
+#' @rdname indexOf
+#' @export
+setMethod("indexOf", c("ANY", "CFtime"), function(x, cf, method = "constant") {
+  stopifnot(inherits(x, c("character", "POSIXt", "Date")),
+            method %in% c("constant", "linear"))
+  if (unit(cf@datum) > 4L)
+    stop("Parsing of timestamps on a \"month\" or \"year\" datum is not supported.")
+
+  xoff <- .parse_timestamp(cf@datum, as.character(x))$offset
+  bnds <- .get_bounds(cf)
+  if (is.null(bnds))
+    intv <- stats::approx(CFoffsets(cf), 1:length(cf), xoff, method = method)$y
+  else {
+    intv <- findInterval(xoff, bnds[1L, ])
+    intv[intv == 0L | intv > length(cf)] <- NA_real_
+    intv[which(xoff >= bnds[2L, intv])] <- NA_real_ # in case bounds are not contiguous
+  }
+  intv
 })
 
 #' @aliases  CFrange

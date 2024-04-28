@@ -58,6 +58,10 @@
   else {
     off <- cf@offsets
     len <- length(off)
+
+    if (len == 0L)
+      stop("Cannot set bounds when there are no offsets")
+
     if (is.matrix(value) && is.numeric(value)) {
       if (!all(dim(value) == c(2L, len)))
         stop("Replacement value has incorrect dimensions")
@@ -67,7 +71,7 @@
       stop("Values of the replacement value must surround the offset values")
 
     # Compress array to `TRUE`, if regular
-    if (identical(value[1L,2L:len], value[2L,1L:(len-1L)])) value <- TRUE
+    if (len > 1L && identical(value[1L,2L:len], value[2L,1L:(len-1L)])) value <- TRUE
 
     cf@bounds <- value
   }
