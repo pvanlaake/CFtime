@@ -29,13 +29,13 @@
       # Don't try to make sense of totally non-standard arrangements such as
       # datum units "years" or "months" describing sub-daily time steps.
       # Also, 360_day calendar should be well-behaved so we don't want to get here.
-      if (unit(x@datum) > 4L || calendar_id(x@datum) == 3L) return(FALSE)
+      if (x@datum@unit > 4L || x@datum@cal_id == 3L) return(FALSE)
 
       # Check if we have monthly or yearly data on a finer-scale datum
       # This is all rather approximate but should be fine in most cases
       # This accommodates middle-of-the-time-period offsets as per the CF Metadata Conventions
       # Please report problems at https://github.com/pvanlaake/CFtime/issues
-      ddays <- range(doff) * CFt$units$per_day[unit(x@datum)]
+      ddays <- range(doff) * CFt$units$per_day[x@datum@unit]
       return((ddays[1] >= 28 && ddays[2] <= 31) ||    # months
              (ddays[1] >= 8 && ddays[2] <= 11) ||     # dekads
              (ddays[1] >= 90 && ddays[2] <= 92) ||    # seasons, quarters
@@ -99,7 +99,7 @@
              length.out = len + 1L)
     if (!missing(format)) {
       ts <- .offsets2time(b, cf@datum)
-      b <- .format_format(ts, timezone(cf@datum), format)
+      b <- .format_format(ts, tz(cf@datum), format)
     }
     return(rbind(b[1L:len], b[2L:(len+1L)]))
   }
@@ -108,7 +108,7 @@
   if (missing(format)) return(bnds)
 
   ts <- .offsets2time(as.vector(bnds), cf@datum)
-  b <- .format_format(ts, timezone(cf@datum), format)
+  b <- .format_format(ts, tz(cf@datum), format)
   dim(b) <- c(2L, len)
   b
 }

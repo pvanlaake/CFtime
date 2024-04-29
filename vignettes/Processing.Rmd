@@ -69,8 +69,11 @@ data files. The function comes in two operating modes:
  
 ```{r}
 # Setting up
-nc <- nc_open(list.files(path = system.file("extdata", package = "CFtime"), full.names = TRUE)[1])
-cf <- CFtime(nc$dim$time$units, nc$dim$time$calendar, nc$dim$time$vals)
+fn <- list.files(path = system.file("extdata", package = "CFtime"), full.names = TRUE)[1]
+nc <- nc_open(fn)
+cf <- CFtime(nc$dim$time$units, 
+             nc$dim$time$calendar, 
+             nc$dim$time$vals)
 
 # Create monthly factors for a baseline epoch and early, mid and late 21st century epochs
 baseline <- CFfactor(cf, epoch = 1991:2020)

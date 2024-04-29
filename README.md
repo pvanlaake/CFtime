@@ -1,8 +1,3 @@
----
-editor_options: 
-  markdown: 
-    wrap: 72
----
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
@@ -63,12 +58,12 @@ valid date on a `360_day` calendar.)
 
 All defined calendars of the CF Metadata Conventions are supported:
 
--   `standard` or `gregorian`
--   `proleptic_gregorian`
--   `julian`
--   `365_day` or `noleap`
--   `366_day` or `all_leap`
--   `360_day`
+- `standard` or `gregorian`
+- `proleptic_gregorian`
+- `julian`
+- `365_day` or `noleap`
+- `366_day` or `all_leap`
+- `360_day`
 
 Use of custom calendars is not supported. This package is also not
 suitable for paleo-calendars. Time periods prior to the introduction of
@@ -91,7 +86,8 @@ Timestamps are generated using the [ISO8601
 standard](https://en.wikipedia.org/wiki/ISO_8601).
 
 Calendar-aware factors can be generated to support processing of data
-using `tapply()` and similar functions.
+using `tapply()` and similar functions. Merging of multiple data sets
+and subsetting facilitate analysis while preserving computer resources.
 
 ## Installation
 
@@ -123,7 +119,8 @@ library(ncdf4)
 
 # Opening a data file that is included with the package.
 # Usually you would `list.files()` on a directory of your choice.
-nc <- nc_open(list.files(path = system.file("extdata", package = "CFtime"), full.names = TRUE)[1])
+fn <- list.files(path = system.file("extdata", package = "CFtime"), full.names = TRUE)[1]
+nc <- nc_open(fn)
 attrs <- ncatt_get(nc, "")
 attrs$title
 #> [1] "NOAA GFDL GFDL-ESM4 model output prepared for CMIP6 update of RCP4.5 based on SSP2"
@@ -131,14 +128,17 @@ attrs$license
 #> [1] "CMIP6 model data produced by NOAA-GFDL is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License (https://creativecommons.org/licenses/). Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse for terms of use governing CMIP6 output, including citation requirements and proper acknowledgment. Further information about this data, including some limitations, can be found via the further_info_url (recorded as a global attribute in this file). The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law."
 
 # Create the CFtime instance
-cf <- CFtime(nc$dim$time$units, nc$dim$time$calendar, nc$dim$time$vals)
+cf <- CFtime(nc$dim$time$units, 
+             nc$dim$time$calendar, 
+             nc$dim$time$vals)
 cf
 #> CF datum of origin:
 #>   Origin  : 1850-01-01 00:00:00
 #>   Units   : days
 #>   Calendar: noleap
 #> CF time series:
-#>   Elements: [2015-01-01T12:00:00 .. 2099-12-31T12:00:00] (average of 1.000000 days between 31025 elements)
+#>   Elements: [2015-01-01 12:00:00 .. 2099-12-31 12:00:00] (average of 1.000000 days between 31025 elements)
+#>   Bounds  : not set
 
 # ... work with the data ...
 nc_close(nc)
@@ -159,8 +159,10 @@ If you are using the `RNetCDF` package rather than `ncdf4`, creating a
 `CFtime` instance goes like this:
 
 ``` r
-nc <- open.nc(list.files(path = system.file("extdata", package = "CFtime"), full.names = TRUE)[1])
-cf <- CFtime(att.get.nc(nc, "time", "units"), att.get.nc(nc, "time", "calendar"), var.get.nc(nc, "time"))
+nc <- open.nc(fn)
+cf <- CFtime(att.get.nc(nc, "time", "units"), 
+             att.get.nc(nc, "time", "calendar"), 
+             var.get.nc(nc, "time"))
 ```
 
 ## Typical workflow
@@ -199,21 +201,25 @@ dimnames(pr)[[3]] <- CFtimestamp(time)
 # Create the month factor from the time object
 f_month <- CFfactor(time, "month")
 
+# The result from applying this factor to a data set that it describes is a new
+# data set with a different "time" dimension. The function result stores this
+# new time object as an attribute.
+pr_month_time <- attr(f_month, "CFtime")
+
 # Now sum the daily data to monthly data
 # Dimensions 1 and 2 are longitude and latitude, the third dimension is time
 pr_month <- aperm(apply(pr, 1:2, tapply, f_month, sum), c(2, 3, 1))
-dimnames(pr_month)[[3]] <- levels(f_month)
+dimnames(pr_month)[[3]] <- CFtimestamp(pr_month_time)
 ```
 
 ## Coverage
 
 This package has been tested with the following data sets:
 
--   ERA5 (including multiple variables, levels, and mixed ERA5/ERA5T
-    data)
--   CMIP5
--   CORDEX
--   CMIP6
+- ERA5 (including multiple variables, levels, and mixed ERA5/ERA5T data)
+- CMIP5
+- CORDEX
+- CMIP6
 
 The package also operates on geographical and/or temporal subsets of
 data sets so long as the subsetted data complies with the CF Metadata

@@ -61,7 +61,7 @@ test_that("CFfactor testing", {
     expect_equal(as.character(f)[7300L], last[p])
     newcf <- attr(f, "CFtime")
     bnds <- bounds(newcf)
-    expect_equal(CFdefinition(cf), CFdefinition(newcf))
+    expect_equal(definition(cf), definition(newcf))
     expect_true(is.matrix(bnds))
     expect_type(bnds, "double")
     expect_equal(dim(bnds), c(2, np[p]))

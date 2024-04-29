@@ -8,9 +8,9 @@ extract specific time steps, or to interpolate between time steps using the
 fractional part, from the time dimension of the data set associated with the
 CFtime instance.
 * New `cut()` method added to generate a factor, similar to `cut.POSIXt()` but with
-differences in the arguments.
+some differences in the arguments.
 * `CFfactor()` now supports a period "quarter", for calendar quarters.
-* Methods that subset a CF time series (e.g. `CFfactor()`, `cut()`, `CFsubset()`)
+* Methods that subset a CF time series (e.g. `CFfactor()`, `cut()`, `slab()`)
 now have an attribute "CFtime" (among possible others) that describes the "time"
 dimension of the analysis result applying the subset. In other words, if CFtime 
 instance 'Acf' describes the temporal dimension of data set 'A' and a factor 'Af'
@@ -23,6 +23,9 @@ limited to month names and no weekday information can be generated. The `CFrange
 function has a new "format" parameter to support the same functionality.
 * `as.character()` and `length()` methods added that return a vector of timestamps 
 or the number of offsets in a CFtime instance, respectively.
+* Several methods have been renamed (most notably `CFcomplete()` to `is.complete()`
+and `CFsubset()` to `slab()`) to be more consistent with the R universe. Some
+datum methods (deep down where regular mortals do not dwell) have been deleted.
 * Minor code fixes, see GitHub commits.
 * Documentation updated, with description of new functions.
 

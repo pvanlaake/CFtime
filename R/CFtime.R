@@ -78,7 +78,7 @@ CFtime <- function(definition, calendar = "standard", offsets = NULL) {
   } else stop("Invalid offsets for CFtime object")
 }
 
-#' @aliases CFproperties
+#' @aliases properties
 #' @title Properties of a CFtime object
 #'
 #' @description These functions return the properties of an instance of the
@@ -87,49 +87,49 @@ CFtime <- function(definition, calendar = "standard", offsets = NULL) {
 #'
 #' @param cf CFtime. An instance of `CFtime`.
 #'
-#' @returns `CFcalendar()` and `CFunit()` return an atomic character string.
-#'   `CForigin()` returns a data frame of timestamp elements with a single row
-#'   of data. `CFtimezone()` returns the datum time zone as an atomic character
-#'   string. `CFoffsets()` returns a vector of offsets or `NULL` if no offsets
+#' @returns `calendar()` and `unit()` return an atomic character string.
+#'   `origin()` returns a data frame of timestamp elements with a single row
+#'   of data. `timezone()` returns the datum time zone as an atomic character
+#'   string. `offsets()` returns a vector of offsets or `NULL` if no offsets
 #'   have been set.
 #'
 #' @examples
 #' cf <- CFtime("days since 1850-01-01", "julian", 0:364)
-#' CFdefinition(cf)
-#' CFcalendar(cf)
-#' CFunit(cf)
-#' CFtimezone(cf)
-#' CForigin(cf)
-#' CFoffsets(cf)
-#' CFresolution(cf)
+#' definition(cf)
+#' calendar(cf)
+#' unit(cf)
+#' timezone(cf)
+#' origin(cf)
+#' offsets(cf)
+#' resolution(cf)
 
-#' @describeIn CFproperties The definition string of the CFtime instance
+#' @describeIn properties The definition string of the CFtime instance
 #' @export
-CFdefinition <- function(cf) definition(cf@datum)
+definition <- function(cf) cf@datum@definition
 
-#' @describeIn CFproperties The calendar of the CFtime instance
+#' @describeIn properties The calendar of the CFtime instance
 #' @export
-CFcalendar <- function(cf) calendar(cf@datum)
+calendar <- function(cf) cf@datum@calendar
 
-#' @describeIn CFproperties The unit of the CFtime instance
+#' @describeIn properties The unit of the CFtime instance
 #' @export
-CFunit <- function(cf) CFt$units$name[unit(cf@datum)]
+unit <- function(cf) CFt$units$name[cf@datum@unit]
 
-#' @describeIn CFproperties The origin of the CFtime instance in timestamp elements
+#' @describeIn properties The origin of the CFtime instance in timestamp elements
 #' @export
-CForigin <- function(cf) cf@datum@origin
+origin <- function(cf) cf@datum@origin
 
-#' @describeIn CFproperties The time zone of the datum of the CFtime instance as a character string
+#' @describeIn properties The time zone of the datum of the CFtime instance as a character string
 #' @export
-CFtimezone <- function(cf) timezone(cf@datum)
+timezone <- function(cf) tz(cf@datum)
 
-#' @describeIn CFproperties The offsets of the CFtime instance as a vector
+#' @describeIn properties The offsets of the CFtime instance as a vector
 #' @export
-CFoffsets <- function(cf) cf@offsets
+offsets <- function(cf) cf@offsets
 
-#' @describeIn CFproperties The average separation between the offsets in the CFtime instance
+#' @describeIn properties The average separation between the offsets in the CFtime instance
 #' @export
-CFresolution <- function(cf) cf@resolution
+resolution <- function(cf) cf@resolution
 
 #' Bounds of the time offsets
 #'
@@ -210,10 +210,10 @@ setMethod("show", "CFtime", function(object) {
     el <- "  Elements: (no elements)\n"
     b  <- "  Bounds  : (not set)\n"
   } else {
-    d <- CFrange(object)
+    d <- .ts_extremes(object)
     if (noff > 1L) {
       el <- sprintf("  Elements: [%s .. %s] (average of %f %s between %d elements)\n",
-                    d[1L], d[2L], object@resolution, CFt$units$name[unit(object@datum)], noff)
+                    d[1L], d[2L], object@resolution, CFt$units$name[object@datum@unit], noff)
     } else {
       el <- paste("  Elements:", d[1L], "\n")
     }
@@ -275,7 +275,7 @@ setMethod("format", "CFtime", function(x, format) {
   ts <- .offsets2time(x@offsets, x@datum)
   if (nrow(ts) == 0L) return()
 
-  .format_format(ts, timezone(x@datum), format)
+  .format_format(ts, tz(x@datum), format)
 })
 
 #' Create a factor for a CFtime instance
@@ -342,14 +342,14 @@ setMethod("cut", "CFtime", function (x, breaks, ...) {
     stop("Invalid specification of 'breaks'")
   sorted <- order(time$offset)
   ooff <- time$offset[sorted]
-  intv <- findInterval(CFoffsets(x), ooff)
+  intv <- findInterval(offsets(x), ooff)
   intv[which(intv %in% c(0L, len))] <- NA
   f <- factor(intv, labels = breaks[sorted][1L:(len-1L)])
 
   # Attributes
   bnds <- rbind(ooff[1L:(len-1L)], ooff[2L:len])
   off  <- bnds[1L, ] + (bnds[2L, ] - bnds[1L, ]) * 0.5
-  cf <- CFtime(definition(x@datum), calendar(x@datum), off)
+  cf <- CFtime(x@datum@definition, x@datum@calendar, off)
   bounds(cf) <- bnds
   attr(f, "period") <- "day"
   attr(f, "epoch")  <- -1L
@@ -415,20 +415,20 @@ setGeneric("indexOf", function(x, cf, method = "constant") standardGeneric("inde
 setMethod("indexOf", c("ANY", "CFtime"), function(x, cf, method = "constant") {
   stopifnot(inherits(x, c("character", "POSIXt", "Date")),
             method %in% c("constant", "linear"))
-  if (unit(cf@datum) > 4L)
+  if (cf@datum@unit > 4L)
     stop("Parsing of timestamps on a \"month\" or \"year\" datum is not supported.")
 
   xoff <- .parse_timestamp(cf@datum, as.character(x))$offset
   bnds <- .get_bounds(cf)
   if (is.null(bnds))
-    intv <- stats::approx(CFoffsets(cf), 1:length(cf), xoff, method = method)$y
+    intv <- stats::approx(offsets(cf), 1:length(cf), xoff, method = method)$y
   else {
     intv <- findInterval(xoff, bnds[1L, ])
     intv[intv == 0L | intv > length(cf)] <- NA_real_
     intv[which(xoff >= bnds[2L, intv])] <- NA_real_ # in case bounds are not contiguous
   }
 
-  attr(intv, "CFtime") <- CFtime(CFdefinition(cf), CFcalendar(cf), xoff[!is.na(intv)])
+  attr(intv, "CFtime") <- CFtime(definition(cf), calendar(cf), xoff[!is.na(intv)])
   intv
 })
 
@@ -477,8 +477,8 @@ setMethod("CFrange", "CFtime", function(x, format = "") .ts_extremes(x, format))
 #' @export
 #' @examples
 #' cf <- CFtime("days since 1850-01-01", "julian", 0:364)
-#' CFcomplete(cf)
-CFcomplete <- function(x) {
+#' is.complete(cf)
+is.complete <- function(x) {
   if (!methods::is(x, "CFtime")) stop("Argument must be an instance of CFtime")
   if (length(x@offsets) == 0L) NA
   else .ts_equidistant(x)
@@ -509,13 +509,13 @@ CFcomplete <- function(x) {
 #'
 #' @examples
 #' cf <- CFtime("hours since 2023-01-01 00:00:00", "standard", 0:23)
-#' CFsubset(cf, c("2022-12-01", "2023-01-01 03:00"))
-CFsubset <- function(x, extremes) {
+#' slab(cf, c("2022-12-01", "2023-01-01 03:00"))
+slab <- function(x, extremes) {
   if (!methods::is(x, "CFtime")) stop("First argument must be an instance of CFtime")
   if (!is.character(extremes) || length(extremes) != 2L)
     stop("Second argument must be a character vector of two timestamps")
   if (extremes[2L] < extremes[1L]) extremes <- c(extremes[2L], extremes[1L])
-  .ts_subset(x, extremes)
+  .ts_slab(x, extremes)
 }
 
 #' Equivalence of CFtime objects
@@ -577,14 +577,14 @@ setMethod("==", c("CFtime", "CFtime"), function(e1, e2)
 setMethod("+", c("CFtime", "CFtime"), function(e1, e2) {
   if (!.datum_compatible(e1@datum, e2@datum)) stop('Datums not compatible')
   if (all(e1@datum@origin[1:6] == e2@datum@origin[1:6]))
-    CFtime(definition(e1@datum), calendar(e1@datum), c(e1@offsets, e2@offsets))
+    CFtime(e1@datum@definition, e1@datum@calendar, c(e1@offsets, e2@offsets))
   else {
     diff <- .parse_timestamp(e1@datum, paste(origin_date(e2@datum), origin_time(e2@datum)))$offset
     if (is.na(diff)) {
       diff <- .parse_timestamp(e2@datum, paste(origin_date(e1@datum), origin_time(e1@datum)))$offset
-      CFtime(definition(e2@datum), calendar(e2@datum), c(e1@offsets + diff, e2@offsets))
+      CFtime(e2@datum@definition, e2@datum@calendar, c(e1@offsets + diff, e2@offsets))
     } else
-      CFtime(definition(e1@datum), calendar(e1@datum), c(e1@offsets, e2@offsets + diff))
+      CFtime(e1@datum@definition, e1@datum@calendar, c(e1@offsets, e2@offsets + diff))
   }
 })
 
@@ -631,8 +631,8 @@ setMethod("+", c("CFtime", "CFtime"), function(e1, e2) {
 #' e2 <- 365:729
 #' e1 + e2
 setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
-  if (.validOffsets(e2, CFt$units$per_day[unit(e1@datum)]))
-    CFtime(definition(e1@datum), calendar(e1@datum), c(e1@offsets, e2))
+  if (.validOffsets(e2, CFt$units$per_day[e1@datum@unit]))
+    CFtime(e1@datum@definition, e1@datum@calendar, c(e1@offsets, e2))
 })
 
 #' Validate offsets passed into a CFtime instance
@@ -671,7 +671,7 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
 #'   otherwise the full timestamp (without any time zone information).
 #'
 #' @noRd
-.ts_extremes <- function(x, format) {
+.ts_extremes <- function(x, format = "") {
   if (length(x@offsets) == 0L) return(c(NA_character_, NA_character_))
   if (!missing(format) && ((!is.character(format)) || length(format) != 1))
     stop("`format` parameter, when present, must be an atomic string with formatting specifiers")
@@ -679,7 +679,7 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
   time <- .offsets2time(range(x@offsets), x@datum)
 
   if (nchar(format) > 0)
-    .format_format(time, timezone(x@datum), format)
+    .format_format(time, tz(x@datum), format)
   else if (sum(time$hour, time$minute, time$second) == 0)  # all times are 00:00:00
     sprintf("%04d-%02d-%02d", time$year, time$month, time$day)
   else {
@@ -714,7 +714,7 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
 #'   corresponding to the time steps falling between the two extremes. If there
 #'   are no values between the extremes, the attribute is `NULL`.
 #' @noRd
-.ts_subset <- function(x, extremes) {
+.ts_slab <- function(x, extremes) {
   ext <- .parse_timestamp(x@datum, extremes)$offset
   if (is.na(ext[1L])) ext[1L] <- 0
   off <- x@offsets
@@ -723,7 +723,7 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
     attr(out, "CFtime") <- NULL
   } else {
     out <- off >= ext[1L] & off < ext[2L]
-    cf <- CFtime(definition(x@datum), calendar(x@datum), off[out])
+    cf <- CFtime(x@datum@definition, x@datum@calendar, off[out])
     xb <- bounds(x)
     if (!is.null(xb))
       bounds(cf) <- xb[, out]
@@ -756,9 +756,9 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
                                   hour = integer(), minute = integer(), second = numeric(),
                                   tz = character(), offset = numeric()))
 
-  if (unit(datum) <= 4L) { # Days, hours, minutes, seconds
+  if (datum@unit <= 4L) { # Days, hours, minutes, seconds
     # First add time: convert to seconds first, then recompute time parts
-    secs <- offsets * CFt$units$seconds[unit(datum)]
+    secs <- offsets * CFt$units$seconds[datum@unit]
     secs <- secs + datum@origin$hour[1L] * 3600L + datum@origin$minute[1L] * 60L + datum@origin$second[1L]
     days <- secs %/% 86400L            # overflow days
     secs <- round(secs %% 86400L, 3L)  # drop overflow days from time, round down to milli-seconds avoid errors
@@ -771,7 +771,7 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
     # Now add days using the calendar of the datum
     origin <- unlist(datum@origin[1L,1L:3L]) # origin ymd as a named vector
     if (any(days > 0)) {
-      switch (calendar_id(datum),
+      switch (datum@cal_id,
               out <- .offset2date_standard(days, origin),
               out <- .offset2date_julian(days, origin),
               out <- .offset2date_360(days, origin),
@@ -785,10 +785,10 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
     out$hour <- hrs
     out$minute <- mins
     out$second <- secs
-    out$tz <- rep(datum@origin$tz, len)
+    out$tz <- rep(tz(datum), len)
   } else { # Months, years
     out <- datum@origin[rep(1L, len), ]
-    if (unit(datum) == 5L) { # Offsets are months
+    if (datum@unit == 5L) { # Offsets are months
       months <- out$month + offsets - 1L
       out$month <- months %% 12L + 1L
       out$year <- out$year + months %/% 12L

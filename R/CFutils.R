@@ -34,7 +34,7 @@
 #' CFmonth_days(cf)
 CFmonth_days <- function(cf, x = NULL) {
   stopifnot(methods::is(cf, "CFtime"))
-  cal_id <- calendar_id(cf@datum)
+  cal_id <- cf@datum@cal_id
 
   days_in_month <- c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
   leapdays_in_month <- c(31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)

@@ -62,7 +62,7 @@ CFparse <- function(cf, x) {
     warning("Some dates could not be parsed. Result contains `NA` values.")
   if (length(unique(out$tz)) > 1)
     warning("Timestamps have multiple time zones. Some or all may be different from the datum time zone.")
-  else if (out$tz[1] != CFtimezone(cf))
+  else if (out$tz[1] != timezone(cf))
     warning("Timestamps have time zone that is different from the datum.")
   return(out)
 }
@@ -196,7 +196,7 @@ CFparse <- function(cf, x) {
   cap$day[is.na(cap$day)] <- 1
 
   # Check date validity
-  invalid <- mapply(function(y, m, d) {!.is_valid_calendar_date(y, m, d, calendar_id(datum))},
+  invalid <- mapply(function(y, m, d) {!.is_valid_calendar_date(y, m, d, datum@cal_id)},
                     cap$year, cap$month, cap$day)
   if (nrow(datum@origin) > 0) {
     earlier <- mapply(function(y, m, d, dy, dm, dd) {
@@ -216,7 +216,7 @@ CFparse <- function(cf, x) {
   if (nrow(datum@origin) == 0) {        # if there's no datum yet, don't calculate offsets
     cap$offset <- rep(0, nrow(cap))     # this happens, f.i., when a CFdatum is created
   } else {
-    days <- switch(calendar_id(datum),
+    days <- switch(datum@cal_id,
                    .date2offset_standard(cap, datum@origin),
                    .date2offset_julian(cap, datum@origin),
                    .date2offset_360day(cap, datum@origin),

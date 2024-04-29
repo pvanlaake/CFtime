@@ -80,13 +80,16 @@ library(ncdf4)
 
 # Opening a data file that is included with the package.
 # Usually you would `list.files()` on a directory of your choice.
-nc <- nc_open(list.files(path = system.file("extdata", package = "CFtime"), full.names = TRUE)[1])
+fn <- list.files(path = system.file("extdata", package = "CFtime"), full.names = TRUE)[1]
+nc <- nc_open(fn)
 attrs <- ncatt_get(nc, "")
 attrs$title
 attrs$license
 
 # Create the CFtime instance
-cf <- CFtime(nc$dim$time$units, nc$dim$time$calendar, nc$dim$time$vals)
+cf <- CFtime(nc$dim$time$units, 
+             nc$dim$time$calendar, 
+             nc$dim$time$vals)
 cf
 
 # ... work with the data ...
@@ -100,8 +103,10 @@ Note that the information of interest (`nc$dim$time$units`, etc) is read out of 
 If you are using the `RNetCDF` package rather than `ncdf4`, creating a `CFtime` instance goes like this:
 
 ```{r eval = FALSE}
-nc <- open.nc(list.files(path = system.file("extdata", package = "CFtime"), full.names = TRUE)[1])
-cf <- CFtime(att.get.nc(nc, "time", "units"), att.get.nc(nc, "time", "calendar"), var.get.nc(nc, "time"))
+nc <- open.nc(fn)
+cf <- CFtime(att.get.nc(nc, "time", "units"), 
+             att.get.nc(nc, "time", "calendar"), 
+             var.get.nc(nc, "time"))
 ```
 
 ## Typical workflow
@@ -136,10 +141,16 @@ dimnames(pr)[[3]] <- CFtimestamp(time)
 # Create the month factor from the time object
 f_month <- CFfactor(time, "month")
 
+# The result from applying this factor to a data set that it describes is a new
+# data set with a different "time" dimension. The function result stores this
+# new time object as an attribute.
+pr_month_time <- attr(f_month, "CFtime")
+
 # Now sum the daily data to monthly data
 # Dimensions 1 and 2 are longitude and latitude, the third dimension is time
 pr_month <- aperm(apply(pr, 1:2, tapply, f_month, sum), c(2, 3, 1))
-dimnames(pr_month)[[3]] <- levels(f_month)
+dimnames(pr_month)[[3]] <- CFtimestamp(pr_month_time)
+
 ```
 
 ## Coverage

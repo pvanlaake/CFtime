@@ -94,7 +94,7 @@ processing of the data.
 The character of CF time series - a number of numerical offsets from a base date -
 implies that there should only be a single time zone associated with the time
 series. The time zone offset from UTC is stored in the datum and can be retrieved
-with the `CFtimezone()` function. If a vector of character timestamps with time
+with the `timezone()` function. If a vector of character timestamps with time
 zone information is parsed with the `CFparse()` function and the time zones are 
 found to be different from the datum time zone, a warning message is generated
 but the timestamp is interpreted as being in the datum time zone. No correction 
@@ -131,7 +131,8 @@ daily precipitation:
 ```{r}
 # Opening a data file that is included with the package and showing some attributes.
 # Usually you would `list.files()` on a directory of your choice.
-nc <- nc_open(list.files(path = system.file("extdata", package = "CFtime"), full.names = TRUE)[1])
+fn <- list.files(path = system.file("extdata", package = "CFtime"), full.names = TRUE)[1]
+nc <- nc_open(fn)
 attrs <- ncatt_get(nc, "")
 attrs$title
 
@@ -139,7 +140,9 @@ attrs$title
 attrs$Conventions
 
 # Create the CFtime instance from the metadata in the file.
-cf <- CFtime(nc$dim$time$units, nc$dim$time$calendar, nc$dim$time$vals)
+cf <- CFtime(nc$dim$time$units, 
+             nc$dim$time$calendar, 
+             nc$dim$time$vals)
 cf
 ```
 
@@ -155,9 +158,11 @@ are using the `RNetCDF` package, checking for CF conventions and then creating a
 
 ```{r}
 library(RNetCDF)
-nc <- open.nc(list.files(path = system.file("extdata", package = "CFtime"), full.names = TRUE)[1])
+nc <- open.nc(fn)
 att.get.nc(nc, -1, "Conventions")
-cf <- CFtime(att.get.nc(nc, "time", "units"), att.get.nc(nc, "time", "calendar"), var.get.nc(nc, "time"))
+cf <- CFtime(att.get.nc(nc, "time", "units"), 
+             att.get.nc(nc, "time", "calendar"), 
+             var.get.nc(nc, "time"))
 cf
 ```
 
@@ -219,16 +224,34 @@ For the "epoch" version, there are two interesting things to note here:
  factor is compatible with the data set which the time series describes, such
  that functions like `tapply()` will not throw an error.
  
-There are five periods defined for `CFfactor()`:
+There are six periods defined for `CFfactor()`:
 
  - `year`, to summarize data to yearly timescales
  - `season`, the meteorological seasons. Note that the month of December will be
  added to the months of January and February of the following year, so the date 
- "2020-12-01" yields the factor value "2021-DJF".
+ "2020-12-01" yields the factor value "2021S1".
+ - `quarter`, the standard quarters of the year.
  - `month`, monthly summaries, the default period.
  - `dekad`, 10-day period. Each month is subdivided in dekads as follows: (1) 
  days 01 - 10; (2) days 11 - 20; (3) remainder of the month.
  - `day`, to summarize sub-daily data.
+
+##### New "time" dimension
+
+A CFtime instance describes the "time" dimension of an associated data set. When
+you process that dimension of the data set using `CFfactor()` or another method
+to filter or otherwise subset the "time" dimension, the resulting data set will
+have a different "time" dimension. To associate a proper CFtime instance with
+your processing result, the methods in this package return that CFtime instance
+as an attribute:
+
+```{r}
+  new_time <- attr(f_k, "CFtime")
+  new_time
+```
+
+In the vignette ["Processing climate projection data"](Processing.html) is a
+fully worked out example of this.
 
 ##### Incomplete time series
 
@@ -246,7 +269,7 @@ processing or apply weights based on the actual coverage.
 
 ```{r}
 # Is the time series complete?
-CFcomplete(cf)
+is.complete(cf)
 
 # How many time units fit in a factor level?
 CFfactor_units(cf, baseline)

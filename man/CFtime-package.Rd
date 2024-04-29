@@ -26,22 +26,29 @@ being \href{https://cran.r-project.org/package=RNetCDF}{RNetCDF} and
 \strong{Create, modify, inquire}
 \itemize{
 \item \code{\link[=CFtime]{CFtime()}}: Create a CFtime instance
-\item \code{\link[=CFproperties]{Properties}} of the CFtime instance
+\item \code{\link[=properties]{Properties}} of the CFtime instance
 \item \code{\link[=CFparse]{CFparse()}}: Parse a vector of character timestamps into CFtime elements
 \item \code{\link[=CFtime-equivalent]{Compare}} two CFtime instances
 \item \code{\link[=CFtime-merge]{Merge}} two CFtime instances
 \item \code{\link[=CFtime-append]{Append}} additional time steps to a CFtime instance
-\item \code{\link[=CFtimestamp]{CFtimestamp()}}: Generate a vector of character or \code{POSIXct} timestamps from a CFtime instance
+\item \code{\link[=CFtimestamp]{CFtimestamp()}} and \code{\link[=format]{format()}}: Generate a vector of character or \code{POSIXct} timestamps from a CFtime instance
 \item \code{\link[=CFrange]{CFrange()}}: Timestamps of the two endpoints in the time series
-\item \code{\link[=CFcomplete]{CFcomplete()}}: Does the CFtime instance have a complete time series between endpoints?
+\item \code{\link[=is.complete]{is.complete()}}: Does the CFtime instance have a complete time series between endpoints?
 \item \code{\link[=CFmonth_days]{CFmonth_days()}}: How many days are there in a month using the CFtime calendar?
 }
 
 \strong{Factors and coverage}
 \itemize{
-\item \code{\link[=CFfactor]{CFfactor()}}: Create factors for different time periods
+\item \code{\link[=CFfactor]{CFfactor()}} and \code{\link[=cut]{cut()}}: Create factors for different time periods
 \item \code{\link[=CFfactor_units]{CFfactor_units()}}: How many units of time are there in each factor level?
 \item \code{\link[=CFfactor_coverage]{CFfactor_coverage()}}: How much data is available for each level of the factor?
+}
+
+\strong{Filtering and selection}
+\itemize{
+\item \code{\link[=slab]{slab()}}: Logical vector of time steps between two extreme points.
+\item \code{\link[=indexOf]{indexOf()}}: Index values of time steps in the time series, possibly with
+fractional part for interpolation.
 }
 }
 \seealso{

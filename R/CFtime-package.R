@@ -19,20 +19,25 @@
 #'
 #' **Create, modify, inquire**
 #' * [CFtime()]: Create a CFtime instance
-#' * [`Properties`][CFproperties] of the CFtime instance
+#' * [`Properties`][properties] of the CFtime instance
 #' * [CFparse()]: Parse a vector of character timestamps into CFtime elements
 #' * [`Compare`][CFtime-equivalent] two CFtime instances
 #' * [`Merge`][CFtime-merge] two CFtime instances
 #' * [`Append`][CFtime-append] additional time steps to a CFtime instance
-#' * [CFtimestamp()]: Generate a vector of character or `POSIXct` timestamps from a CFtime instance
+#' * [CFtimestamp()] and [format()]: Generate a vector of character or `POSIXct` timestamps from a CFtime instance
 #' * [CFrange()]: Timestamps of the two endpoints in the time series
-#' * [CFcomplete()]: Does the CFtime instance have a complete time series between endpoints?
+#' * [is.complete()]: Does the CFtime instance have a complete time series between endpoints?
 #' * [CFmonth_days()]: How many days are there in a month using the CFtime calendar?
 #'
 #' **Factors and coverage**
-#' * [CFfactor()]: Create factors for different time periods
+#' * [CFfactor()] and [cut()]: Create factors for different time periods
 #' * [CFfactor_units()]: How many units of time are there in each factor level?
 #' * [CFfactor_coverage()]: How much data is available for each level of the factor?
+#'
+#' **Filtering and selection**
+#' * [slab()]: Logical vector of time steps between two extreme points.
+#' * [indexOf()]: Index values of time steps in the time series, possibly with
+#' fractional part for interpolation.
 #' @keywords internal
 #' @aliases CFtime-package
 "_PACKAGE"

@@ -44,18 +44,23 @@ test_that("indexOf() works", {
   expect_error(indexOf(x, CFtime("months since 2001-01-01", "standard", 0:23)))
   expect_error(indexOf(x, cf, nomatch = "July")) # must be able to coerce to numeric
 
-  expect_equal(indexOf(x, cf), c(NA, NA, 29, NA, 30, 59, 60))
-  expect_equal(indexOf(x, cf, method = "linear"), c(NA, NA, 29.5, NA, 30.5, 59.5, 60.5))
+  expect_equal(indexOf(x, cf)[1:7], c(NA, NA, 29, NA, 30, 59, 60))
+  expect_equal(indexOf(x, cf, method = "linear")[1:7], c(NA, NA, 29.5, NA, 30.5, 59.5, 60.5))
+
+  # Attached CFtime must have valid timestamps in `x`
+  out <- indexOf(x, cf)
+  outcf <- attr(out, "CFtime")
+  expect_equal(CFtimestamp(outcf), x[!is.na(out)])
 
   bounds(cf) <- TRUE
-  expect_equal(indexOf(x, cf), c(NA, NA, 30, NA, 31, 60, 61))
-  expect_equal(indexOf(x, cf, method = "linear"), c(NA, NA, 30, NA, 31, 60, 61))
+  expect_equal(indexOf(x, cf)[1:7], c(NA, NA, 30, NA, 31, 60, 61))
+  expect_equal(indexOf(x, cf, method = "linear")[1:7], c(NA, NA, 30, NA, 31, 60, 61))
 
   hr6 <- rbind(off - 0.25, off + 0.25)
   bounds(cf) <- hr6
-  expect_equal(indexOf(x, cf), rep(NA_real_, 7)) # bounds from 06:00 - 18:00
-  y <- paste(x, "09:00")
-  expect_equal(indexOf(y, cf), c(NA, NA, 30, NA, 31, 60, 61))
+  expect_equal(indexOf(x, cf)[1:7], rep(NA_real_, 7)) # bounds from 06:00 - 18:00
+  nine <- paste(x, "09:00")
+  expect_equal(indexOf(nine, cf)[1:7], c(NA, NA, 30, NA, 31, 60, 61))
   bounds(cf) <- FALSE
-  expect_equal(indexOf(y, cf, "linear"), c(NA, NA, 29.875, NA, 30.875, 59.875, 60.875))
+  expect_equal(indexOf(nine, cf, "linear")[1:7], c(NA, NA, 29.875, NA, 30.875, 59.875, 60.875))
 })
