@@ -5,44 +5,46 @@
 \alias{indexOf,ANY,CFtime-method}
 \title{Find the index of timestamps in the time series}
 \usage{
-indexOf(x, table, nomatch = NA_integer_, method = "constant")
+indexOf(x, cf, method = "constant")
 
-\S4method{indexOf}{ANY,CFtime}(x, table, nomatch = NA_integer_, method = "constant")
+\S4method{indexOf}{ANY,CFtime}(x, cf, method = "constant")
 }
 \arguments{
 \item{x}{Vector of character, POSIXt or Date values to find indexes for.}
 
-\item{table}{CFtime instance.}
-
-\item{nomatch}{integer. Value to use where no match is found.}
+\item{cf}{CFtime instance.}
 
 \item{method}{Single value of "constant" or "linear". If \code{"constant"} or when
-bounds are set on argument \code{table}, return the index value for each match.
+bounds are set on argument \code{cf}, return the index value for each match.
 If \code{"linear"}, return the index value with any fractional value.}
 }
 \value{
 A numeric vector giving indexes into the "time" dimension of the
-data set associated with \code{table} for the values of \code{x}.
+data set associated with \code{cf} for the values of \code{x}.
 }
 \description{
-In the CFtime instance \code{table}, find the index in the time series for each
-timestamp given in argument \code{x}. Matching also returns index values for
-timestamps that fall between two elements of the time series - this can lead
-to surprising results when time series elements are positioned in the middle
-of an interval (as the CF Metadata Conventions instruct us to "reasonably
-assume"): a time series of days in January would be encoded as \code{c("2024-01-01 12:00:00", "2024-01-02 12:00:00", "2024-01-03 12:00:00", ...)} so \code{x <- c("2024-01-01", "2024-01-02", "2024-01-03")} would result in \verb{(NA, 1, 2)}
-because the date values in \code{x} are interpreted as being at midnight. This
-situation is easily avoided by ensuring that the \code{table} has bounds set (use
-\code{bounds(table) <- TRUE} as a proximate solution if bounds are not stored in
-the NetCDF file). See the Examples.
+In the CFtime instance \code{cf}, find the index in the time series for each
+timestamp given in argument \code{x}.
 }
 \details{
-Values of \code{x} that are not valid timestamps according to the calendar of
-\code{table} will be returned as the \code{nomatch} value.
+Matching also returns index values for timestamps that fall between two
+elements of the time series - this can lead to surprising results when time
+series elements are positioned in the middle of an interval (as the CF
+Metadata Conventions instruct us to "reasonably assume"): a time series of
+days in January would be encoded in a NetCDF file as
+\code{c("2024-01-01 12:00:00", "2024-01-02 12:00:00", "2024-01-03 12:00:00", ...)}
+so \code{x <- c("2024-01-01", "2024-01-02", "2024-01-03")} would result in
+\verb{(NA, 1, 2)} (or \verb{(NA, 1.5, 2.5)} with \code{method = "linear"}) because the date
+values in \code{x} are at midnight. This situation is easily avoided by ensuring
+that \code{cf} has bounds set (use \code{bounds(cf) <- TRUE} as a proximate solution
+if bounds are not stored in the NetCDF file). See the Examples.
 
-When bounds are set for \code{table} these will be used to find indexes for the
+Values of \code{x} that are not valid timestamps according to the calendar of
+\code{cf} will be returned as \code{NA}.
+
+When bounds are set for \code{cf} these will be used to find indexes for the
 values of \code{x}. When bounds are not contiguous, values of \code{x} that do not fall
-within bounds are returned as the \code{nomatch} value.
+within bounds are returned as \code{NA}.
 }
 \examples{
 cf <- CFtime("days since 2020-01-01", "360_day", 1440:1799 + 0.5)

@@ -282,15 +282,18 @@ setMethod("format", "CFtime", function(x, format) {
 #'
 #' Method for [base::cut()] applied to CFtime objects.
 #'
-#' When `breaks` is one of `c("year", "season", "quarter", "month", "dekad", "day")`
-#' a factor is generated like by [CFfactor()].
+#' When `breaks` is one of `"year", "season", "quarter", "month", "dekad",
+#' "day"` a factor is generated like by [CFfactor()].
 #'
 #' When `breaks` is a vector of character timestamps a factor is produced with a
 #' level for every interval between timestamps. The last timestamp, therefore,
-#' is only used to close the interval started by the pen-ultimate timestamp - use
-#' a distant timestamp (e.g. "2301-01-01") to ensure that you get all offsets to
-#' the end of the CFtime time series, if so desired. The earliest timestamp
-#' cannot be earlier than the origin of the datum of `x`.
+#' is only used to close the interval started by the pen-ultimate timestamp -
+#' use a distant timestamp (e.g. `CFrange(x)[2]`) to ensure that all offsets to
+#' the end of the CFtime time series are included, if so desired. The last
+#' timestamp will become the upper bound in the CFtime instance that is returned
+#' as an attribute to this function so a sensible value for the last timestamp
+#' is advisable. The earliest timestamp cannot be earlier than the origin of the
+#' datum of `x`.
 #'
 #' This method works similar to [base::cut.POSIXt()] but there are some
 #' differences in the arguments: for `breaks` the set of options is different
@@ -305,18 +308,18 @@ setMethod("format", "CFtime", function(x, format) {
 #' @param ... Ignored.
 #'
 #' @returns A factor with levels according to the `breaks` argument, with
-#' attributes 'period', 'epoch' and 'CFtime'. When `breaks` is a factor period,
-#' attribute 'period' has that value, otherwise it is '"day"'. When `breaks` is
-#' a character vector of timestamps, attribute 'CFtime' holds an instance of
-#' CFtime that has the same definition as `x`, but with (ordered) offsets
-#' generated from the `breaks`. Attribute 'epoch' is always -1.
+#'   attributes 'period', 'epoch' and 'CFtime'. When `breaks` is a factor
+#'   period, attribute 'period' has that value, otherwise it is '"day"'. When
+#'   `breaks` is a character vector of timestamps, attribute 'CFtime' holds an
+#'   instance of CFtime that has the same definition as `x`, but with (ordered)
+#'   offsets generated from the `breaks`. Attribute 'epoch' is always -1.
 #' @seealso [CFfactor()] produces a factor for several fixed periods, including
-#' for epochs.
+#'   for epochs.
 #' @export
 #'
 #' @examples
 #' x <- CFtime("days since 2021-01-01", "365_day", 0:729)
-#' breaks <- c("2022-02-01", "2021-12-01", "2401-01-01")
+#' breaks <- c("2022-02-01", "2021-12-01", "2023-01-01")
 #' cut(x, breaks)
 setMethod("cut", "CFtime", function (x, breaks, ...) {
   if (!inherits(x, "CFtime"))
@@ -342,9 +345,15 @@ setMethod("cut", "CFtime", function (x, breaks, ...) {
   intv <- findInterval(CFoffsets(x), ooff)
   intv[which(intv %in% c(0L, len))] <- NA
   f <- factor(intv, labels = breaks[sorted][1L:(len-1L)])
+
+  # Attributes
+  bnds <- rbind(ooff[1L:(len-1L)], ooff[2L:len])
+  off  <- bnds[1L, ] + (bnds[2L, ] - bnds[1L, ]) * 0.5
+  cf <- CFtime(definition(x@datum), calendar(x@datum), off)
+  bounds(cf) <- bnds
   attr(f, "period") <- "day"
   attr(f, "epoch")  <- -1L
-  attr(f, "CFtime") <- CFtime(definition(x@datum), calendar(x@datum), ooff[1L:(len-1L)])
+  attr(f, "CFtime") <- cf
   f
 })
 
@@ -362,8 +371,8 @@ setMethod("cut", "CFtime", function (x, breaks, ...) {
 #' so `x <- c("2024-01-01", "2024-01-02", "2024-01-03")` would result in
 #' `(NA, 1, 2)` (or `(NA, 1.5, 2.5)` with `method = "linear"`) because the date
 #' values in `x` are at midnight. This situation is easily avoided by ensuring
-#' that the `cf` has bounds set (use `bounds(cf) <- TRUE` as a proximate
-#' solution if bounds are not stored in the NetCDF file). See the Examples.
+#' that `cf` has bounds set (use `bounds(cf) <- TRUE` as a proximate solution
+#' if bounds are not stored in the NetCDF file). See the Examples.
 #'
 #' Values of `x` that are not valid timestamps according to the calendar of
 #' `cf` will be returned as `NA`.

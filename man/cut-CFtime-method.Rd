@@ -18,25 +18,27 @@ ISO8601 format, e.g. "2024-04-10 21:31:43".}
 }
 \value{
 A factor with levels according to the \code{breaks} argument, with
-attributes 'period', 'epoch' and 'CFtime'. When \code{breaks} is a factor period,
-attribute 'period' has that value, otherwise it is '"day"'. When \code{breaks} is
-a character vector of timestamps, attribute 'CFtime' holds an instance of
-CFtime that has the same definition as \code{x}, but with (ordered) offsets
-generated from the \code{breaks}. Attribute 'epoch' is always -1.
+attributes 'period', 'epoch' and 'CFtime'. When \code{breaks} is a factor
+period, attribute 'period' has that value, otherwise it is '"day"'. When
+\code{breaks} is a character vector of timestamps, attribute 'CFtime' holds an
+instance of CFtime that has the same definition as \code{x}, but with (ordered)
+offsets generated from the \code{breaks}. Attribute 'epoch' is always -1.
 }
 \description{
 Method for \code{\link[base:cut]{base::cut()}} applied to CFtime objects.
 }
 \details{
-When \code{breaks} is one of \code{c("year", "season", "quarter", "month", "dekad", "day")}
-a factor is generated like by \code{\link[=CFfactor]{CFfactor()}}.
+When \code{breaks} is one of \verb{"year", "season", "quarter", "month", "dekad", "day"} a factor is generated like by \code{\link[=CFfactor]{CFfactor()}}.
 
 When \code{breaks} is a vector of character timestamps a factor is produced with a
 level for every interval between timestamps. The last timestamp, therefore,
-is only used to close the interval started by the pen-ultimate timestamp - use
-a distant timestamp (e.g. "2301-01-01") to ensure that you get all offsets to
-the end of the CFtime time series, if so desired. The earliest timestamp
-cannot be earlier than the origin of the datum of \code{x}.
+is only used to close the interval started by the pen-ultimate timestamp -
+use a distant timestamp (e.g. \code{CFrange(x)[2]}) to ensure that all offsets to
+the end of the CFtime time series are included, if so desired. The last
+timestamp will become the upper bound in the CFtime instance that is returned
+as an attribute to this function so a sensible value for the last timestamp
+is advisable. The earliest timestamp cannot be earlier than the origin of the
+datum of \code{x}.
 
 This method works similar to \code{\link[base:cut.POSIXt]{base::cut.POSIXt()}} but there are some
 differences in the arguments: for \code{breaks} the set of options is different
@@ -45,7 +47,7 @@ values of \code{breaks}, and the interval is always left-closed.
 }
 \examples{
 x <- CFtime("days since 2021-01-01", "365_day", 0:729)
-breaks <- c("2022-02-01", "2021-12-01", "2401-01-01")
+breaks <- c("2022-02-01", "2021-12-01", "2023-01-01")
 cut(x, breaks)
 }
 \seealso{
