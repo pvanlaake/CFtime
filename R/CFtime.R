@@ -388,7 +388,10 @@ setMethod("cut", "CFtime", function (x, breaks, ...) {
 #'   If `"linear"`, return the index value with any fractional value.
 #'
 #' @returns A numeric vector giving indexes into the "time" dimension of the
-#'   data set associated with `cf` for the values of `x`.
+#'   data set associated with `cf` for the values of `x`. Attribute "CFtime"
+#'   contains an instance of CFtime that describes the dimension of filtering
+#'   the data set associated with `cf` with the result of this function,
+#'   excluding any `NA` values.
 #' @aliases indexOf
 #' @export
 #'
@@ -424,6 +427,8 @@ setMethod("indexOf", c("ANY", "CFtime"), function(x, cf, method = "constant") {
     intv[intv == 0L | intv > length(cf)] <- NA_real_
     intv[which(xoff >= bnds[2L, intv])] <- NA_real_ # in case bounds are not contiguous
   }
+
+  attr(intv, "CFtime") <- CFtime(CFdefinition(cf), CFcalendar(cf), xoff[!is.na(intv)])
   intv
 })
 

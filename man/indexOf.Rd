@@ -20,7 +20,10 @@ If \code{"linear"}, return the index value with any fractional value.}
 }
 \value{
 A numeric vector giving indexes into the "time" dimension of the
-data set associated with \code{cf} for the values of \code{x}.
+data set associated with \code{cf} for the values of \code{x}. Attribute "CFtime"
+contains an instance of CFtime that describes the dimension of filtering
+the data set associated with \code{cf} with the result of this function,
+excluding any \code{NA} values.
 }
 \description{
 In the CFtime instance \code{cf}, find the index in the time series for each
