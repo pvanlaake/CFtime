@@ -40,12 +40,23 @@ test_that("indexOf() works", {
          "2024-03-01")
 
   expect_error(indexOf(x, cf, method = 4))
-  expect_error(indexOf(3:144, cf))
+  expect_error(indexOf(TRUE, cf))
   expect_error(indexOf(x, CFtime("months since 2001-01-01", "standard", 0:23)))
   expect_error(indexOf(x, cf, nomatch = "July")) # must be able to coerce to numeric
 
   expect_equal(indexOf(x, cf)[1:7], c(NA, NA, 29, NA, 30, 59, 60))
   expect_equal(indexOf(x, cf, method = "linear")[1:7], c(NA, NA, 29.5, NA, 30.5, 59.5, 60.5))
+
+  n <- 1:3
+  out <- indexOf(n, cf)
+  outcf <- attr(out, "CFtime")
+  expect_equal(CFtimestamp(cf)[1:3], CFtimestamp(outcf))
+  n <- c(-1, -2, -3)
+  out <- indexOf(n, cf)
+  outcf <- attr(out, "CFtime")
+  expect_equal(length(outcf), 360 - 3)
+  expect_equal(CFtimestamp(cf)[4:6], CFtimestamp(outcf)[1:3])
+  expect_error(indexOf(c(-1, 1), cf))
 
   # Attached CFtime must have valid timestamps in `x`
   out <- indexOf(x, cf)

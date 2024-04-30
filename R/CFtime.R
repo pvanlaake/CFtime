@@ -360,7 +360,11 @@ setMethod("cut", "CFtime", function (x, breaks, ...) {
 #' Find the index of timestamps in the time series
 #'
 #' In the CFtime instance `cf`, find the index in the time series for each
-#' timestamp given in argument `x`.
+#' timestamp given in argument `x`. Alternatively, when `x` is a numeric vector
+#' of index values, return the same vector, with the side effect being the
+#' attribute "CFtime" associated with the result.
+#'
+#' Timestamps can be provided as vectors of character strings, POSIXct or Date.
 #'
 #' Matching also returns index values for timestamps that fall between two
 #' elements of the time series - this can lead to surprising results when time
@@ -371,21 +375,29 @@ setMethod("cut", "CFtime", function (x, breaks, ...) {
 #' so `x <- c("2024-01-01", "2024-01-02", "2024-01-03")` would result in
 #' `(NA, 1, 2)` (or `(NA, 1.5, 2.5)` with `method = "linear"`) because the date
 #' values in `x` are at midnight. This situation is easily avoided by ensuring
-#' that `cf` has bounds set (use `bounds(cf) <- TRUE` as a proximate solution
-#' if bounds are not stored in the NetCDF file). See the Examples.
+#' that `cf` has bounds set (use `bounds(cf) <- TRUE` as a proximate solution if
+#' bounds are not stored in the NetCDF file). See the Examples.
 #'
-#' Values of `x` that are not valid timestamps according to the calendar of
-#' `cf` will be returned as `NA`.
+#' Values of `x` that are not valid timestamps according to the calendar of `cf`
+#' will be returned as `NA`.
+#'
+#' `x` can also be a numeric vector of index values, in which case the valid
+#' values in `x` (i.e. those within the range `(1:length(cf)`) are returned.
+#' Negative values are excluded and then the remainder returned. Positive and
+#' negative values may not be mixed. Other values are returned as `NA`. This has
+#' the side effect that the result has the attribute "CFtime" describing the
+#' temporal dimension of the slice.
 #'
 #' When bounds are set for `cf` these will be used to find indexes for the
 #' values of `x`. When bounds are not contiguous, values of `x` that do not fall
 #' within bounds are returned as `NA`.
 #'
-#' @param x Vector of character, POSIXt or Date values to find indexes for.
+#' @param x Vector of character, POSIXt or Date values to find indexes for, or a
+#'   numeric vector.
 #' @param cf CFtime instance.
 #' @param method Single value of "constant" or "linear". If `"constant"` or when
-#'   bounds are set on argument `cf`, return the index value for each match.
-#'   If `"linear"`, return the index value with any fractional value.
+#'   bounds are set on argument `cf`, return the index value for each match. If
+#'   `"linear"`, return the index value with any fractional value.
 #'
 #' @returns A numeric vector giving indexes into the "time" dimension of the
 #'   data set associated with `cf` for the values of `x`. Attribute "CFtime"
@@ -408,24 +420,36 @@ setMethod("cut", "CFtime", function (x, breaks, ...) {
 #' # Non-existent calendar day in a `360_day` calendar
 #' x <- c("2024-03-30", "2024-03-31", "2024-04-01")
 #' indexOf(x, cf)
+#'
+#' # Numeric x
+#' indexOf(c(29, 30, 31), cf)
 setGeneric("indexOf", function(x, cf, method = "constant") standardGeneric("indexOf"), signature = c("x", "cf"))
 
 #' @rdname indexOf
 #' @export
 setMethod("indexOf", c("ANY", "CFtime"), function(x, cf, method = "constant") {
-  stopifnot(inherits(x, c("character", "POSIXt", "Date")),
+  stopifnot(inherits(x, c("character", "POSIXt", "Date")) || is.numeric(x),
             method %in% c("constant", "linear"))
-  if (cf@datum@unit > 4L)
-    stop("Parsing of timestamps on a \"month\" or \"year\" datum is not supported.")
 
-  xoff <- .parse_timestamp(cf@datum, as.character(x))$offset
-  bnds <- .get_bounds(cf)
-  if (is.null(bnds))
-    intv <- stats::approx(offsets(cf), 1:length(cf), xoff, method = method)$y
-  else {
-    intv <- findInterval(xoff, bnds[1L, ])
-    intv[intv == 0L | intv > length(cf)] <- NA_real_
-    intv[which(xoff >= bnds[2L, intv])] <- NA_real_ # in case bounds are not contiguous
+  if (is.numeric(x)) {
+    if (!(all(x < 0) || all(x > 0)))
+      stop("Cannot mix positive and negative index values")
+
+    intv <- (1:length(cf))[x]
+    xoff <- cf@offsets[x]
+  } else {
+    if (cf@datum@unit > 4L)
+      stop("Parsing of timestamps on a \"month\" or \"year\" datum is not supported.")
+
+    xoff <- .parse_timestamp(cf@datum, as.character(x))$offset
+    bnds <- .get_bounds(cf)
+    if (is.null(bnds))
+      intv <- stats::approx(offsets(cf), 1:length(cf), xoff, method = method)$y
+    else {
+      intv <- findInterval(xoff, bnds[1L, ])
+      intv[intv == 0L | intv > length(cf)] <- NA_real_
+      intv[which(xoff >= bnds[2L, intv])] <- NA_real_ # in case bounds are not contiguous
+    }
   }
 
   attr(intv, "CFtime") <- CFtime(definition(cf), calendar(cf), xoff[!is.na(intv)])

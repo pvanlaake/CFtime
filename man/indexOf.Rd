@@ -10,13 +10,14 @@ indexOf(x, cf, method = "constant")
 \S4method{indexOf}{ANY,CFtime}(x, cf, method = "constant")
 }
 \arguments{
-\item{x}{Vector of character, POSIXt or Date values to find indexes for.}
+\item{x}{Vector of character, POSIXt or Date values to find indexes for, or a
+numeric vector.}
 
 \item{cf}{CFtime instance.}
 
 \item{method}{Single value of "constant" or "linear". If \code{"constant"} or when
-bounds are set on argument \code{cf}, return the index value for each match.
-If \code{"linear"}, return the index value with any fractional value.}
+bounds are set on argument \code{cf}, return the index value for each match. If
+\code{"linear"}, return the index value with any fractional value.}
 }
 \value{
 A numeric vector giving indexes into the "time" dimension of the
@@ -27,9 +28,13 @@ excluding any \code{NA} values.
 }
 \description{
 In the CFtime instance \code{cf}, find the index in the time series for each
-timestamp given in argument \code{x}.
+timestamp given in argument \code{x}. Alternatively, when \code{x} is a numeric vector
+of index values, return the same vector, with the side effect being the
+attribute "CFtime" associated with the result.
 }
 \details{
+Timestamps can be provided as vectors of character strings, POSIXct or Date.
+
 Matching also returns index values for timestamps that fall between two
 elements of the time series - this can lead to surprising results when time
 series elements are positioned in the middle of an interval (as the CF
@@ -39,11 +44,18 @@ days in January would be encoded in a NetCDF file as
 so \code{x <- c("2024-01-01", "2024-01-02", "2024-01-03")} would result in
 \verb{(NA, 1, 2)} (or \verb{(NA, 1.5, 2.5)} with \code{method = "linear"}) because the date
 values in \code{x} are at midnight. This situation is easily avoided by ensuring
-that \code{cf} has bounds set (use \code{bounds(cf) <- TRUE} as a proximate solution
-if bounds are not stored in the NetCDF file). See the Examples.
+that \code{cf} has bounds set (use \code{bounds(cf) <- TRUE} as a proximate solution if
+bounds are not stored in the NetCDF file). See the Examples.
 
-Values of \code{x} that are not valid timestamps according to the calendar of
-\code{cf} will be returned as \code{NA}.
+Values of \code{x} that are not valid timestamps according to the calendar of \code{cf}
+will be returned as \code{NA}.
+
+\code{x} can also be a numeric vector of index values, in which case the valid
+values in \code{x} (i.e. those within the range \verb{(1:length(cf)}) are returned.
+Negative values are excluded and then the remainder returned. Positive and
+negative values may not be mixed. Other values are returned as \code{NA}. This has
+the side effect that the result has the attribute "CFtime" describing the
+temporal dimension of the slice.
 
 When bounds are set for \code{cf} these will be used to find indexes for the
 values of \code{x}. When bounds are not contiguous, values of \code{x} that do not fall
@@ -62,4 +74,7 @@ indexOf(x, cf)
 # Non-existent calendar day in a `360_day` calendar
 x <- c("2024-03-30", "2024-03-31", "2024-04-01")
 indexOf(x, cf)
+
+# Numeric x
+indexOf(c(29, 30, 31), cf)
 }
