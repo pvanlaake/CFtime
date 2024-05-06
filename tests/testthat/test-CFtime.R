@@ -81,17 +81,17 @@ test_that("test all variants of creating a CFtime object and useful functions", 
 
   # Time series completeness
   cf <- CFtime("d per 1991-01-01", "julian")
-  expect_error(is.complete("zxcv"))
-  expect_true(is.na(is.complete(cf)))
-  expect_true(is.complete(cf1))
+  expect_error(is_complete("zxcv"))
+  expect_true(is.na(is_complete(cf)))
+  expect_true(is_complete(cf1))
   mid_months <- c("1950-01-16T12:00:00", "1950-02-15T00:00:00", "1950-03-16T12:00:00", "1950-04-16T00:00:00", "1950-05-16T12:00:00", "1950-06-16T00:00:00",
                   "1950-07-16T12:00:00", "1950-08-16T12:00:00", "1950-09-16T00:00:00", "1950-10-16T12:00:00", "1950-11-16T00:00:00", "1950-12-16T12:00:00")
   cf <- CFtime("days since 1950-01-01", "standard", mid_months)
-  expect_true(is.complete(cf))
+  expect_true(is_complete(cf))
   cfy <- CFtime("years since 2020-01-01", "standard", 0:19)
-  expect_true(is.complete(cfy))
+  expect_true(is_complete(cfy))
   cfy <- cfy + 30:39
-  expect_false(is.complete(cfy))
+  expect_false(is_complete(cfy))
 
   # Range
   cf <- CFtime("days since 2001-01-01")

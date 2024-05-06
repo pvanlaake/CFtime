@@ -8,7 +8,7 @@
 #' Climate Change (IPCC). This package specifically allows the user to work
 #' with any of the CF-compliant calendars (many of which are not compliant with
 #' POSIXt). The CF time coordinate is formally defined in the
-#' [CF Metadata Conventions document](https://cfconventions.org/Data/cf-conventions/cf-conventions-1.10/cf-conventions.html#time-coordinate).
+#' [CF Metadata Conventions document](https://cfconventions.org/Data/cf-conventions/cf-conventions-1.11/cf-conventions.html#time-coordinate).
 #'
 #' The package can create a `CFtime` instance from scratch or, more commonly, it
 #' can use the dimension attributes and dimension variable values from a NetCDF
@@ -26,7 +26,7 @@
 #' * [`Append`][CFtime-append] additional time steps to a CFtime instance
 #' * [CFtimestamp()] and [format()]: Generate a vector of character or `POSIXct` timestamps from a CFtime instance
 #' * [CFrange()]: Timestamps of the two endpoints in the time series
-#' * [is.complete()]: Does the CFtime instance have a complete time series between endpoints?
+#' * [is_complete()]: Does the CFtime instance have a complete time series between endpoints?
 #' * [CFmonth_days()]: How many days are there in a month using the CFtime calendar?
 #'
 #' **Factors and coverage**
@@ -36,7 +36,7 @@
 #'
 #' **Filtering and selection**
 #' * [slab()]: Logical vector of time steps between two extreme points.
-#' * [indexOf()]: Index values of time steps in the time series, possibly with
+#' * [indexOf()]: Index values in the time series of given timestamps, possibly with
 #' fractional part for interpolation.
 #' @keywords internal
 #' @aliases CFtime-package

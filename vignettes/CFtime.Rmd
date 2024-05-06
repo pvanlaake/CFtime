@@ -269,7 +269,7 @@ processing or apply weights based on the actual coverage.
 
 ```{r}
 # Is the time series complete?
-is.complete(cf)
+is_complete(cf)
 
 # How many time units fit in a factor level?
 CFfactor_units(cf, baseline)

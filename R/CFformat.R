@@ -13,7 +13,7 @@
 #' `asPOSIX = TRUE`.
 #'
 #' @param cf CFtime. The `CFtime` instance that contains the offsets to use.
-#' @param format character. An atomic string with either of the values "date" or
+#' @param format character. A character string with either of the values "date" or
 #'   "timestamp". If the argument is not specified, the format used is
 #'   "timestamp" if there is time information, "date" otherwise.
 #' @param asPOSIX logical. If `TRUE`, for "standard", "gregorian" and
@@ -94,10 +94,10 @@ CFtimestamp <- function(cf, format = NULL, asPOSIX = FALSE) {
 #'
 #' Internal function
 #'
-#' @param ts data.frame of decomposed offsets
-#' @param tz character. Atomic time zone string
-#' @param format character. Atomic character string with the format specifiers
-#' @returns Character vector of formatted timestamps
+#' @param ts data.frame of decomposed offsets.
+#' @param tz character. Time zone character string.
+#' @param format character. A character string with the format specifiers.
+#' @returns Character vector of formatted timestamps.
 #' @noRd
 .format_format <- function(ts, tz, format) {
   # Expand any composite specifiers

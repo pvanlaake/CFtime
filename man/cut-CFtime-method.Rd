@@ -2,6 +2,7 @@
 % Please edit documentation in R/CFtime.R
 \name{cut,CFtime-method}
 \alias{cut,CFtime-method}
+\alias{cut}
 \title{Create a factor for a CFtime instance}
 \usage{
 \S4method{cut}{CFtime}(x, breaks, ...)

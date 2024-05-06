@@ -7,15 +7,15 @@
 CFtime(definition, calendar = "standard", offsets = NULL)
 }
 \arguments{
-\item{definition}{character. An atomic string describing the time coordinate
+\item{definition}{character. A character string describing the time coordinate
 of a CF-compliant data file.}
 
-\item{calendar}{character. An atomic string describing the calendar to use
+\item{calendar}{character. A character string describing the calendar to use
 with the time dimension definition string. Default value is "standard".}
 
 \item{offsets}{numeric or character, optional. When numeric, a vector of
 offsets from the origin in the time series. When a character vector,
-timestamps in ISO8601 or UDUNITS format. When an atomic character string, a
+timestamps in ISO8601 or UDUNITS format. When a character string, a
 timestamp in ISO8601 or UDUNITS format and then a time series will be
 generated with a separation between steps equal to the unit of measure in
 the definition, inclusive of the definition timestamp. The unit of measure

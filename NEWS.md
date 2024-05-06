@@ -25,7 +25,7 @@ limited to month names and no weekday information can be generated. The `CFrange
 function has a new "format" parameter to support the same functionality.
 * `as.character()` and `length()` methods added that return a vector of timestamps 
 or the number of offsets in a CFtime instance, respectively.
-* Several methods have been renamed (most notably `CFcomplete()` to `is.complete()`
+* Several methods have been renamed (most notably `CFcomplete()` to `is_complete()`
 and `CFsubset()` to `slab()`) to be more consistent with the R universe. Some
 datum methods (deep down where regular mortals do not dwell) have been deleted.
 * Minor code fixes, see GitHub commits.

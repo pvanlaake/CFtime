@@ -7,10 +7,10 @@
 CFfactor(cf, period = "month", epoch = NULL)
 }
 \arguments{
-\item{cf}{CFtime. An atomic instance of the \code{CFtime} class whose offsets will
+\item{cf}{CFtime. An instance of the \code{CFtime} class whose offsets will
 be used to construct the factor.}
 
-\item{period}{character. An atomic character string with one of the values
+\item{period}{character. A character string with one of the values
 "year", "season", "quarter", "month" (the default), "dekad" or "day".}
 
 \item{epoch}{numeric or list, optional. Vector of years for which to

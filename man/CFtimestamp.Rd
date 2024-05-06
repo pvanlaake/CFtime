@@ -9,7 +9,7 @@ CFtimestamp(cf, format = NULL, asPOSIX = FALSE)
 \arguments{
 \item{cf}{CFtime. The \code{CFtime} instance that contains the offsets to use.}
 
-\item{format}{character. An atomic string with either of the values "date" or
+\item{format}{character. A character string with either of the values "date" or
 "timestamp". If the argument is not specified, the format used is
 "timestamp" if there is time information, "date" otherwise.}
 

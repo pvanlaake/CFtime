@@ -10,7 +10,7 @@
 \item{x}{CFtime. A CFtime instance whose offsets will be returned as
 timestamps.}
 
-\item{format}{character. An atomic character string with strptime format
+\item{format}{character. A character string with strptime format
 specifiers.}
 }
 \value{

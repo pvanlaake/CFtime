@@ -29,9 +29,9 @@ resolution(cf)
 \item{cf}{CFtime. An instance of \code{CFtime}.}
 }
 \value{
-\code{calendar()} and \code{unit()} return an atomic character string.
+\code{calendar()} and \code{unit()} return a character string.
 \code{origin()} returns a data frame of timestamp elements with a single row
-of data. \code{timezone()} returns the datum time zone as an atomic character
+of data. \code{timezone()} returns the datum time zone as a character
 string. \code{offsets()} returns a vector of offsets or \code{NULL} if no offsets
 have been set.
 }

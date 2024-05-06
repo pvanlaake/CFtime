@@ -40,22 +40,21 @@ setClass("CFdatum",
 #' instance is read-only. The parameters to the call are typically read from a
 #' CF-compliant data file with climatological observations or predictions.
 #'
-#' @param definition character. An atomic string describing the time coordinate
+#' @param definition character. A character string describing the time coordinate
 #' of a CF-compliant data file.
-#' @param calendar character. An atomic string describing the calendar to use
+#' @param calendar character. A character string describing the calendar to use
 #' with the time dimension definition string.
 #'
 #' @returns An object of the `CFdatum` class.
 #' @noRd
 CFdatum <- function(definition, calendar) {
   stopifnot(length(definition) ==  1L, length(calendar) == 1L)
-  definition <- tolower(definition)
   calendar <- tolower(calendar)
 
   parts <- strsplit(definition, " ")[[1L]]
-  if ((length(parts) < 3L) || !(parts[2L] %in% c("since", "after", "from", "ref", "per")))
+  if ((length(parts) < 3L) || !(tolower(parts[2L]) %in% c("since", "after", "from", "ref", "per")))
     stop("Definition string does not appear to be a CF-compliant time coordinate description")
-  u <- which(CFt$CFunits$unit == parts[1L])
+  u <- which(CFt$CFunits$unit == tolower(parts[1L]))
   if (length(u) == 0L) stop("Unsupported unit: ", parts[1L])
 
   cal <- CFt$calendars$id[which(calendar == CFt$calendars$name)]

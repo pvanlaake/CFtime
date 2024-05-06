@@ -10,9 +10,9 @@ CFrange(x, format = "")
 \S4method{CFrange}{CFtime}(x, format = "")
 }
 \arguments{
-\item{x}{An instance of the \code{CFtime} class}
+\item{x}{An instance of the \code{CFtime} class.}
 
-\item{format}{Atomic character string with format specifiers, optional}
+\item{format}{A character string with format specifiers, optional.}
 }
 \value{
 character. Vector of two character representations of the extremes of the time series.

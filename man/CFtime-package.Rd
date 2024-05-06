@@ -13,7 +13,7 @@ data used by climate change scientists and the Intergovernmental Panel on
 Climate Change (IPCC). This package specifically allows the user to work
 with any of the CF-compliant calendars (many of which are not compliant with
 POSIXt). The CF time coordinate is formally defined in the
-\href{https://cfconventions.org/Data/cf-conventions/cf-conventions-1.10/cf-conventions.html#time-coordinate}{CF Metadata Conventions document}.
+\href{https://cfconventions.org/Data/cf-conventions/cf-conventions-1.11/cf-conventions.html#time-coordinate}{CF Metadata Conventions document}.
 }
 \details{
 The package can create a \code{CFtime} instance from scratch or, more commonly, it
@@ -33,7 +33,7 @@ being \href{https://cran.r-project.org/package=RNetCDF}{RNetCDF} and
 \item \code{\link[=CFtime-append]{Append}} additional time steps to a CFtime instance
 \item \code{\link[=CFtimestamp]{CFtimestamp()}} and \code{\link[=format]{format()}}: Generate a vector of character or \code{POSIXct} timestamps from a CFtime instance
 \item \code{\link[=CFrange]{CFrange()}}: Timestamps of the two endpoints in the time series
-\item \code{\link[=is.complete]{is.complete()}}: Does the CFtime instance have a complete time series between endpoints?
+\item \code{\link[=is_complete]{is_complete()}}: Does the CFtime instance have a complete time series between endpoints?
 \item \code{\link[=CFmonth_days]{CFmonth_days()}}: How many days are there in a month using the CFtime calendar?
 }
 
@@ -47,7 +47,7 @@ being \href{https://cran.r-project.org/package=RNetCDF}{RNetCDF} and
 \strong{Filtering and selection}
 \itemize{
 \item \code{\link[=slab]{slab()}}: Logical vector of time steps between two extreme points.
-\item \code{\link[=indexOf]{indexOf()}}: Index values of time steps in the time series, possibly with
+\item \code{\link[=indexOf]{indexOf()}}: Index values in the time series of given timestamps, possibly with
 fractional part for interpolation.
 }
 }

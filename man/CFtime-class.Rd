@@ -13,7 +13,7 @@ CF Metadata Conventions time representation
 \section{Slots}{
 
 \describe{
-\item{\code{datum}}{CFdatum. The atomic origin upon which the \code{offsets} are based.}
+\item{\code{datum}}{CFdatum. The origin upon which the \code{offsets} are based.}
 
 \item{\code{resolution}}{numeric. The average number of time units between offsets.}
 

@@ -1,6 +1,6 @@
 #' CF Metadata Conventions time representation
 #'
-#' @slot datum CFdatum. The atomic origin upon which the `offsets` are based.
+#' @slot datum CFdatum. The origin upon which the `offsets` are based.
 #' @slot resolution numeric. The average number of time units between offsets.
 #' @slot offsets numeric. A vector of offsets from the datum.
 #' @slot bounds Optional, the bounds for the offsets. If not set, it is the
@@ -27,13 +27,13 @@ setClass("CFtime",
 #' observations or climate projections. Specification of arguments can also be
 #' made manually in a variety of combinations.
 #'
-#' @param definition character. An atomic string describing the time coordinate
+#' @param definition character. A character string describing the time coordinate
 #'   of a CF-compliant data file.
-#' @param calendar character. An atomic string describing the calendar to use
+#' @param calendar character. A character string describing the calendar to use
 #'   with the time dimension definition string. Default value is "standard".
 #' @param offsets numeric or character, optional. When numeric, a vector of
 #'   offsets from the origin in the time series. When a character vector,
-#'   timestamps in ISO8601 or UDUNITS format. When an atomic character string, a
+#'   timestamps in ISO8601 or UDUNITS format. When a character string, a
 #'   timestamp in ISO8601 or UDUNITS format and then a time series will be
 #'   generated with a separation between steps equal to the unit of measure in
 #'   the definition, inclusive of the definition timestamp. The unit of measure
@@ -87,9 +87,9 @@ CFtime <- function(definition, calendar = "standard", offsets = NULL) {
 #'
 #' @param cf CFtime. An instance of `CFtime`.
 #'
-#' @returns `calendar()` and `unit()` return an atomic character string.
+#' @returns `calendar()` and `unit()` return a character string.
 #'   `origin()` returns a data frame of timestamp elements with a single row
-#'   of data. `timezone()` returns the datum time zone as an atomic character
+#'   of data. `timezone()` returns the datum time zone as a character
 #'   string. `offsets()` returns a vector of offsets or `NULL` if no offsets
 #'   have been set.
 #'
@@ -251,7 +251,7 @@ setMethod("show", "CFtime", function(object) {
 #'
 #' @param x CFtime. A CFtime instance whose offsets will be returned as
 #'   timestamps.
-#' @param format character. An atomic character string with strptime format
+#' @param format character. A character string with strptime format
 #'   specifiers.
 #'
 #' @returns A vector of character strings with a properly formatted timestamp.
@@ -270,7 +270,7 @@ setMethod("format", "CFtime", function(x, format) {
     stop("package `stringr` is required - please install it first") # nocov
 
   if (missing(format) || !is.character(format) || length(format) != 1)
-    stop("`format` argument must be an atomic string with formatting specifiers")
+    stop("`format` argument must be a character string with formatting specifiers")
 
   ts <- .offsets2time(x@offsets, x@datum)
   if (nrow(ts) == 0L) return()
@@ -313,6 +313,7 @@ setMethod("format", "CFtime", function(x, format) {
 #'   `breaks` is a character vector of timestamps, attribute 'CFtime' holds an
 #'   instance of CFtime that has the same definition as `x`, but with (ordered)
 #'   offsets generated from the `breaks`. Attribute 'epoch' is always -1.
+#' @aliases cut
 #' @seealso [CFfactor()] produces a factor for several fixed periods, including
 #'   for epochs.
 #' @export
@@ -432,7 +433,7 @@ setMethod("indexOf", c("ANY", "CFtime"), function(x, cf, method = "constant") {
             method %in% c("constant", "linear"))
 
   if (is.numeric(x)) {
-    if (!(all(x < 0) || all(x > 0)))
+    if (!(all(x < 0, na.rm = TRUE) || all(x > 0, na.rm = TRUE)))
       stop("Cannot mix positive and negative index values")
 
     intv <- (1:length(cf))[x]
@@ -462,8 +463,8 @@ setMethod("indexOf", c("ANY", "CFtime"), function(x, cf, method = "constant") {
 #'
 #' @description Character representation of the extreme values in the time series
 #'
-#' @param x An instance of the `CFtime` class
-#' @param format Atomic character string with format specifiers, optional
+#' @param x An instance of the `CFtime` class.
+#' @param format A character string with format specifiers, optional.
 #'
 #' @returns character. Vector of two character representations of the extremes of the time series.
 #' @export
@@ -501,8 +502,8 @@ setMethod("CFrange", "CFtime", function(x, format = "") .ts_extremes(x, format))
 #' @export
 #' @examples
 #' cf <- CFtime("days since 1850-01-01", "julian", 0:364)
-#' is.complete(cf)
-is.complete <- function(x) {
+#' is_complete(cf)
+is_complete <- function(x) {
   if (!methods::is(x, "CFtime")) stop("Argument must be an instance of CFtime")
   if (length(x@offsets) == 0L) NA
   else .ts_equidistant(x)
@@ -685,7 +686,7 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
 #' package.
 #'
 #' @param x CFtime. The time series to operate on.
-#' @param format character. Optional atomic character string that specifies
+#' @param format character. Optional character string that specifies
 #'   alternate format.
 #'
 #' @returns Vector of two character strings that represent the starting and
@@ -698,7 +699,7 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
 .ts_extremes <- function(x, format = "") {
   if (length(x@offsets) == 0L) return(c(NA_character_, NA_character_))
   if (!missing(format) && ((!is.character(format)) || length(format) != 1))
-    stop("`format` parameter, when present, must be an atomic string with formatting specifiers")
+    stop("`format` parameter, when present, must be a character string with formatting specifiers")
 
   time <- .offsets2time(range(x@offsets), x@datum)
 
