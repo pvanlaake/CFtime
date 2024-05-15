@@ -32,7 +32,7 @@ being \href{https://cran.r-project.org/package=RNetCDF}{RNetCDF} and
 \item \code{\link[=CFtime-merge]{Merge}} two CFtime instances
 \item \code{\link[=CFtime-append]{Append}} additional time steps to a CFtime instance
 \item \code{\link[=CFtimestamp]{CFtimestamp()}} and \code{\link[=format]{format()}}: Generate a vector of character or \code{POSIXct} timestamps from a CFtime instance
-\item \code{\link[=CFrange]{CFrange()}}: Timestamps of the two endpoints in the time series
+\item \code{\link[=range]{range()}}: Timestamps of the two endpoints in the time series
 \item \code{\link[=is_complete]{is_complete()}}: Does the CFtime instance have a complete time series between endpoints?
 \item \code{\link[=CFmonth_days]{CFmonth_days()}}: How many days are there in a month using the CFtime calendar?
 }

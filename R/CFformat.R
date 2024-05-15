@@ -44,15 +44,12 @@ CFtimestamp <- function(cf, format = NULL, asPOSIX = FALSE) {
   if (nrow(time) == 0L) return()
 
   if (is.null(format)) format <- ifelse(cf@datum@unit < 4L || .has_time(time), "timestamp", "date")
-  else if (!(format %in% c("date", "time", "timestamp"))) stop("Format specifier not recognized")
+  else if (!(format %in% c("date", "timestamp"))) stop("Format specifier not recognized")
 
   if (asPOSIX) {
     if (format == "date") ISOdate(time$year, time$month, time$day, 0L)
     else ISOdatetime(time$year, time$month, time$day, time$hour, time$minute, time$second, "UTC")
-  } else {
-    if (format == "date") sprintf("%04d-%02d-%02d", time$year, time$month, time$day)
-    else sprintf("%04d-%02d-%02dT%s", time$year, time$month, time$day, .format_time(time))
-  }
+  } else .format_format(time, timezone(cf), format)
 }
 
 #' Formatting of time strings from time elements
@@ -96,10 +93,14 @@ CFtimestamp <- function(cf, format = NULL, asPOSIX = FALSE) {
 #'
 #' @param ts data.frame of decomposed offsets.
 #' @param tz character. Time zone character string.
-#' @param format character. A character string with the format specifiers.
+#' @param format character. A character string with the format specifiers, or
+#' "date" or "timestamp".
 #' @returns Character vector of formatted timestamps.
 #' @noRd
 .format_format <- function(ts, tz, format) {
+  if (format == "date") return(sprintf("%04d-%02d-%02d", ts$year, ts$month, ts$day))
+  else if (format == "timestamp") return(sprintf("%04d-%02d-%02d %s", ts$year, ts$month, ts$day, .format_time(ts)))
+
   # Expand any composite specifiers
   format <- stringr::str_replace_all(format, c("%F" = "%Y-%m-%d", "%R" = "%H:%M", "%T" = "%H:%M:%S"))
 

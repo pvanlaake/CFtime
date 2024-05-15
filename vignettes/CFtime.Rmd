@@ -176,7 +176,7 @@ dates[1:10]
 ...as well as the full range of the time series:
 
 ```{r}
-CFrange(cf)
+range(cf)
 ```
 
 Note that in this latter case, if any of the timestamps in the time series have a time that is

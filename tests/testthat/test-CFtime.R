@@ -47,12 +47,12 @@ test_that("test all variants of creating a CFtime object and useful functions", 
 
   # Character offsets
   cf <- CFtime("hours since 2023-01-01", "360_day", "2023-04-30T23:00")
-  expect_equal(CFrange(cf), c("2023-01-01 00:00:00", "2023-04-30 23:00:00"))
+  expect_equal(range(cf), c("2023-01-01 00:00:00", "2023-04-30 23:00:00"))
   expect_equal(length(CFtimestamp(cf, "timestamp")), 4 * 30 * 24)
 
   expect_error(CFtime("days since 2023-01-01", "366_day", c("2021-01-01", "2021-04-13")))
   cf <- CFtime("days since 2023-01-01", "366_day", c("2023-01-01", "2023-04-13", "2023-10-30", "2023-05-12"))
-  expect_equal(CFrange(cf), c("2023-01-01", "2023-10-30"))
+  expect_equal(range(cf), c("2023-01-01", "2023-10-30"))
 
   # Merge two CFtime instances / extend offsets
   cf1 <- CFtime("hours since 2001-01-01", "360_day", 0:99)
@@ -95,16 +95,16 @@ test_that("test all variants of creating a CFtime object and useful functions", 
 
   # Range
   cf <- CFtime("days since 2001-01-01")
-  expect_equal(CFrange(cf), c(NA_character_, NA_character_))
+  expect_equal(range(cf), c(NA_character_, NA_character_))
   cf <- cf + 0:1
-  expect_error(CFrange(cf, 123))
-  expect_error(CFrange(cf, c("asd %d", "%F")))
-  expect_equal(CFrange(cf, "%Y-%B-%Od"), c("2001-January-01", "2001-January-02"))
+  expect_error(range(cf, 123))
+  expect_error(range(cf, c("asd %d", "%F")))
+  expect_equal(range(cf, "%Y-%B-%Od"), c("2001-January-01", "2001-January-02"))
 
   # Range on unsorted offsets
   random <- runif(100, min = 1, max = 99)
   cf <- CFtime("days since 2001-01-01", offsets = c(0, random[1:50], 100, random[51:100]))
-  expect_equal(CFrange(cf), c("2001-01-01", paste0(as.Date("2001-01-01") + 100)))
+  expect_equal(range(cf), c("2001-01-01", paste0(as.Date("2001-01-01") + 100)))
 
   # Subsetting
   cf <- CFtime("hours since 2023-01-01 00:00:00", "standard", 0:239)

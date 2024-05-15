@@ -288,7 +288,7 @@ setMethod("format", "CFtime", function(x, format) {
 #' When `breaks` is a vector of character timestamps a factor is produced with a
 #' level for every interval between timestamps. The last timestamp, therefore,
 #' is only used to close the interval started by the pen-ultimate timestamp -
-#' use a distant timestamp (e.g. `CFrange(x)[2]`) to ensure that all offsets to
+#' use a distant timestamp (e.g. `range(x)[2]`) to ensure that all offsets to
 #' the end of the CFtime time series are included, if so desired. The last
 #' timestamp will become the upper bound in the CFtime instance that is returned
 #' as an attribute to this function so a sensible value for the last timestamp
@@ -457,25 +457,22 @@ setMethod("indexOf", c("ANY", "CFtime"), function(x, cf, method = "constant") {
   intv
 })
 
-#' @aliases  CFrange
-#'
 #' @title Extreme time series values
 #'
 #' @description Character representation of the extreme values in the time series
 #'
 #' @param x An instance of the `CFtime` class.
 #' @param format A character string with format specifiers, optional.
+#' @param ... Ignored.
+#' @param na.rm Ignored.
 #'
 #' @returns character. Vector of two character representations of the extremes of the time series.
 #' @export
 #' @examples
 #' cf <- CFtime("days since 1850-01-01", "julian", 0:364)
-#' CFrange(cf)
-#' CFrange(cf, "%Y-%b-%e")
-setGeneric("CFrange", function(x, format = "") standardGeneric("CFrange"))
-
-#' @describeIn CFrange Extreme values of the time series
-setMethod("CFrange", "CFtime", function(x, format = "") .ts_extremes(x, format))
+#' range(cf)
+#' range(cf, "%Y-%b-%e")
+setMethod("range", "CFtime", function(x, format = "", ..., na.rm = FALSE) .ts_extremes(x, format, ..., na.rm))
 
 #' Indicates if the time series is complete
 #'
@@ -686,8 +683,8 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
 #' package.
 #'
 #' @param x CFtime. The time series to operate on.
-#' @param format character. Optional character string that specifies
-#'   alternate format.
+#' @param format character. Value of "date" or "timestamp". Optionally, a
+#' character string that specifies an alternate format.
 #'
 #' @returns Vector of two character strings that represent the starting and
 #'   ending timestamps in the time series. If a `format` is supplied, that
@@ -696,21 +693,18 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
 #'   otherwise the full timestamp (without any time zone information).
 #'
 #' @noRd
-.ts_extremes <- function(x, format = "") {
+.ts_extremes <- function(x, format = "", ..., na.rm) {
   if (length(x@offsets) == 0L) return(c(NA_character_, NA_character_))
   if (!missing(format) && ((!is.character(format)) || length(format) != 1))
     stop("`format` parameter, when present, must be a character string with formatting specifiers")
 
   time <- .offsets2time(range(x@offsets), x@datum)
 
-  if (nchar(format) > 0)
-    .format_format(time, tz(x@datum), format)
-  else if (sum(time$hour, time$minute, time$second) == 0)  # all times are 00:00:00
-    sprintf("%04d-%02d-%02d", time$year, time$month, time$day)
-  else {
-    t <- .format_time(time)
-    sprintf("%04d-%02d-%02d %s", time$year, time$month, time$day, t)
-  }
+  if (format == "") format <- "timestamp"
+  if (format == "timestamp" && sum(time$hour, time$minute, time$second) == 0)
+    format <- "date"
+
+  .format_format(time, tz(x@datum), format)
 }
 
 #' Which time steps fall within two extreme values

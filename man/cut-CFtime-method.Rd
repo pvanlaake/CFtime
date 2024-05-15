@@ -34,7 +34,7 @@ When \code{breaks} is one of \verb{"year", "season", "quarter", "month", "dekad"
 When \code{breaks} is a vector of character timestamps a factor is produced with a
 level for every interval between timestamps. The last timestamp, therefore,
 is only used to close the interval started by the pen-ultimate timestamp -
-use a distant timestamp (e.g. \code{CFrange(x)[2]}) to ensure that all offsets to
+use a distant timestamp (e.g. \code{range(x)[2]}) to ensure that all offsets to
 the end of the CFtime time series are included, if so desired. The last
 timestamp will become the upper bound in the CFtime instance that is returned
 as an attribute to this function so a sensible value for the last timestamp
