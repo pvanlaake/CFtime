@@ -4,19 +4,25 @@
 \alias{range,CFtime-method}
 \title{Extreme time series values}
 \usage{
-\S4method{range}{CFtime}(x, format = "", ..., na.rm = FALSE)
+\S4method{range}{CFtime}(x, format = "", bounds = FALSE, ..., na.rm = FALSE)
 }
 \arguments{
 \item{x}{An instance of the \code{CFtime} class.}
 
-\item{format}{A character string with format specifiers, optional.}
+\item{format}{A character string with format specifiers, optional. If it is
+missing or an empty string, the most economical ISO8601 format is chosen:
+"date" when no time information is present in \code{x}, "timestamp" otherwise.
+Otherwise a suitable format specifier can be provided.}
+
+\item{bounds}{Logical to indicate if the extremes from the bounds should be
+used, if set. Defaults to \code{FALSE}.}
 
 \item{...}{Ignored.}
 
 \item{na.rm}{Ignored.}
 }
 \value{
-character. Vector of two character representations of the extremes of the time series.
+Vector of two character representations of the extremes of the time series.
 }
 \description{
 Character representation of the extreme values in the time series

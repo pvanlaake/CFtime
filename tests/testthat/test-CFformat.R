@@ -18,7 +18,7 @@ test_that("Creating timestamps", {
 test_that("Using format()", {
   cf <- CFtime("days since 2001-01-01 18:10:30-04", "365_day", 0:364)
 
-  expect_error(format(cf))      # format parameter missing
+  expect_equal(format(cf)[1], "2001-01-01 18:10:30")      # format parameter missing
   expect_error(format(cf, 123)) # format parameter must be character
   expect_error(format(cf, c("doesn't", "work", "either")))
 

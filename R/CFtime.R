@@ -252,7 +252,8 @@ setMethod("show", "CFtime", function(object) {
 #' @param x CFtime. A CFtime instance whose offsets will be returned as
 #'   timestamps.
 #' @param format character. A character string with strptime format
-#'   specifiers.
+#'   specifiers. If omitted, the most economical format will be used: a full
+#'   timestamp when time information is available, a date otherwise.
 #'
 #' @returns A vector of character strings with a properly formatted timestamp.
 #'   Any format specifiers not recognized or supported will be returned verbatim.
@@ -269,7 +270,8 @@ setMethod("format", "CFtime", function(x, format) {
   if (!requireNamespace("stringr", quietly = TRUE))
     stop("package `stringr` is required - please install it first") # nocov
 
-  if (missing(format) || !is.character(format) || length(format) != 1)
+  if (missing(format)) format <- ""
+  else if (!is.character(format) || length(format) != 1)
     stop("`format` argument must be a character string with formatting specifiers")
 
   ts <- .offsets2time(x@offsets, x@datum)
@@ -462,17 +464,23 @@ setMethod("indexOf", c("ANY", "CFtime"), function(x, cf, method = "constant") {
 #' @description Character representation of the extreme values in the time series
 #'
 #' @param x An instance of the `CFtime` class.
-#' @param format A character string with format specifiers, optional.
+#' @param format A character string with format specifiers, optional. If it is
+#' missing or an empty string, the most economical ISO8601 format is chosen:
+#' "date" when no time information is present in `x`, "timestamp" otherwise.
+#' Otherwise a suitable format specifier can be provided.
+#' @param bounds Logical to indicate if the extremes from the bounds should be
+#' used, if set. Defaults to `FALSE`.
 #' @param ... Ignored.
 #' @param na.rm Ignored.
 #'
-#' @returns character. Vector of two character representations of the extremes of the time series.
+#' @returns Vector of two character representations of the extremes of the time series.
 #' @export
 #' @examples
 #' cf <- CFtime("days since 1850-01-01", "julian", 0:364)
 #' range(cf)
 #' range(cf, "%Y-%b-%e")
-setMethod("range", "CFtime", function(x, format = "", ..., na.rm = FALSE) .ts_extremes(x, format, ..., na.rm))
+setMethod("range", "CFtime", function(x, format = "", bounds = FALSE, ..., na.rm = FALSE)
+  .ts_extremes(x, format, bounds, ..., na.rm))
 
 #' Indicates if the time series is complete
 #'
@@ -693,16 +701,18 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
 #'   otherwise the full timestamp (without any time zone information).
 #'
 #' @noRd
-.ts_extremes <- function(x, format = "", ..., na.rm) {
+.ts_extremes <- function(x, format = "", bounds = FALSE, ..., na.rm) {
   if (length(x@offsets) == 0L) return(c(NA_character_, NA_character_))
-  if (!missing(format) && ((!is.character(format)) || length(format) != 1))
-    stop("`format` parameter, when present, must be a character string with formatting specifiers")
+  if (!missing(format) && ((!is.character(format)) || length(format) != 1L))
+    stop("`format` argument, when present, must be a character string with formatting specifiers")
+  if (!is.logical(bounds) || length(bounds) != 1L)
+    stop("`bounds` argument, when present, must be a single logical value")
 
-  time <- .offsets2time(range(x@offsets), x@datum)
-
-  if (format == "") format <- "timestamp"
-  if (format == "timestamp" && sum(time$hour, time$minute, time$second) == 0)
-    format <- "date"
+  if (bounds) {
+    bnds <- .get_bounds(x)
+    if (is.null(bnds)) time <- .offsets2time(range(x@offsets), x@datum)
+    else time <- .offsets2time(c(bnds[1L, 1L], bnds[2L, length(x)]), x@datum)
+  } else time <- .offsets2time(range(x@offsets), x@datum)
 
   .format_format(time, tz(x@datum), format)
 }

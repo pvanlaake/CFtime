@@ -11,7 +11,8 @@
 timestamps.}
 
 \item{format}{character. A character string with strptime format
-specifiers.}
+specifiers. If omitted, the most economical format will be used: a full
+timestamp when time information is available, a date otherwise.}
 }
 \value{
 A vector of character strings with a properly formatted timestamp.

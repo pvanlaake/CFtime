@@ -42,12 +42,17 @@ as many digits as the precision calls for and will be applied to the smallest
 specified time unit. In the result of this function, if the fraction is
 associated with the minute or the hour, it is converted into a regular
 \code{hh:mm:ss.sss} format, i.e. any fraction in the result is always associated
-with the second, rounded down to milli-second accuracy. The time zone is
-optional and should have at least the hour or \code{Z} if present, the minute is
-optional. The time zone hour can have an optional sign. The separator between
-the date and the time can be a single whitespace character or a \code{T}; in the
-UDUNITS format the separator between the time and the time zone must be a
-single whitespace character.
+with the second, rounded down to milli-second accuracy. The separator between
+the date and the time can be a single whitespace character or a \code{T}.
+
+The time zone is optional and should have at least the hour or \code{Z} if
+present, the minute is optional. The time zone hour can have an optional
+sign. In the UDUNITS format the separator between the time and the time zone
+must be a single whitespace character, in ISO8601 there is no separation
+between the time and the timezone. Time zone names are not supported (as
+neither UDUNITS nor ISO8601 support them) and will cause parsing to fail when
+supplied, with one exception: the designator "UTC" is silently dropped (i.e.
+interpreted as "00:00").
 
 Currently only the extended formats (with separators between the elements)
 are supported. The vector of timestamps may have any combination of ISO8601

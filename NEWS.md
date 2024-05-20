@@ -12,8 +12,8 @@ dimension of the result of, say, `B <- apply(A, 1:2, tapply, Af, FUN)`.
 in a CFtime instance, optionally with a fractional part. This can be used to
 extract specific time steps, or to interpolate between time steps using the
 fractional part, from the time dimension of the data set associated with the
-CFtime instance. A vector of indexes (e.g. referring to slices of the data set)
-can also be supplied, in which case valid indexes are returned, with the new
+CFtime instance. A vector of indices (e.g. referring to slices of the data set)
+can also be supplied, in which case valid indices are returned, with the new
 CFtime instance.
 * New `cut()` method added to generate a factor, similar to `cut.POSIXt()` but with
 some differences in the arguments.
@@ -21,14 +21,16 @@ some differences in the arguments.
 * `format()` method added that generates a character vector of timestamps for the
 offsets in a CFtime instance. The format is specified using the flags used in
 `strptime()`, with some limitations. In particular, locale-specific formatting is
-limited to month names and no weekday information can be generated. The `CFrange()`
-function has a new "format" parameter to support the same functionality.
+limited to month names and no weekday information can be generated. The `range()`
+method has a new "format" parameter to support the same functionality and timestamps
+can also be generated for the extremes of the bounds, if set.
 * `as.character()` and `length()` methods added that return a vector of timestamps 
 or the number of offsets in a CFtime instance, respectively.
-* Several methods have been renamed (most notably `CFcomplete()` to `is_complete()`,
-`CFrange()` to the standard generic `range()`, and `CFsubset()` to `slab()`) to 
-be more consistent with the R universe. Some datum methods (deep down where regular 
+* Several functions have been renamed (most notably `CFcomplete()` to `is_complete()`,
+`CFrange()` to the standard generic method `range()`, and `CFsubset()` to `slab()`) to 
+be more consistent with the R universe. Some datum functions (deep down where regular 
 mortals do not dwell) have been deleted.
+* Time zone designator "UTC" accepted when parsing timestamps to offsets.
 * Minor code fixes, see GitHub commits.
 * Documentation updated, with description of new functions.
 

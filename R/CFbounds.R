@@ -71,7 +71,8 @@
       stop("Values of the replacement value must surround the offset values")
 
     # Compress array to `TRUE`, if regular
-    if (len > 1L && identical(value[1L,2L:len], value[2L,1L:(len-1L)])) value <- TRUE
+    if (len > 1L && identical(value[1L,2L:len], value[2L,1L:(len-1L)]) &&
+        diff(range(diff(value[1L,]))) == 0) value <- TRUE
 
     cf@bounds <- value
   }

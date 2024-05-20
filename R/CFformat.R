@@ -98,6 +98,10 @@ CFtimestamp <- function(cf, format = NULL, asPOSIX = FALSE) {
 #' @returns Character vector of formatted timestamps.
 #' @noRd
 .format_format <- function(ts, tz, format) {
+  if (format == "") format <- "timestamp"
+  if (format == "timestamp" && sum(ts$hour, ts$minute, ts$second) == 0)
+    format <- "date"
+
   if (format == "date") return(sprintf("%04d-%02d-%02d", ts$year, ts$month, ts$day))
   else if (format == "timestamp") return(sprintf("%04d-%02d-%02d %s", ts$year, ts$month, ts$day, .format_time(ts)))
 
@@ -123,7 +127,7 @@ CFtimestamp <- function(cf, format = NULL, asPOSIX = FALSE) {
   format <- stringr::str_replace_all(format, "%[O]?m", sprintf("%02d", ts$month))
   format <- stringr::str_replace_all(format, "%[O]?M", sprintf("%02d", ts$minute))
   format <- stringr::str_replace_all(format, "%p", ifelse(ts$hour < 12, "AM", "PM"))
-  format <- stringr::str_replace_all(format, "%S", sprintf("%02d", ts$second))
+  format <- stringr::str_replace_all(format, "%S", sprintf("%02d", as.integer(ts$second)))
   format <- stringr::str_replace_all(format, "%[E]?Y", sprintf("%04d", ts$year))
   format <- stringr::str_replace_all(format, "%z", tz)
   format <- stringr::str_replace_all(format, "%%", "%")

@@ -20,12 +20,17 @@
 #' specified time unit. In the result of this function, if the fraction is
 #' associated with the minute or the hour, it is converted into a regular
 #' `hh:mm:ss.sss` format, i.e. any fraction in the result is always associated
-#' with the second, rounded down to milli-second accuracy. The time zone is
-#' optional and should have at least the hour or `Z` if present, the minute is
-#' optional. The time zone hour can have an optional sign. The separator between
-#' the date and the time can be a single whitespace character or a `T`; in the
-#' UDUNITS format the separator between the time and the time zone must be a
-#' single whitespace character.
+#' with the second, rounded down to milli-second accuracy. The separator between
+#' the date and the time can be a single whitespace character or a `T`.
+#'
+#' The time zone is optional and should have at least the hour or `Z` if
+#' present, the minute is optional. The time zone hour can have an optional
+#' sign. In the UDUNITS format the separator between the time and the time zone
+#' must be a single whitespace character, in ISO8601 there is no separation
+#' between the time and the timezone. Time zone names are not supported (as
+#' neither UDUNITS nor ISO8601 support them) and will cause parsing to fail when
+#' supplied, with one exception: the designator "UTC" is silently dropped (i.e.
+#' interpreted as "00:00").
 #'
 #' Currently only the extended formats (with separators between the elements)
 #' are supported. The vector of timestamps may have any combination of ISO8601
@@ -151,6 +156,9 @@ CFparse <- function(cf, x) {
   parse <- data.frame(year = integer(), month = integer(), day = integer(),
                       hour = integer(), minute = integer(), second = numeric(), frac = character(),
                       tz_sign = character(), tz_hour = character(), tz_min = character())
+
+  # Drop "UTC", if given
+  d <- gsub("UTC$", "", d)
 
   cap <- utils::strcapture(iso8601, d, parse)
   missing <- which(is.na(cap$year))
