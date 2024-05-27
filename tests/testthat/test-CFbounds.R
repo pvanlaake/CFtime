@@ -37,15 +37,16 @@ test_that("indexOf() works", {
          "2024-01-31", # non-existent date
          "2024-02-01",
          "2024-02-30",
-         "2024-03-01")
+         "2024-03-01",
+         "2025-01-01") # post-time series
 
   expect_error(indexOf(x, cf, method = 4))
   expect_error(indexOf(TRUE, cf))
   expect_error(indexOf(x, CFtime("months since 2001-01-01", "standard", 0:23)))
   expect_error(indexOf(x, cf, nomatch = "July")) # must be able to coerce to numeric
 
-  expect_equal(indexOf(x, cf)[1:7], c(NA, NA, 29, NA, 30, 59, 60))
-  expect_equal(indexOf(x, cf, method = "linear")[1:7], c(NA, NA, 29.5, NA, 30.5, 59.5, 60.5))
+  expect_equal(indexOf(x, cf)[1:8], c(NA, 0, 29, NA, 30, 59, 60, .Machine$integer.max))
+  expect_equal(indexOf(x, cf, method = "linear")[1:8], c(NA, 0, 29.5, NA, 30.5, 59.5, 60.5, .Machine$integer.max))
 
   n <- 1:3
   out <- indexOf(n, cf)
@@ -64,14 +65,14 @@ test_that("indexOf() works", {
   expect_equal(CFtimestamp(outcf), x[!is.na(out)])
 
   bounds(cf) <- TRUE
-  expect_equal(indexOf(x, cf)[1:7], c(NA, NA, 30, NA, 31, 60, 61))
-  expect_equal(indexOf(x, cf, method = "linear")[1:7], c(NA, NA, 30, NA, 31, 60, 61))
+  expect_equal(indexOf(x, cf)[1:8], c(NA, 0, 30, NA, 31, 60, 61, .Machine$integer.max))
+  expect_equal(indexOf(x, cf, method = "linear")[1:8], c(NA, 0, 30, NA, 31, 60, 61, .Machine$integer.max))
 
   hr6 <- rbind(off - 0.25, off + 0.25)
   bounds(cf) <- hr6
-  expect_equal(indexOf(x, cf)[1:7], rep(NA_real_, 7)) # bounds from 06:00 - 18:00
+  expect_equal(indexOf(x, cf)[1:8], c(NA, 0, rep(NA, 5), .Machine$integer.max)) # bounds from 06:00 - 18:00
   nine <- paste(x, "09:00")
-  expect_equal(indexOf(nine, cf)[1:7], c(NA, NA, 30, NA, 31, 60, 61))
+  expect_equal(indexOf(nine, cf)[1:8], c(NA, 0, 30, NA, 31, 60, 61, .Machine$integer.max))
   bounds(cf) <- FALSE
-  expect_equal(indexOf(nine, cf, "linear")[1:7], c(NA, NA, 29.875, NA, 30.875, 59.875, 60.875))
+  expect_equal(indexOf(nine, cf, "linear")[1:8], c(NA, 0, 29.875, NA, 30.875, 59.875, 60.875, .Machine$integer.max))
 })

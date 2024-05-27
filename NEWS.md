@@ -8,7 +8,7 @@ dimension of the analysis result applying the subset. In other words, if CFtime
 instance 'Acf' describes the temporal dimension of data set 'A' and a factor 'Af'
 is generated from 'Acf', then `Bcf <- attr(Af, "CFtime")` describes the temporal
 dimension of the result of, say, `B <- apply(A, 1:2, tapply, Af, FUN)`.
-* New `indexOf()` method added that returns the indexes of supplied timestamps
+* New `indexOf()` method added that returns the indices of supplied timestamps
 in a CFtime instance, optionally with a fractional part. This can be used to
 extract specific time steps, or to interpolate between time steps using the
 fractional part, from the time dimension of the data set associated with the
