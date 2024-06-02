@@ -373,23 +373,24 @@ setGeneric("indexOf", function(x, y, ...) standardGeneric("indexOf"), signature 
 #' values, return the valid indices of the same vector, with the side effect
 #' being the attribute "CFtime" associated with the result.
 #'
-#' Timestamps can be provided as vectors of character strings, `POSIXct` or `Date.`
+#' Timestamps can be provided as vectors of character strings, `POSIXct` or
+#' `Date.`
 #'
 #' Matching also returns index values for timestamps that fall between two
 #' elements of the time series - this can lead to surprising results when time
 #' series elements are positioned in the middle of an interval (as the CF
 #' Metadata Conventions instruct us to "reasonably assume"): a time series of
-#' days in January would be encoded in a netCDF file as `c("2024-01-01
-#' 12:00:00", "2024-01-02 12:00:00", "2024-01-03 12:00:00", ...)` so `x <-
-#' c("2024-01-01", "2024-01-02", "2024-01-03")` would result in `(NA, 1, 2)` (or
-#' `(NA, 1.5, 2.5)` with `method = "linear"`) because the date values in `x` are
-#' at midnight. This situation is easily avoided by ensuring that `y` has bounds
-#' set (use `bounds(y) <- TRUE` as a proximate solution if bounds are not stored
-#' in the netCDF file). See the Examples.
+#' days in January would be encoded in a NetCDF file as
+#' `c("2024-01-01 12:00:00", "2024-01-02 12:00:00", "2024-01-03 12:00:00", ...)`
+#' so `x <- c("2024-01-01", "2024-01-02", "2024-01-03")` would result in
+#' `(NA, 1, 2)` (or `(NA, 1.5, 2.5)` with `method = "linear"`) because the date
+#' values in `x` are at midnight. This situation is easily avoided by ensuring
+#' that `y` has bounds set (use `bounds(y) <- TRUE` as a proximate solution if
+#' bounds are not stored in the NetCDF file). See the Examples.
 #'
-#' When bounds are set for `y` these will be used to find indices for the values
-#' of `x`. When bounds are not contiguous, values of `x` that do not fall within
-#' bounds are returned as `NA`.
+#' If bounds are set, the indices are taken from those bounds. Returned indices
+#' may fall in between bounds if the latter are not contiguous, with the
+#' exception of the extreme values in `x`.
 #'
 #' Values of `x` that are not valid timestamps according to the calendar of `y`
 #' will be returned as `NA`.
@@ -447,17 +448,12 @@ setMethod("indexOf", c("ANY", "CFtime"), function(x, y, method = "constant") {
       stop("Parsing of timestamps on a \"month\" or \"year\" datum is not supported.")
 
     xoff <- .parse_timestamp(y@datum, as.character(x))$offset
-    bnds <- .get_bounds(y)
-    if (is.null(bnds))
-      intv <- stats::approx(offsets(y), 1L:length(y), xoff, method = method,
-                            yleft = 0, yright = .Machine$integer.max)$y
-    else {
-      intv <- findInterval(xoff, bnds[1L, ])
-      intv[intv >= length(y)] <- .Machine$integer.max
-      valid <- intv
-      valid[which(!valid %in% 1:length(y))] <- NA_real_
-      intv[which(xoff >= bnds[2L, valid])] <- NA_real_ # in case bounds are not contiguous
-    }
+    vals <- .get_bounds(y)
+    if (is.null(vals)) vals <- offsets(y)
+    else vals <- c(vals[1L, 1L], vals[2L, ])
+    intv <- stats::approx(vals, 1L:length(vals), xoff, method = method,
+                          yleft = 0, yright = .Machine$integer.max)$y
+    intv[which(intv == length(vals))] <- .Machine$integer.max
   }
 
   attr(intv, "CFtime") <- CFtime(definition(y), calendar(y), xoff[!is.na(intv)])

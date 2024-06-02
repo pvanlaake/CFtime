@@ -35,21 +35,24 @@ values, return the valid indices of the same vector, with the side effect
 being the attribute "CFtime" associated with the result.
 }
 \details{
-Timestamps can be provided as vectors of character strings, POSIXct or Date.
+Timestamps can be provided as vectors of character strings, \code{POSIXct} or
+\code{Date.}
 
 Matching also returns index values for timestamps that fall between two
 elements of the time series - this can lead to surprising results when time
 series elements are positioned in the middle of an interval (as the CF
 Metadata Conventions instruct us to "reasonably assume"): a time series of
-days in January would be encoded in a netCDF file as \code{c("2024-01-01 12:00:00", "2024-01-02 12:00:00", "2024-01-03 12:00:00", ...)} so \code{x <- c("2024-01-01", "2024-01-02", "2024-01-03")} would result in \verb{(NA, 1, 2)} (or
-\verb{(NA, 1.5, 2.5)} with \code{method = "linear"}) because the date values in \code{x} are
-at midnight. This situation is easily avoided by ensuring that \code{y} has bounds
-set (use \code{bounds(y) <- TRUE} as a proximate solution if bounds are not stored
-in the netCDF file). See the Examples.
+days in January would be encoded in a NetCDF file as
+\code{c("2024-01-01 12:00:00", "2024-01-02 12:00:00", "2024-01-03 12:00:00", ...)}
+so \code{x <- c("2024-01-01", "2024-01-02", "2024-01-03")} would result in
+\verb{(NA, 1, 2)} (or \verb{(NA, 1.5, 2.5)} with \code{method = "linear"}) because the date
+values in \code{x} are at midnight. This situation is easily avoided by ensuring
+that \code{y} has bounds set (use \code{bounds(y) <- TRUE} as a proximate solution if
+bounds are not stored in the NetCDF file). See the Examples.
 
-When bounds are set for \code{y} these will be used to find indices for the values
-of \code{x}. When bounds are not contiguous, values of \code{x} that do not fall within
-bounds are returned as \code{NA}.
+If bounds are set, the indices are taken from those bounds. Returned indices
+may fall in between bounds if the latter are not contiguous, with the
+exception of the extreme values in \code{x}.
 
 Values of \code{x} that are not valid timestamps according to the calendar of \code{y}
 will be returned as \code{NA}.

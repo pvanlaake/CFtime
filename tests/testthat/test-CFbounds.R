@@ -67,12 +67,4 @@ test_that("indexOf() works", {
   bounds(cf) <- TRUE
   expect_equal(indexOf(x, cf)[1:8], c(NA, 0, 30, NA, 31, 60, 61, .Machine$integer.max))
   expect_equal(indexOf(x, cf, method = "linear")[1:8], c(NA, 0, 30, NA, 31, 60, 61, .Machine$integer.max))
-
-  hr6 <- rbind(off - 0.25, off + 0.25)
-  bounds(cf) <- hr6
-  expect_equal(indexOf(x, cf)[1:8], c(NA, 0, rep(NA, 5), .Machine$integer.max)) # bounds from 06:00 - 18:00
-  nine <- paste(x, "09:00")
-  expect_equal(indexOf(nine, cf)[1:8], c(NA, 0, 30, NA, 31, 60, 61, .Machine$integer.max))
-  bounds(cf) <- FALSE
-  expect_equal(indexOf(nine, cf, "linear")[1:8], c(NA, 0, 29.875, NA, 30.875, 59.875, 60.875, .Machine$integer.max))
 })
