@@ -24,10 +24,10 @@ offsets in a CFtime instance. The format is specified using the flags used in
 limited to month names and no weekday information can be generated. The `range()`
 method has a new "format" parameter to support the same functionality and timestamps
 can also be generated for the extremes of the bounds, if set.
-* `as.character()` and `length()` methods added that return a vector of timestamps 
+* `as_character()` and `length()` methods added that return a vector of timestamps 
 or the number of offsets in a CFtime instance, respectively.
 * Several functions have been renamed (most notably `CFtimestamp()` to
-`as.timestamp()`, `CFcomplete()` to `is_complete()`, `CFrange()` to the standard 
+`as_timestamp()`, `CFcomplete()` to `is_complete()`, `CFrange()` to the standard 
 generic method `range()`, and `CFsubset()` to `slab()`) to be more consistent 
 with the R universe. The original functions are now flagged as being deprecated. 
 Some datum functions (deep down where regular mortals do not dwell) have been 
