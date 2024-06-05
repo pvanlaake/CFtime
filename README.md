@@ -49,7 +49,7 @@ as.Date("1949-12-01") + 43289
 #> [1] "2068-06-08"
 
 # CFtime calculation on a "360_day" calendar
-CFtimestamp(CFtime("days since 1949-12-01", "360_day", 43289))
+as_timestamp(CFtime("days since 1949-12-01", "360_day", 43289))
 #> [1] "2070-02-30"
 ```
 
@@ -196,7 +196,7 @@ nc_close(nc2041)
 nc_close(nc2046)
 
 # Optionally - Set the time dimension to the timestamps from the time object
-dimnames(pr)[[3]] <- CFtimestamp(time)
+dimnames(pr)[[3]] <- as_timestamp(time)
 
 # Create the month factor from the time object
 f_month <- CFfactor(time, "month")
@@ -209,7 +209,7 @@ pr_month_time <- attr(f_month, "CFtime")
 # Now sum the daily data to monthly data
 # Dimensions 1 and 2 are longitude and latitude, the third dimension is time
 pr_month <- aperm(apply(pr, 1:2, tapply, f_month, sum), c(2, 3, 1))
-dimnames(pr_month)[[3]] <- CFtimestamp(pr_month_time)
+dimnames(pr_month)[[3]] <- as_timestamp(pr_month_time)
 ```
 
 ## Coverage

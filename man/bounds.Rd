@@ -46,7 +46,7 @@ bounds can be retrieved with the \code{bounds()} function.
 }
 \examples{
 cf <- CFtime("days since 2024-01-01", "standard", seq(0.5, by = 1, length.out = 366))
-CFtimestamp(cf)[1:3]
+as_timestamp(cf)[1:3]
 bounds(cf) <- rbind(0:365, 1:366)
 bounds(cf)[, 1:3]
 bounds(cf, "\%d-\%b-\%Y")[, 1:3]

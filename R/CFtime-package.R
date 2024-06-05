@@ -24,10 +24,10 @@
 #' * [`Compare`][CFtime-equivalent] two CFtime instances
 #' * [`Merge`][CFtime-merge] two CFtime instances
 #' * [`Append`][CFtime-append] additional time steps to a CFtime instance
-#' * [CFtimestamp()] and [format()]: Generate a vector of character or `POSIXct` timestamps from a CFtime instance
+#' * [as_timestamp()] and [format()]: Generate a vector of character or `POSIXct` timestamps from a CFtime instance
 #' * [range()]: Timestamps of the two endpoints in the time series
 #' * [is_complete()]: Does the CFtime instance have a complete time series between endpoints?
-#' * [CFmonth_days()]: How many days are there in a month using the CFtime calendar?
+#' * [month_days()]: How many days are there in a month using the CFtime calendar?
 #'
 #' **Factors and coverage**
 #' * [CFfactor()] and [cut()]: Create factors for different time periods

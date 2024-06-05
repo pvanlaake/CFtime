@@ -94,7 +94,7 @@ baseline period could look like this:
 pr <- ncvar_get(nc, "pr", collapse_degen = FALSE) * 86400
 
 # Assign dimnames(), optional.
-dimnames(pr) <- list(nc$dim$lon$vals, nc$dim$lat$vals, CFtimestamp(cf))
+dimnames(pr) <- list(nc$dim$lon$vals, nc$dim$lat$vals, as_timestamp(cf))
 
 # Get a global attribute from the file
 experiment <- ncatt_get(nc, "")$experiment_id

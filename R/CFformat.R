@@ -28,16 +28,16 @@
 #'
 #' @examples
 #' cf <- CFtime("hours since 2020-01-01", "standard", seq(0, 24, by = 0.25))
-#' CFtimestamp(cf, "timestamp")
+#' as_timestamp(cf, "timestamp")
 #'
 #' cf2 <- CFtime("days since 2002-01-21", "standard", 0:20)
-#' tail(CFtimestamp(cf2, asPOSIX = TRUE))
+#' tail(as_timestamp(cf2, asPOSIX = TRUE))
 #'
-#' tail(CFtimestamp(cf2))
+#' tail(as_timestamp(cf2))
 #'
-#' tail(CFtimestamp(cf2 + 1.5))
-CFtimestamp <- function(cf, format = NULL, asPOSIX = FALSE) {
-  if (!(methods::is(cf, "CFtime"))) stop("First argument to CFtimestamp must be an instance of the `CFtime` class")
+#' tail(as_timestamp(cf2 + 1.5))
+as_timestamp <- function(cf, format = NULL, asPOSIX = FALSE) {
+  if (!(methods::is(cf, "CFtime"))) stop("First argument to `as.timestamp()` must be an instance of the `CFtime` class")
   if (asPOSIX && cf@datum@cal_id != 1L) stop("Cannot make a POSIX timestamp on a non-standard calendar")
 
   time <- .offsets2time(cf@offsets, cf@datum)

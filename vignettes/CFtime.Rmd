@@ -71,7 +71,7 @@ as.Date("1949-12-01") + 43289
 
 # CFtime calculation on a "360_day" calendar - CORRECT
 # See below examples for details on the two functions
-CFtimestamp(CFtime("days since 1949-12-01", "360_day", 43289))
+as_timestamp(CFtime("days since 1949-12-01", "360_day", 43289))
 ```
 
 Using standard `POSIXt` calculations gives a result that is about 21 months off
@@ -169,7 +169,7 @@ cf
 The corresponding character representations of the time series can be easily generated:
 
 ```{r}
-dates <- CFtimestamp(cf, format = "date")
+dates <- as_timestamp(cf, format = "date")
 dates[1:10]
 ```
 
@@ -328,7 +328,7 @@ to produce problems. This is most pronounced for the `360_day` calendar:
 ```{r}
 # Days in January and February
 cf <- CFtime("days since 2023-01-01", "360_day", 0:59)
-cf_days <- CFtimestamp(cf, "date")
+cf_days <- as_timestamp(cf, "date")
 as.Date(cf_days)
 ```
 

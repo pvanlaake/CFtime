@@ -1,18 +1,18 @@
 test_that("Creating timestamps", {
-  expect_error(CFtimestamp("1-2-3"))          # No CFtime as first argument
+  expect_error(as_timestamp("1-2-3"))          # No CFtime as first argument
 
   cf <- CFtime("hours since 2001-01-01", "365_day")
-  expect_null(CFtimestamp(cf)) # No offsets
+  expect_null(as_timestamp(cf)) # No offsets
   cf <- cf + 0L:2399L
-  expect_error(CFtimestamp(cf, "d"))          # Wrong format specifier
-  expect_error(CFtimestamp(cf, asPOSIX = T))  # No POSIXt on a non-standard calendar
-  expect_equal(length(CFtimestamp(cf)), 2400L)
+  expect_error(as_timestamp(cf, "d"))          # Wrong format specifier
+  expect_error(as_timestamp(cf, asPOSIX = T))  # No POSIXt on a non-standard calendar
+  expect_equal(length(as_timestamp(cf)), 2400L)
 
   cf <- CFtime("days since 2001-01-01", "standard", 0L:364L)
-  expect_equal(length(CFtimestamp(cf)), 365L)
-  expect_equal(nchar(CFtimestamp(cf)[1]), 10L) # date string
-  expect_equal(length(CFtimestamp(cf, "date", TRUE)), 365L)
-  expect_equal(length(CFtimestamp(cf, "timestamp", TRUE)), 365L)
+  expect_equal(length(as_timestamp(cf)), 365L)
+  expect_equal(nchar(as_timestamp(cf)[1]), 10L) # date string
+  expect_equal(length(as_timestamp(cf, "date", TRUE)), 365L)
+  expect_equal(length(as_timestamp(cf, "timestamp", TRUE)), 365L)
 })
 
 test_that("Using format()", {

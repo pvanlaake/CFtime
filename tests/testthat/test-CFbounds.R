@@ -51,18 +51,18 @@ test_that("indexOf() works", {
   n <- 1:3
   out <- indexOf(n, cf)
   outcf <- attr(out, "CFtime")
-  expect_equal(CFtimestamp(cf)[1:3], CFtimestamp(outcf))
+  expect_equal(as_timestamp(cf)[1:3], as_timestamp(outcf))
   n <- c(-1, -2, -3)
   out <- indexOf(n, cf)
   outcf <- attr(out, "CFtime")
   expect_equal(length(outcf), 360 - 3)
-  expect_equal(CFtimestamp(cf)[4:6], CFtimestamp(outcf)[1:3])
+  expect_equal(as_timestamp(cf)[4:6], as_timestamp(outcf)[1:3])
   expect_error(indexOf(c(-1, 1), cf))
 
   # Attached CFtime must have valid timestamps in `x`
   out <- indexOf(x, cf)
   outcf <- attr(out, "CFtime")
-  expect_equal(CFtimestamp(outcf), x[!is.na(out)])
+  expect_equal(as_timestamp(outcf), x[!is.na(out)])
 
   bounds(cf) <- TRUE
   expect_equal(indexOf(x, cf)[1:8], c(NA, 0, 30, NA, 31, 60, 61, .Machine$integer.max))

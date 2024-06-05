@@ -154,7 +154,7 @@ resolution <- function(cf) cf@resolution
 #'
 #' @examples
 #' cf <- CFtime("days since 2024-01-01", "standard", seq(0.5, by = 1, length.out = 366))
-#' CFtimestamp(cf)[1:3]
+#' as_timestamp(cf)[1:3]
 #' bounds(cf) <- rbind(0:365, 1:366)
 #' bounds(cf)[, 1:3]
 #' bounds(cf, "%d-%b-%Y")[, 1:3]
@@ -201,7 +201,7 @@ setMethod("length", "CFtime", function(x) length(x@offsets))
 #' as.character(cf)
 setMethod("as.character", "CFtime", function(x) {
   if (length(x@offsets) > 0)
-    CFtimestamp(x)
+    as_timestamp(x)
 })
 
 setMethod("show", "CFtime", function(object) {
@@ -244,7 +244,7 @@ setMethod("show", "CFtime", function(object) {
 #' Week information, including weekday names, is not supported at all as a
 #' "week" is not defined for non-standard CF calendars and not generally useful
 #' for climate projection data. If you are working with observed data and want
-#' to get pretty week formats, use the [CFtimestamp()] function to generate
+#' to get pretty week formats, use the [as_timestamp()] function to generate
 #' `POSIXct` timestamps (observed data generally uses a standard calendar) and
 #' then use the [base::format()] function which supports the full set of
 #' specifiers.
@@ -264,7 +264,7 @@ setMethod("show", "CFtime", function(object) {
 #' format(cf, "%Y-%b")
 #'
 #' # Use system facilities on a standard calendar
-#' format(CFtimestamp(cf, asPOSIX = TRUE), "%A, %x")
+#' format(as_timestamp(cf, asPOSIX = TRUE), "%A, %x")
 #'
 setMethod("format", "CFtime", function(x, format) {
   if (!requireNamespace("stringr", quietly = TRUE))
@@ -419,7 +419,7 @@ setGeneric("indexOf", function(x, y, ...) standardGeneric("indexOf"), signature 
 #'
 #' @examples
 #' cf <- CFtime("days since 2020-01-01", "360_day", 1440:1799 + 0.5)
-#' CFtimestamp(cf)[1:3]
+#' as_timestamp(cf)[1:3]
 #' x <- c("2024-01-01", "2024-01-02", "2024-01-03")
 #' indexOf(x, cf)
 #' indexOf(x, cf, method = "linear")

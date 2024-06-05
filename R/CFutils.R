@@ -23,16 +23,16 @@
 #' @examples
 #' dates <- c("2021-11-27", "2021-12-10", "2022-01-14", "2022-02-18")
 #' cf <- CFtime("days since 1850-01-01", "standard")
-#' CFmonth_days(cf, dates)
+#' month_days(cf, dates)
 #'
 #' cf <- CFtime("days since 1850-01-01", "360_day")
-#' CFmonth_days(cf, dates)
+#' month_days(cf, dates)
 #'
 #' cf <- CFtime("days since 1850-01-01", "all_leap")
-#' CFmonth_days(cf, dates)
+#' month_days(cf, dates)
 #'
-#' CFmonth_days(cf)
-CFmonth_days <- function(cf, x = NULL) {
+#' month_days(cf)
+month_days <- function(cf, x = NULL) {
   stopifnot(methods::is(cf, "CFtime"))
   cal_id <- cf@datum@cal_id
 

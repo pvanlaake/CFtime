@@ -55,7 +55,7 @@
 #'
 #' Creating factors for other periods is not supported by this function. Factors
 #' based on the timestamp information and not dependent on the calendar can
-#' trivially be constructed from the output of the [CFtimestamp()] function.
+#' trivially be constructed from the output of the [as_timestamp()] function.
 #'
 #' For non-epoch factors the attribute 'CFtime' of the result contains a CFtime
 #' instance that is valid for the result of applying the factor to a data set

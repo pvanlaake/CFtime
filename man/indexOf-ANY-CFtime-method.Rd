@@ -66,7 +66,7 @@ temporal dimension of the slice. If index values outside of the range of \code{y
 }
 \examples{
 cf <- CFtime("days since 2020-01-01", "360_day", 1440:1799 + 0.5)
-CFtimestamp(cf)[1:3]
+as_timestamp(cf)[1:3]
 x <- c("2024-01-01", "2024-01-02", "2024-01-03")
 indexOf(x, cf)
 indexOf(x, cf, method = "linear")

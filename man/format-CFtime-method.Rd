@@ -37,7 +37,7 @@ system locale settings; e.g. specify \verb{\%m/\%d/\%Y} instead of \verb{\%D}.
 Week information, including weekday names, is not supported at all as a
 "week" is not defined for non-standard CF calendars and not generally useful
 for climate projection data. If you are working with observed data and want
-to get pretty week formats, use the \code{\link[=CFtimestamp]{CFtimestamp()}} function to generate
+to get pretty week formats, use the \code{\link[=as_timestamp]{as_timestamp()}} function to generate
 \code{POSIXct} timestamps (observed data generally uses a standard calendar) and
 then use the \code{\link[base:format]{base::format()}} function which supports the full set of
 specifiers.
@@ -47,6 +47,6 @@ cf <- CFtime("days since 2020-01-01", "standard", 0:365)
 format(cf, "\%Y-\%b")
 
 # Use system facilities on a standard calendar
-format(CFtimestamp(cf, asPOSIX = TRUE), "\%A, \%x")
+format(as_timestamp(cf, asPOSIX = TRUE), "\%A, \%x")
 
 }

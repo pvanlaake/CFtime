@@ -39,7 +39,7 @@ test_that("test all variants of creating a CFtime object and useful functions", 
 
   # CFtime with a single offset
   cf <- cf + 15
-  expect_equal(CFtimestamp(cf, "date"), "1991-01-16")
+  expect_equal(as_timestamp(cf, "date"), "1991-01-16")
   expect_match(capture_output(methods::show(cf)), "Elements: 1991-01-16 \\n  Bounds  : not set$")
 
   # Invalid offsets
@@ -48,7 +48,7 @@ test_that("test all variants of creating a CFtime object and useful functions", 
   # Character offsets
   cf <- CFtime("hours since 2023-01-01", "360_day", "2023-04-30T23:00")
   expect_equal(range(cf), c("2023-01-01 00:00:00", "2023-04-30 23:00:00"))
-  expect_equal(length(CFtimestamp(cf, "timestamp")), 4 * 30 * 24)
+  expect_equal(length(as_timestamp(cf, "timestamp")), 4 * 30 * 24)
 
   expect_error(CFtime("days since 2023-01-01", "366_day", c("2021-01-01", "2021-04-13")))
   cf <- CFtime("days since 2023-01-01", "366_day", c("2023-01-01", "2023-04-13", "2023-10-30", "2023-05-12"))
