@@ -1,3 +1,5 @@
+# CFtime (development version)
+
 # CFtime 1.4.0
 
 * Bounds that define intervals around offsets can be associated with a CFtime
