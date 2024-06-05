@@ -1,4 +1,4 @@
-# CFtime (development version)
+# CFtime 1.4.0
 
 * Bounds that define intervals around offsets can be associated with a CFtime
 instance and retrieved as raw offset values or as formatted timestamps.
@@ -26,10 +26,12 @@ method has a new "format" parameter to support the same functionality and timest
 can also be generated for the extremes of the bounds, if set.
 * `as.character()` and `length()` methods added that return a vector of timestamps 
 or the number of offsets in a CFtime instance, respectively.
-* Several functions have been renamed (most notably `CFcomplete()` to `is_complete()`,
-`CFrange()` to the standard generic method `range()`, and `CFsubset()` to `slab()`) to 
-be more consistent with the R universe. Some datum functions (deep down where regular 
-mortals do not dwell) have been deleted.
+* Several functions have been renamed (most notably `CFtimestamp()` to
+`as.timestamp()`, `CFcomplete()` to `is_complete()`, `CFrange()` to the standard 
+generic method `range()`, and `CFsubset()` to `slab()`) to be more consistent 
+with the R universe. The original functions are now flagged as being deprecated. 
+Some datum functions (deep down where regular mortals do not dwell) have been 
+deleted.
 * Time zone designator "UTC" accepted when parsing timestamps to offsets.
 * Minor code fixes, see GitHub commits.
 * Documentation updated, with description of new functions.
