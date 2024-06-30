@@ -158,7 +158,7 @@ CFparse <- function(cf, x) {
                       tz_sign = character(), tz_hour = character(), tz_min = character())
 
   # Drop "UTC", if given
-  d <- gsub("UTC$", "", d)
+  d <- trimws(gsub("UTC$", "", d))
 
   cap <- utils::strcapture(iso8601, d, parse)
   missing <- which(is.na(cap$year))
