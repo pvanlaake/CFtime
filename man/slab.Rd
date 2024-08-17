@@ -4,7 +4,7 @@
 \alias{slab}
 \title{Which time steps fall within two extreme values}
 \usage{
-slab(x, extremes)
+slab(x, extremes, rightmost.closed = FALSE)
 }
 \arguments{
 \item{x}{CFtime. The time series to operate on.}
@@ -13,6 +13,9 @@ slab(x, extremes)
 extremes of the time period of interest. The timestamps must be in
 increasing order. The timestamps need not fall in the range of the time
 steps in the CFtime stance.}
+
+\item{rightmost.closed}{Is the larger extreme value included in the result?
+Default is \code{FALSE}.}
 }
 \value{
 A logical vector with a length equal to the number of time steps in

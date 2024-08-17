@@ -530,6 +530,8 @@ is_complete <- function(x) {
 #'   extremes of the time period of interest. The timestamps must be in
 #'   increasing order. The timestamps need not fall in the range of the time
 #'   steps in the CFtime stance.
+#' @param rightmost.closed Is the larger extreme value included in the result?
+#'   Default is `FALSE`.
 #'
 #' @returns A logical vector with a length equal to the number of time steps in
 #'   `x` with values `TRUE` for those time steps that fall between the two
@@ -541,12 +543,12 @@ is_complete <- function(x) {
 #' @examples
 #' cf <- CFtime("hours since 2023-01-01 00:00:00", "standard", 0:23)
 #' slab(cf, c("2022-12-01", "2023-01-01 03:00"))
-slab <- function(x, extremes) {
+slab <- function(x, extremes, rightmost.closed = FALSE) {
   if (!methods::is(x, "CFtime")) stop("First argument must be an instance of CFtime")
   if (!is.character(extremes) || length(extremes) != 2L)
     stop("Second argument must be a character vector of two timestamps")
   if (extremes[2L] < extremes[1L]) extremes <- c(extremes[2L], extremes[1L])
-  .ts_slab(x, extremes)
+  .ts_slab(x, extremes, rightmost.closed)
 }
 
 #' Equivalence of CFtime objects
@@ -733,6 +735,7 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
 #' @param extremes character. Vector of two timestamps that represent the
 #'   extremes of the time period of interest. The timestamps must be in
 #'   increasing order.
+#' @param closed Is the right side closed, i.e. included in the result?
 #'
 #' @returns A logical vector with a length equal to the number of time steps in
 #'   `x` with values `TRUE` for those time steps that fall between the two
@@ -744,7 +747,7 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
 #'   corresponding to the time steps falling between the two extremes. If there
 #'   are no values between the extremes, the attribute is `NULL`.
 #' @noRd
-.ts_slab <- function(x, extremes) {
+.ts_slab <- function(x, extremes, closed) {
   ext <- .parse_timestamp(x@datum, extremes)$offset
   if (is.na(ext[1L])) ext[1L] <- 0
   off <- x@offsets
@@ -752,7 +755,8 @@ setMethod("+", c("CFtime", "numeric"), function(e1, e2) {
     out <- rep(FALSE, length(off))
     attr(out, "CFtime") <- NULL
   } else {
-    out <- off >= ext[1L] & off < ext[2L]
+    out <- if (closed) off >= ext[1L] & off <= ext[2L]
+                  else off >= ext[1L] & off < ext[2L]
     cf <- CFtime(x@datum@definition, x@datum@calendar, off[out])
     xb <- bounds(x)
     if (!is.null(xb))

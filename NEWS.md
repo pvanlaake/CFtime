@@ -1,5 +1,8 @@
 # CFtime (development version)
 
+* Method `slab()` has an additional argument `rightmost.closed` to indicate if
+the upper extreme value should be included in the result.
+
 # CFtime 1.4.0
 
 * Bounds that define intervals around offsets can be associated with a CFtime
