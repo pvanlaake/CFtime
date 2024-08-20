@@ -456,7 +456,12 @@ setMethod("indexOf", c("ANY", "CFtime"), function(x, y, method = "constant") {
     intv[which(intv == length(vals))] <- .Machine$integer.max
   }
 
-  attr(intv, "CFtime") <- CFtime(definition(y), calendar(y), xoff[!is.na(intv)])
+  valid <- which(!is.na(intv) & intv > 0 & intv < .Machine$integer.max)
+  cf <- CFtime(definition(y), calendar(y), xoff[valid])
+  yb <- bounds(y)
+  if (!is.null(yb))
+    bounds(cf) <- yb[, intv[valid]]
+  attr(intv, "CFtime") <- cf
   intv
 })
 

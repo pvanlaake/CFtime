@@ -2,6 +2,8 @@
 
 * Method `slab()` has an additional argument `rightmost.closed` to indicate if
 the upper extreme value should be included in the result.
+* Fixed bounds information on CFtime instances returned from methods `indexOf()`
+and `slab()`.
 
 # CFtime 1.4.0
 

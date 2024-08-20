@@ -62,7 +62,7 @@ test_that("indexOf() works", {
   # Attached CFtime must have valid timestamps in `x`
   out <- indexOf(x, cf)
   outcf <- attr(out, "CFtime")
-  expect_equal(as_timestamp(outcf), x[!is.na(out)])
+  expect_equal(as_timestamp(outcf), x[!is.na(out) & out > 0 & out < .Machine$integer.max])
 
   bounds(cf) <- TRUE
   expect_equal(indexOf(x, cf)[1:8], c(NA, 0, 30, NA, 31, 60, 61, .Machine$integer.max))
