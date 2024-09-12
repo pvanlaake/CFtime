@@ -19,7 +19,8 @@ bounds are set on argument \code{y}, return the index value for each match. If
 }
 \value{
 A numeric vector giving indices into the "time" dimension of the
-dataset associated with \code{y} for the values of \code{x}. Attribute "CFtime"
+dataset associated with \code{y} for the values of \code{x}. If there is at least 1
+valid index, then attribute "CFtime"
 contains an instance of CFtime that describes the dimension of filtering
 the dataset associated with \code{y} with the result of this function, excluding
 any \code{NA}, \code{0} and \code{.Machine$integer.max} values.
@@ -42,13 +43,13 @@ Matching also returns index values for timestamps that fall between two
 elements of the time series - this can lead to surprising results when time
 series elements are positioned in the middle of an interval (as the CF
 Metadata Conventions instruct us to "reasonably assume"): a time series of
-days in January would be encoded in a NetCDF file as
+days in January would be encoded in a netCDF file as
 \code{c("2024-01-01 12:00:00", "2024-01-02 12:00:00", "2024-01-03 12:00:00", ...)}
 so \code{x <- c("2024-01-01", "2024-01-02", "2024-01-03")} would result in
 \verb{(NA, 1, 2)} (or \verb{(NA, 1.5, 2.5)} with \code{method = "linear"}) because the date
 values in \code{x} are at midnight. This situation is easily avoided by ensuring
 that \code{y} has bounds set (use \code{bounds(y) <- TRUE} as a proximate solution if
-bounds are not stored in the NetCDF file). See the Examples.
+bounds are not stored in the netCDF file). See the Examples.
 
 If bounds are set, the indices are taken from those bounds. Returned indices
 may fall in between bounds if the latter are not contiguous, with the
@@ -58,8 +59,9 @@ Values of \code{x} that are not valid timestamps according to the calendar of \c
 will be returned as \code{NA}.
 
 \code{x} can also be a numeric vector of index values, in which case the valid
-values in \code{x} are returned. Negative values are excluded and then the
-remainder returned. Positive and negative values may not be mixed. This has
+values in \code{x} are returned. If negative values are passed, the positive
+counterparts will be excluded and then the remainder returned. Positive and
+negative values may not be mixed. Using a numeric vector has
 the side effect that the result has the attribute "CFtime" describing the
 temporal dimension of the slice. If index values outside of the range of \code{y}
 (\code{1:length(y)}) are provided, an error will be thrown.

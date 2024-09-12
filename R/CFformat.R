@@ -37,14 +37,18 @@
 #'
 #' tail(as_timestamp(cf2 + 1.5))
 as_timestamp <- function(cf, format = NULL, asPOSIX = FALSE) {
-  if (!(methods::is(cf, "CFtime"))) stop("First argument to `as.timestamp()` must be an instance of the `CFtime` class")
-  if (asPOSIX && cf@datum@cal_id != 1L) stop("Cannot make a POSIX timestamp on a non-standard calendar")
+  if (!(methods::is(cf, "CFtime")))
+    stop("First argument to `as_timestamp()` must be an instance of the `CFtime` class")
+  if (asPOSIX && cf@datum@cal_id != 1L)
+    stop("Cannot make a POSIX timestamp on a non-standard calendar")
 
   time <- .offsets2time(cf@offsets, cf@datum)
   if (nrow(time) == 0L) return()
 
-  if (is.null(format)) format <- ifelse(cf@datum@unit < 4L || .has_time(time), "timestamp", "date")
-  else if (!(format %in% c("date", "timestamp"))) stop("Format specifier not recognized")
+  if (is.null(format))
+    format <- ifelse(cf@datum@unit < 4L || .has_time(time), "timestamp", "date")
+  else if (!(format %in% c("date", "timestamp")))
+    stop("Format specifier not recognized")
 
   if (asPOSIX) {
     if (format == "date") ISOdate(time$year, time$month, time$day, 0L)

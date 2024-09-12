@@ -380,13 +380,13 @@ setGeneric("indexOf", function(x, y, ...) standardGeneric("indexOf"), signature 
 #' elements of the time series - this can lead to surprising results when time
 #' series elements are positioned in the middle of an interval (as the CF
 #' Metadata Conventions instruct us to "reasonably assume"): a time series of
-#' days in January would be encoded in a NetCDF file as
+#' days in January would be encoded in a netCDF file as
 #' `c("2024-01-01 12:00:00", "2024-01-02 12:00:00", "2024-01-03 12:00:00", ...)`
 #' so `x <- c("2024-01-01", "2024-01-02", "2024-01-03")` would result in
 #' `(NA, 1, 2)` (or `(NA, 1.5, 2.5)` with `method = "linear"`) because the date
 #' values in `x` are at midnight. This situation is easily avoided by ensuring
 #' that `y` has bounds set (use `bounds(y) <- TRUE` as a proximate solution if
-#' bounds are not stored in the NetCDF file). See the Examples.
+#' bounds are not stored in the netCDF file). See the Examples.
 #'
 #' If bounds are set, the indices are taken from those bounds. Returned indices
 #' may fall in between bounds if the latter are not contiguous, with the
@@ -396,8 +396,9 @@ setGeneric("indexOf", function(x, y, ...) standardGeneric("indexOf"), signature 
 #' will be returned as `NA`.
 #'
 #' `x` can also be a numeric vector of index values, in which case the valid
-#' values in `x` are returned. Negative values are excluded and then the
-#' remainder returned. Positive and negative values may not be mixed. This has
+#' values in `x` are returned. If negative values are passed, the positive
+#' counterparts will be excluded and then the remainder returned. Positive and
+#' negative values may not be mixed. Using a numeric vector has
 #' the side effect that the result has the attribute "CFtime" describing the
 #' temporal dimension of the slice. If index values outside of the range of `y`
 #' (`1:length(y)`) are provided, an error will be thrown.
@@ -410,7 +411,8 @@ setGeneric("indexOf", function(x, y, ...) standardGeneric("indexOf"), signature 
 #'   `"linear"`, return the index value with any fractional value.
 #'
 #' @returns A numeric vector giving indices into the "time" dimension of the
-#'   dataset associated with `y` for the values of `x`. Attribute "CFtime"
+#'   dataset associated with `y` for the values of `x`. If there is at least 1
+#'   valid index, then attribute "CFtime"
 #'   contains an instance of CFtime that describes the dimension of filtering
 #'   the dataset associated with `y` with the result of this function, excluding
 #'   any `NA`, `0` and `.Machine$integer.max` values.
@@ -457,11 +459,13 @@ setMethod("indexOf", c("ANY", "CFtime"), function(x, y, method = "constant") {
   }
 
   valid <- which(!is.na(intv) & intv > 0 & intv < .Machine$integer.max)
-  cf <- CFtime(definition(y), calendar(y), xoff[valid])
-  yb <- bounds(y)
-  if (!is.null(yb))
-    bounds(cf) <- yb[, intv[valid]]
-  attr(intv, "CFtime") <- cf
+  if (any(valid)) {
+    cf <- CFtime(definition(y), calendar(y), xoff[valid])
+    yb <- bounds(y)
+    if (!is.null(yb))
+      bounds(cf) <- yb[, intv[valid]]
+    attr(intv, "CFtime") <- cf
+  }
   intv
 })
 
