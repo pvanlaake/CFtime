@@ -4,6 +4,7 @@
 the upper extreme value should be included in the result.
 * Fixed bounds information on CFtime instances returned from methods `indexOf()`
 and `slab()`.
+* Several minor code improvements.
 
 # CFtime 1.4.0
 

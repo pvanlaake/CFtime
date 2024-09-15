@@ -5,19 +5,10 @@
 * Additional checks have been performed with GHA and devtools::check(remote = TRUE, manual = TRUE)
 and devtools::check_win_devel().
 
-* This minor release 1.4.0 adds functionality and updates documentation.
+* This patch release 1.4.1 fixes some minor issues that are required by upcoming 
+updates in dependencies.
 
 * Reverse dependency checks were done with:
-    tools::check_packages_in_dir("..",
-                      check_args = c("--as-cran", ""),
-                      reverse = list(repos = getOption("repos")["CRAN"]))
+    revdepcheck::revdep_check()
                       
-  This yielded 43 warnings like:
-    "installation of package ‘vdiffr’ had non-zero exit status".
-  None of these packages are known to have any dependency on CFtime.
-  
-  Manual check of the only declared dependency, package `ncmeta`, revealed no
-  issues and works as expected.
-  
-  The `revdepcheck` package is no longer maintained and not available on my
-  environment (RStudio 2024.04.1+748, R4.4.0).
+  This yielded OK: 4 BROKEN: 0
