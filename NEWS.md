@@ -1,3 +1,5 @@
+# CFtime (development version)
+
 # CFtime 1.4.1
 
 * Method `slab()` has an additional argument `rightmost.closed` to indicate if
