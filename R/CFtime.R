@@ -463,7 +463,7 @@ setMethod("indexOf", c("ANY", "CFtime"), function(x, y, method = "constant") {
     cf <- CFtime(definition(y), calendar(y), xoff[valid])
     yb <- bounds(y)
     if (!is.null(yb))
-      bounds(cf) <- yb[, intv[valid]]
+      bounds(cf) <- yb[, intv[valid], drop = FALSE]
     attr(intv, "CFtime") <- cf
   }
   intv
