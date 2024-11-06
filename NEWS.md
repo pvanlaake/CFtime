@@ -1,5 +1,8 @@
 # CFtime (development version)
 
+* Do not drop degenerate dimension on bounds when only 1 offset is included in
+subsetting.
+
 # CFtime 1.4.1
 
 * Method `slab()` has an additional argument `rightmost.closed` to indicate if

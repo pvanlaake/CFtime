@@ -120,3 +120,13 @@ month_days <- function(cf, x = NULL) {
           rep(FALSE, length(yr)),
           rep(TRUE, length(yr)))
 }
+
+#' Display the structure of a CFdatum instance
+#'
+#' @param object `CFdatum` instance to print structure of.
+#' @param ... Ignored.
+#' @returns Nothing. Prints information to the console.
+#' @export
+str.CFdatum <- function(object, ...) {
+  cat(" ", object@definition, " [ ", object@calendar, " calendar ]\n", sep = "")
+}

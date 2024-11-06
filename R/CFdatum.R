@@ -24,7 +24,7 @@
 #' @slot cal_id numeric. The internal identifier of the CF-calendar to use.
 #'
 #' @returns An object of class CFdatum
-#' @noRd
+#' @export
 setClass("CFdatum",
     slots = c(
       definition     = "character",
@@ -46,7 +46,7 @@ setClass("CFdatum",
 #' with the time dimension definition string.
 #'
 #' @returns An object of the `CFdatum` class.
-#' @noRd
+#' @export
 CFdatum <- function(definition, calendar) {
   stopifnot(length(definition) ==  1L, length(calendar) == 1L)
   calendar <- tolower(calendar)
