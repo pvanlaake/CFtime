@@ -220,6 +220,7 @@ This package has been tested with the following data sets:
 - CMIP5
 - CORDEX
 - CMIP6
+- ROMS
 
 The package also operates on geographical and/or temporal subsets of
 data sets so long as the subsetted data complies with the CF Metadata

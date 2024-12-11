@@ -62,10 +62,10 @@ data files. The function comes in two operating modes:
  - Plain vanilla mode produces a factor for a time period across the entire
  time series. The factor level includes the year. This would be useful to calculate 
  mean temperature for every month in every year, for instance.
- - When one or more "epochs" (periods of interest) are provided, the factor level 
+ - When one or more "eras" (periods of interest) are provided, the factor level 
  no longer includes the year and can be used to calculate, for instance, the mean
- temperature per period of interest in the epoch (e.g. average March temperature
- in the epoch 2041-2060).
+ temperature per period of interest in the era (e.g. average March temperature
+ in the era 2041-2060).
  
 ```{r}
 # Setting up
@@ -75,9 +75,9 @@ cf <- CFtime(nc$dim$time$units,
              nc$dim$time$calendar, 
              nc$dim$time$vals)
 
-# Create monthly factors for a baseline epoch and early, mid and late 21st century epochs
-baseline <- CFfactor(cf, epoch = 1991:2020)
-future <- CFfactor(cf, epoch = list(early = 2021:2040, mid = 2041:2060, late = 2061:2080))
+# Create monthly factors for a baseline era and early, mid and late 21st century eras
+baseline <- CFfactor(cf, era = 1991:2020)
+future <- CFfactor(cf, era = list(early = 2021:2040, mid = 2041:2060, late = 2061:2080))
 str(baseline)
 str(future)
 ```
@@ -88,7 +88,7 @@ processing of the data into precipitation anomalies for 3 periods relative to a
 baseline period could look like this:
 
 ```{r}
-# Read the data from the NetCDF file.
+# Read the data from the netCDF file.
 # Keep degenerate dimensions so that we have a predictable data structure: 3-dimensional array.
 # Converts units of kg m-2 s-1 to mm/day.
 pr <- ncvar_get(nc, "pr", collapse_degen = FALSE) * 86400
@@ -102,11 +102,11 @@ experiment <- ncatt_get(nc, "")$experiment_id
 nc_close(nc)
 
 # Calculate the daily average precipitation per month for the baseline period
-# and the three future epochs.
+# and the three future eras.
 pr_base <- apply(pr, 1:2, tapply, baseline, mean)                         # an array
 pr_future <- lapply(future, function(f) apply(pr, 1:2, tapply, f, mean))  # a list of arrays
 
-# Calculate the precipitation anomalies for the future epochs against the baseline.
+# Calculate the precipitation anomalies for the future eras against the baseline.
 # Working with daily averages per month so we can simply subtract and then multiply by days 
 # per month for each of the factor levels using the CF calendar.
 ano <- mapply(function(pr, f) {(pr - pr_base) * CFfactor_units(cf, f)}, pr_future, future, SIMPLIFY = FALSE)
@@ -121,7 +121,7 @@ lines(1:12, ano$late[,1,1], type = "o", col = "red")
 
 Looks like Hadley will be needing rubber boots in spring and autumn back home!
 
-The interesting feature, working from opening the NetCDF file down to plotting, is that
+The interesting feature, working from opening the netCDF file down to plotting, is that
 the specifics of the CF calendar that the data suite uses do not have to be considered
 anywhere in the processing workflow: the `CFtime` package provides the functionality.
 Data suites using another CF calendar are processed exactly the same.
@@ -157,23 +157,23 @@ ano <- lapply(lf, function(fn) {
   pr <- ncvar_get(nc, "pr", collapse_degen = FALSE) * 86400
   nc_close(nc)
 
-  baseline <- CFfactor(cf, epoch = 1991:2020)
+  baseline <- CFfactor(cf, era = 1991:2020)
   pr_base <- apply(pr, 1:2, tapply, baseline, mean)
-  future <- CFfactor(cf, epoch = list(early = 2021:2040, mid = 2041:2060, late = 2061:2080))
+  future <- CFfactor(cf, era = list(early = 2021:2040, mid = 2041:2060, late = 2061:2080))
   pr_future <- lapply(future, function(f) apply(pr, 1:2, tapply, f, mean))
   mapply(function(pr, f) {(pr - pr_base) * CFfactor_units(cf, f)}, pr_future, future, SIMPLIFY = FALSE)
 })
 
-# Epoch names
-epochs <- c("early", "mid", "late")
-dim(epochs) <- 3
+# Era names
+eras <- c("early", "mid", "late")
+dim(eras) <- 3
 
-# Build the ensemble for each epoch
-# For each epoch, grab the data for each of the ensemble members, simplify to an array
+# Build the ensemble for each era
+# For each era, grab the data for each of the ensemble members, simplify to an array
 # and take the mean per row (months, in this case)
-ensemble <- apply(epochs, 1, function(e) {
+ensemble <- apply(eras, 1, function(e) {
   rowMeans(sapply(ano, function(a) a[[e]], simplify = T))})
-colnames(ensemble) <- epochs
+colnames(ensemble) <- eras
 rownames(ensemble) <- rownames(ano[[1]][[1]])
 ensemble
 ```
@@ -241,7 +241,7 @@ prepare_CORDEX <- function(fn, var) {
 ```
 
 Calling this function like `prepare_CORDEX(list.files(path = "~/CC/CORDEX/CAM", 
-pattern = "^pr.*\\.nc$", full.names = TRUE), "pr")` will yield a list of NetCDF
+pattern = "^pr.*\\.nc$", full.names = TRUE), "pr")` will yield a list of netCDF
 files with precipitation data, with the resulting `CFtime` instance
 describing the full temporal extent covered by the data files, as well as the
 data bound on the temporal dimension, ready for further processing.

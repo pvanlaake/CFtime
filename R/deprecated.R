@@ -11,26 +11,27 @@
 #' | ------------------- | -------------------- |
 #' | CFcomplete()        | [is_complete()]      |
 #' | CFmonth_days()      | [month_days()]       |
+#' | CFparse()           | [parse_timestamps()] |
 #' | CFrange()           | [range()]            |
 #' | CFsubset()          | [slab()]             |
 #' | CFtimestamp()       | [as_timestamp()]     |
 #'
-#' @param cf,x,format,asPOSIX See replacement functions.
+#' @param t,x,format,asPOSIX,extremes See replacement functions.
 #'
 #' @returns See replacement functions.
 
 #' @rdname deprecated_functions
 #' @export
-CFtimestamp <- function(cf, format = NULL, asPOSIX = FALSE) {
+CFtimestamp <- function(t, format = NULL, asPOSIX = FALSE) {
   warning("Function `CFtimestamp()` is deprecated. Use `as_timestamp()` instead.")
-  as_timestamp(cf, format, asPOSIX)
+  as_timestamp(t, format, asPOSIX)
 }
 
 #' @rdname deprecated_functions
 #' @export
-CFmonth_days <- function(cf, x = NULL) {
+CFmonth_days <- function(t, x = NULL) {
   warning("Function `CFmonth_days()` is deprecated. Use `month_days()` instead.")
-  month_days(cf, x)
+  month_days(t, x)
 }
 
 #' @rdname deprecated_functions
@@ -40,7 +41,16 @@ CFcomplete <- function(x) {
   is_complete(x)
 }
 
+#' @rdname deprecated_functions
+#' @export
 CFsubset <- function(x, extremes) {
   warning("Function `CFsubset()` is deprecated. Use `slab()` instead.")
   slab(x, extremes)
+}
+
+#' @rdname deprecated_functions
+#' @export
+CFparse <- function(t, x) {
+  warning("Function `CFparse()` is deprecated. Use `parse_timestamps()` instead.")
+  parse_timestamps(t, x)
 }

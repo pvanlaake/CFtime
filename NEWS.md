@@ -2,6 +2,14 @@
 
 * Do not drop degenerate dimension on bounds when only 1 offset is included in
 subsetting.
+* `standard` calendar now uses mixed Gregorian/Julian calendar as defined in the
+CF Metadata Conventions. `proleptic_gregorian` is now a separate calendar with
+its own code base.
+* Negative offsets from a calendar origin are allowed.
+* Code is refactored to R6. R6 class CFTime replaces S4 class CFtime (note the
+difference in case). S4 class CFdatum has been replaced by hierarchy of
+R6 CFCalendar classes, with various non-exported functions converted into
+methods of CFCalendar. The code is now much cleaner and easier to extend.
 
 # CFtime 1.4.1
 

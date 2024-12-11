@@ -38,32 +38,41 @@ On the flip side, the CF Metadata Conventions needs to cater to a wide range of
 modeling requirements and that means that some of the areas covered by the standards are
 more complex than might be assumed. One of those areas is the temporal dimension
 of the data sets. The CF Metadata Conventions supports no less than nine different
-calendar definitions, that, upon analysis, fall into five distinct calendars
+calendar definitions, that, upon analysis, fall into six distinct calendars
 (from the perspective of computation of climate projections):
 
- - `standard` or `gregorian`: The international civil calendar that is in common use in 
+ - `standard` (or `gregorian`): The Gregorian calendar that is in common use in 
  many countries around the world, adopted by edict of Pope Gregory XIII in 1582
- and in effect from 15 October of that year. The `proleptic_gregorian` calendar
- is the same as the `gregorian` calendar, but with validity
- extended to periods prior to `1582-10-15`.
+ and in effect from 15 October of that year. The earliest valid time in this
+ calendar is 0001-01-01 00:00:00 (1 January of year 1) as year 0 does not exist
+ and the CF Metadata Conventions require the year to be positive, but noting
+ that a Julian calendar is used in periods before the Gregorian calendar was
+ introduced.
+ - `proleptic_gregorian`: This is the Gregorian calendar with validity 
+ extended to periods prior to `1582-10-15`, including a year 0 and negative years.
+ This calendar is being used in most OSes and is what is being used by R.
  - `julian`: Adopted in the year 45 BCE, every fourth year is a leap year. 
- Originally, the julian calendar did not have a monotonically increasing year 
- assigned to it and there are indeed several julian calendars in use around the
+ Originally, the Julian calendar did not have a monotonically increasing year 
+ assigned to it and there are indeed several Julian calendars in use around the
  world today with different years assigned to them. Common interpretation
- is currently that the year is the same as that of the standard calendar. The 
- julian calendar is currently 13 days behind the gregorian calendar.
- - `365_day` or `noleap`: No years have a leap day.
- - `366_day` or `all_leap`: All years have a leap day.
- - `360_day`: Every year has 12 months of 30 days each.
+ is currently that the year is the same as that of the Gregorian calendar. The 
+ Julian calendar is currently 13 days behind the Gregorian calendar. As with the 
+ standard calendar, the earliest valid time in this calendar is 0001-01-01 00:00:00.
+ - `365_day` or `noleap`: No years have a leap day. Negative years are allowed 
+ and year 0 exists.
+ - `366_day` or `all_leap`: All years have a leap day. Negative years are allowed 
+ and year 0 exists.
+ - `360_day`: Every year has 12 months of 30 days each. Negative years are allowed 
+ and year 0 exists.
 
 The three latter calendars are specific to the CF Metadata Conventions to
 reduce computational complexities of working with dates. These three, and the
 julian calendar, are not compliant with the standard `POSIXt` date/time
 facilities in `R` and using standard date/time procedures would quickly lead to
-problems. In the below code snippet, the date of `1949-12-01` is the *datum*
-from which other dates are calculated. When adding 43,289 days to this *datum*
+problems. In the below code snippet, the date of `1949-12-01` is the *origin*
+from which other dates are calculated. When adding 43,289 days to this origin
 for a data set that uses the `360_day` calendar, that should yield a date some 120 
-years after the *datum*:
+years after the origin:
 
 ```{r}
 # POSIXt calculations on a standard calendar - INCORRECT
@@ -76,7 +85,7 @@ as_timestamp(CFtime("days since 1949-12-01", "360_day", 43289))
 
 Using standard `POSIXt` calculations gives a result that is about 21 months off
 from the correct date - obviously an undesirable situation. This example is far
-from artificial: `1949-12-01` is the datum for all CORDEX data, covering the 
+from artificial: `1949-12-01` is the origin for all CORDEX data, covering the 
 period 1951 - 2005 for historical experiments and the period 2006 - 2100 for RCP 
 experiments (with some deviation between data sets), and several models used in 
 the CORDEX set use the `360_day` calendar. The `365_day` or `noleap` calendar 
@@ -93,38 +102,42 @@ processing of the data.
 
 The character of CF time series - a number of numerical offsets from a base date -
 implies that there should only be a single time zone associated with the time
-series. The time zone offset from UTC is stored in the datum and can be retrieved
-with the `timezone()` function. If a vector of character timestamps with time
+series, and then only for the `standard` and `proleptic_gregorian` calendars.
+For the other calendars a time zone can be set but it will have no effect.
+Daylight savings time information is never considered by CFtime so the user
+should take care to avoid entering times with DST.
+
+The time zone offset from UTC is stored in the `CFTime` instance and can be 
+retrieved with the `timezone()` function. If a vector of character timestamps with time
 zone information is parsed with the `CFparse()` function and the time zones are 
-found to be different from the datum time zone, a warning message is generated
-but the timestamp is interpreted as being in the datum time zone. No correction 
-of timestamp to datum time zone is performed.
+found to be different from the `CFTime` time zone, a warning message is generated
+but the timestamp is interpreted as being in the `CFTime` time zone. No correction 
+of timestamp to `CFTime` time zone is performed.
 
 ## Using CFtime to deal with calendars
 
 Data sets that are compliant with the CF Metadata Conventions always include a 
-*datum*, a specific point in time in reference to a specified *calendar*, from 
+*origin*, a specific point in time in reference to a specified *calendar*, from 
 which other points in time are calculated by adding a specified *offset* of a
-certain *unit*. This approach is encapsulated in the `CFtime` package by the S4 
-class `CFtime`.
+certain *unit*. This approach is encapsulated in the `CFtime` package by the R6 
+class `CFTime`.
 
 ```{r}
-# Create a CF time object from a definition string, a calendar and some offsets
-cf <- CFtime("days since 1949-12-01", "360_day", 19830:90029)
-cf
+# Create a CFTime object from a definition string, a calendar and some offsets
+(t <- CFtime("days since 1949-12-01", "360_day", 19830:90029))
 ```
 
-The `CFtime()` function takes a *datum* description (which is actually a unit -
-"days" - in reference to a datum - "1949-12-01"), a calendar description, and a 
-vector of *offsets* from that datum. Once a `CFtime` instance is created its 
-datum and calendar cannot be changed anymore. Offsets may be added.
+The `CFtime()` function takes a description (which is actually a unit -
+"days" - in reference to an origin - "1949-12-01"), a calendar description, and a 
+vector of *offsets* from that origin Once a `CFTime` instance is created its 
+origin and calendar cannot be changed anymore. Offsets may be added.
 
 In practice, these parameters will be taken from the data set of interest. CF Metadata
-Conventions require data sets to be in the NetCDF format, with all metadata
+Conventions require data sets to be in the netCDF format, with all metadata
 describing the data set included in a single file, including the mandatory 
 "Conventions" global attribute which should have a string identifying the version 
 of the CF Metadata Conventions that this file adheres to (among possible others).
-Not surprisingly, all the pieces of interest are contained in the mandatory `time` 
+Not surprisingly, all the pieces of interest are contained in the mandatory "time"
 dimension of the file. The process then becomes as follows, for a CMIP6 file of 
 daily precipitation:
 
@@ -140,43 +153,41 @@ attrs$title
 attrs$Conventions
 
 # Create the CFtime instance from the metadata in the file.
-cf <- CFtime(nc$dim$time$units, 
+(t <- CFtime(nc$dim$time$units, 
              nc$dim$time$calendar, 
-             nc$dim$time$vals)
-cf
+             nc$dim$time$vals))
 ```
 
 You can see from the global attribute "Conventions" that the file adheres to the
 CF Metadata Conventions, among others. According to the CF conventions, `units` 
-and `calendar` are required attributes of the `time` dimension in the NetCDF file, 
+and `calendar` are required attributes of the `time` dimension in the netCDF file, 
 and `nc$dim$time$vals` are the offset values, or `dimnames()` in `R` terms, for 
 the `time` dimension of the data.
 
 The above example (and others in this vignette) use the `ncdf4` package. If you 
 are using the `RNetCDF` package, checking for CF conventions and then creating a 
-`CFtime` instance goes like this:
+`CFTime` instance goes like this:
 
 ```{r}
 library(RNetCDF)
 nc <- open.nc(fn)
 att.get.nc(nc, -1, "Conventions")
-cf <- CFtime(att.get.nc(nc, "time", "units"), 
+(t <- CFtime(att.get.nc(nc, "time", "units"), 
              att.get.nc(nc, "time", "calendar"), 
-             var.get.nc(nc, "time"))
-cf
+             var.get.nc(nc, "time")))
 ```
 
 The corresponding character representations of the time series can be easily generated:
 
 ```{r}
-dates <- as_timestamp(cf, format = "date")
+dates <- as_timestamp(t, format = "date")
 dates[1:10]
 ```
 
-...as well as the full range of the time series:
+...as well as the range of the time series:
 
 ```{r}
-range(cf)
+range(t)
 ```
 
 Note that in this latter case, if any of the timestamps in the time series have a time that is
@@ -194,33 +205,33 @@ season, and then compute a derivative value such as the dekadal sum of precipita
 monthly minimum/maximum daily temperature, or seasonal average daily short-wave
 irradiance.
 
-It is also possible to create factors for multiple "epochs" in one go. This greatly
+It is also possible to create factors for multiple "eras" in one go. This greatly
 reduces programming effort if you want to calculate anomalies over multiple future
 periods. A complete example is provided in the vignette 
 ["Processing climate projection data"](Processing.html).
 
-It is easy to generate the factors that you need once you have a `CFtime` instance 
+It is easy to generate the factors that you need once you have a `CFTime` instance 
 prepared:
 
 ```{r}
 # Create a dekad factor for the whole `cf` time series that was created above
-f_k <- CFfactor(cf, "dekad")
+f_k <- CFfactor(t, "dekad")
 str(f_k)
 
-# Create monthly factors for a baseline epoch and early, mid and late 21st century epochs
-baseline <- CFfactor(cf, epoch = 1991:2020)
-future <- CFfactor(cf, epoch = list(early = 2021:2040, mid = 2041:2060, late = 2061:2080))
+# Create monthly factors for a baseline era and early, mid and late 21st century eras
+baseline <- CFfactor(t, era = 1991:2020)
+future <- CFfactor(t, era = list(early = 2021:2040, mid = 2041:2060, late = 2061:2080))
 str(future)
 ```
 
-For the "epoch" version, there are two interesting things to note here:
+For the "era" version, there are two interesting things to note here:
 
- - The epochs do not have to coincide with the boundaries of the time series. In the 
- example above, the time series starts in 2015, while the baseline epoch is from 1991.
+ - The eras do not have to coincide with the boundaries of the time series. In the 
+ example above, the time series starts in 2015, while the baseline era is from 1991.
  Obviously, the number of time steps from the time series that then fall within 
- this epoch will then be reduced.
+ this era will then be reduced.
  - The factor is always of the same length as the time series, with `NA` values
- where the time series values are not falling in the epoch. This ensures that the
+ where the time series values are not falling in the era. This ensures that the
  factor is compatible with the data set which the time series describes, such
  that functions like `tapply()` will not throw an error.
  
@@ -238,16 +249,15 @@ There are six periods defined for `CFfactor()`:
 
 ##### New "time" dimension
 
-A CFtime instance describes the "time" dimension of an associated data set. When
+A `CFTime` instance describes the "time" dimension of an associated data set. When
 you process that dimension of the data set using `CFfactor()` or another method
 to filter or otherwise subset the "time" dimension, the resulting data set will
-have a different "time" dimension. To associate a proper CFtime instance with
-your processing result, the methods in this package return that CFtime instance
+have a different "time" dimension. To associate a proper `CFTime` instance with
+your processing result, the methods in this package return that `CFTime` instance
 as an attribute:
 
 ```{r}
-  new_time <- attr(f_k, "CFtime")
-  new_time
+  (new_time <- attr(f_k, "CFTime"))
 ```
 
 In the vignette ["Processing climate projection data"](Processing.html) is a
@@ -269,17 +279,17 @@ processing or apply weights based on the actual coverage.
 
 ```{r}
 # Is the time series complete?
-is_complete(cf)
+is_complete(t)
 
 # How many time units fit in a factor level?
-CFfactor_units(cf, baseline)
+CFfactor_units(t, baseline)
 
 # What's the absolute and relative coverage of our time series
-CFfactor_coverage(cf, baseline, "absolute")
-CFfactor_coverage(cf, baseline, "relative")
+CFfactor_coverage(t, baseline, "absolute")
+CFfactor_coverage(t, baseline, "relative")
 ```
 
-The time series is complete but coverage of the baseline epoch is only 
+The time series is complete but coverage of the baseline era is only 
 20%! Recall that the time series starts in 2015 while the baseline period in the
 factor is for `1991:2020` so that's only 6 years of time series data out of 30 
 years of the baseline factor.
@@ -292,13 +302,12 @@ n <- 365 * 4
 cov <- 0.8
 offsets <- sample(0:(n-1), n * cov)
 
-cf <- CFtime("days since 2020-01-01", "365_day", offsets)
-cf
+(t <- CFtime("days since 2020-01-01", "365_day", offsets))
 # Note that there are about 1.25 days between observations
 
-mon <- CFfactor(cf, "month")
-CFfactor_coverage(cf, mon, "absolute")
-CFfactor_coverage(cf, mon, "relative")
+mon <- CFfactor(t, "month")
+CFfactor_coverage(t, mon, "absolute")
+CFfactor_coverage(t, mon, "relative")
 ```
 
 Keep in mind, though, that there are data sets where the time unit is lower than
@@ -311,8 +320,9 @@ set is complete with the function `CFcomplete()`.
 ## CFtime and POSIXt
 
 The CF Metadata Conventions support nine different calendars. Of these, only the
-`standard`, `gregorian` and `proleptic_gregorian` calendars are fully compatible
-with POSIXt. The other calendars have varying degrees of discrepancies:
+`proleptic_gregorian` calendar is fully compatible with POSIXt, with the 
+`standard` and `gregorian` calendars only valid for periods after 1582-10-15. The 
+other calendars have varying degrees of discrepancies:
 
  - `julian`: Every fouth year is a leap year. Dates like `2100-02-29` and
  `2200-02-29` are valid.
@@ -327,17 +337,17 @@ to produce problems. This is most pronounced for the `360_day` calendar:
 
 ```{r}
 # Days in January and February
-cf <- CFtime("days since 2023-01-01", "360_day", 0:59)
-cf_days <- as_timestamp(cf, "date")
-as.Date(cf_days)
+t <- CFtime("days since 2023-01-01", "360_day", 0:59)
+ts_days <- as_timestamp(t, "date")
+as.Date(ts_days)
 ```
 
 31 January is missing from the vector of `Date`s because the `360_day` calendar 
 does not include it and 29 and 30 February are `NA`s because POSIXt rejects them.
 This will produce problems later on when processing your data.
 
-The general advice is therefore: **do not convert CFtime objects to Date objects**
-unless you are sure that the `CFtime` object uses a POSIXt-compatible calendar.
+The general advice is therefore: **do not convert CFTime objects to Date objects**
+unless you are sure that the `CFTime` object uses a POSIXt-compatible calendar.
 
 ##### So how do I compare climate projection data with different calendars?
 
@@ -360,7 +370,7 @@ Otherwise, there really shouldn't be any reason to convert the time series in th
 data files to `Date`s. Climate projection data is virtually never compared on a 
 day-to-day basis between different models and neither does complex date arithmetic 
 make much sense (such as adding intervals) - `CFtime` can support basic arithmetic
-by manipulation the offsets of the `CFtime` object. The character representations
+by manipulation the offsets of the `CFTime` object. The character representations
 that are produced are perfectly fine to use for `dimnames()` on an array or as
 `rownames()` in a `data.frame` and these also support basic logical operations
 such as `"2023-02-30" < "2023-03-01"`. So ask yourself, do you really need `Date`s

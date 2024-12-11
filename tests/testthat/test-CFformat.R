@@ -59,7 +59,7 @@ test_that("CFfactor testing", {
     f <- CFfactor(cf, CFt$factor_periods[p])
     expect_equal(as.character(f)[1L], first[p])
     expect_equal(as.character(f)[7300L], last[p])
-    newcf <- attr(f, "CFtime")
+    newcf <- attr(f, "CFTime")
     bnds <- bounds(newcf)
     expect_equal(definition(cf), definition(newcf))
     expect_true(is.matrix(bnds))
@@ -67,16 +67,16 @@ test_that("CFfactor testing", {
     expect_equal(dim(bnds), c(2, np[p]))
   }
 
-  # Epoch factors for all available periods
-  epochs <- list(first = 2001L, double = 2002L:2003L, final3 = 2018L:2020L, outside = 2022L)
+  # Era factors for all available periods
+  eras <- list(first = 2001L, double = 2002L:2003L, final3 = 2018L:2020L, outside = 2022L)
   lvls <- c(1L, 4L, 4L, 12L, 36L, 365L)
   for (p in 1:6) { # year, season, quarter, month, dekad, day
-    f <- CFfactor(cf, CFt$factor_periods[p], epochs)
+    f <- CFfactor(cf, CFt$factor_periods[p], eras)
     expect_type(f, "list")
     expect_equal(length(f), 4L)
     expect_equal(length(f$first), 7300L)
     expect_equal(attr(f$first, "period"), CFt$factor_periods[p])
-    expect_equal(attr(f$first, "epoch"), 1L)
+    expect_equal(attr(f$first, "era"), 1L)
     expect_null(attr(f$first, "zxcv"))
     if (p == 1L) {
       expect_equal(length(levels(f$first)), 1L)
@@ -96,14 +96,14 @@ test_that("CFfactor testing", {
     }
   }
 
-  # Single epoch value for all available periods
+  # Single era value for all available periods
   for (p in 1:6) { # year, season, quarter, month, dekad, day
     f <- CFfactor(cf, CFt$factor_periods[p], 2002L)
     expect_s3_class(f, "factor")
     expect_equal(length(f), 7300L)
     expect_equal(length(levels(f)), lvls[p])
     expect_equal(attr(f, "period"), CFt$factor_periods[p])
-    expect_equal(attr(f, "epoch"), 1L)
+    expect_equal(attr(f, "era"), 1L)
     expect_null(attr(f, "zxcv"))
   }
 
@@ -163,13 +163,13 @@ test_that("CFfactor testing", {
   expect_true(all(CFfactor_coverage(cf360, f, "absolute") == 30L))
   expect_true(all(CFfactor_coverage(cf360, f, "relative") == 1L))
 
-  # Units and coverage in factor levels with epochs
-  f <- CFfactor(cf, "year", epochs)
+  # Units and coverage in factor levels with eras
+  f <- CFfactor(cf, "year", eras)
   expect_true(all(unlist(CFfactor_units(cf, f)) == rep(365L, 6L)))
   expect_true(all(unlist(CFfactor_coverage(cf, f, "absolute")) == c(rep(365L, 6L), 0L)))
   expect_equal(sum(sapply(CFfactor_coverage(cf, f, "relative"), sum)), 3L)
 
-  f <- CFfactor(cf, "season", epochs)
+  f <- CFfactor(cf, "season", eras)
   expect_true(all(sapply(CFfactor_units(cf, f), function(x) {all(x == c(90L, 92L, 92L, 91L))})))
   x <- CFfactor_coverage(cf, f, "absolute")
   expect_equal(x$first[1L], 59L)  # Jan + Feb of first year at beginning of time series
@@ -179,7 +179,7 @@ test_that("CFfactor testing", {
   #expect_equal(x[1], 59 / 90). # works in the console but not here
   expect_true(all(x[2L:12L] == 1L))
 
-  f <- CFfactor(cf, "month", epochs)
+  f <- CFfactor(cf, "month", eras)
   expect_true(all(sapply(CFfactor_units(cf, f), function(x) {all(x == month_days)})))
   x <- CFfactor_coverage(cf, f, "absolute")
   expect_true(all(x$first == month_days))
@@ -187,7 +187,7 @@ test_that("CFfactor testing", {
   expect_true(all(x$final3 == month_days * 3L))
   expect_true(all(unlist(CFfactor_coverage(cf, f, "relative")) == 1L))
 
-  f <- CFfactor(cf, "dekad", epochs)
+  f <- CFfactor(cf, "dekad", eras)
   expect_true(all(sapply(CFfactor_units(cf, f), function(x) {all(x == dekad_days)})))
   x <- CFfactor_coverage(cf, f, "absolute")
   expect_true(all(x$first == dekad_days))
@@ -195,7 +195,7 @@ test_that("CFfactor testing", {
   expect_true(all(x$final3 == dekad_days * 3L))
   expect_true(all(unlist(CFfactor_coverage(cf, f, "relative")) == 1L))
 
-  f <- CFfactor(cf, "day", epochs)
+  f <- CFfactor(cf, "day", eras)
   expect_true(all(unlist(CFfactor_units(cf, f)) == 1L))
   x <- CFfactor_coverage(cf, f, "absolute")
   expect_true(all(x$first == 1L))
@@ -205,12 +205,12 @@ test_that("CFfactor testing", {
 
   # all_leap calendar
   cf366 <- CFtime("days since 2001-01-01", "all_leap", 0:7319)
-  f <- CFfactor(cf366, "year", epochs)
+  f <- CFfactor(cf366, "year", eras)
   expect_true(all(unlist(CFfactor_units(cf366, f)) == rep(366L, 6L)))
   expect_true(all(unlist(CFfactor_coverage(cf366, f, "absolute")) == c(rep(366L, 6L), 0L)))
   expect_equal(sum(sapply(CFfactor_coverage(cf366, f, "relative"), sum)), 3L)
 
-  f <- CFfactor(cf366, "season", epochs)
+  f <- CFfactor(cf366, "season", eras)
   expect_true(all(sapply(CFfactor_units(cf366, f), function(x) {all(x == c(91L, 92L, 92L, 91L))})))
   x <- CFfactor_coverage(cf366, f, "absolute")
   expect_equal(x$first[1L], 60L)  # Jan + Feb of first year at beginning of time series
@@ -220,7 +220,7 @@ test_that("CFfactor testing", {
   #expect_equal(x[1], 60 / 90). # works in the console but not here
   expect_true(all(x[2L:12L] == 1L))
 
-  f <- CFfactor(cf366, "month", epochs)
+  f <- CFfactor(cf366, "month", eras)
   expect_true(all(sapply(CFfactor_units(cf366, f), function(x) {all(x == leap_month_days)})))
   x <- CFfactor_coverage(cf366, f, "absolute")
   expect_true(all(x$first == leap_month_days))
@@ -228,7 +228,7 @@ test_that("CFfactor testing", {
   expect_true(all(x$final3 == leap_month_days * 3L))
   expect_true(all(unlist(CFfactor_coverage(cf366, f, "relative")) == 1L))
 
-  f <- CFfactor(cf366, "dekad", epochs)
+  f <- CFfactor(cf366, "dekad", eras)
   expect_true(all(sapply(CFfactor_units(cf366, f), function(x) {all(x == leap_dekad_days)})))
   x <- CFfactor_coverage(cf366, f, "absolute")
   expect_true(all(x$first == leap_dekad_days))
@@ -236,7 +236,7 @@ test_that("CFfactor testing", {
   expect_true(all(x$final3 == leap_dekad_days * 3L))
   expect_true(all(unlist(CFfactor_coverage(cf366, f, "relative")) == 1L))
 
-  f <- CFfactor(cf366, "day", epochs)
+  f <- CFfactor(cf366, "day", eras)
   expect_true(all(unlist(CFfactor_units(cf366, f)) == 1L))
   x <- CFfactor_coverage(cf366, f, "absolute")
   expect_true(all(x$first == 1L))
@@ -248,7 +248,7 @@ test_that("CFfactor testing", {
   n <- 365L * 20L
   cov <- 0.8
   offsets <- sample(0L:(n-1L), n * cov)
-  cf <- CFtime("days since 2020-01-01", "365_day", offsets)
+  expect_warning(cf <- CFtime("days since 2020-01-01", "365_day", offsets))
   f <- CFfactor(cf, "month")
   x <- CFfactor_coverage(cf, f, "absolute")
   expect_equal(sum(x), n * cov)
@@ -263,7 +263,6 @@ test_that("cut() works", {
   expect_error(cut(cf, breaks = 5))
   expect_error(cut(cf, ""))
   expect_error(cut(cf, "blah"))
-  expect_error(suppressWarnings(cut(cf, c("1900-01-01", "2020-04-03")))) # pre-datum break
 
   f <- cut(cf, "quarter")
   expect_equal(nlevels(f), 8)

@@ -16,25 +16,30 @@ POSIXt). The CF time coordinate is formally defined in the
 \href{https://cfconventions.org/Data/cf-conventions/cf-conventions-1.11/cf-conventions.html#time-coordinate}{CF Metadata Conventions document}.
 }
 \details{
-The package can create a \code{CFtime} instance from scratch or, more commonly, it
-can use the dimension attributes and dimension variable values from a NetCDF
+The package can create a \link{CFTime} instance from scratch or, more commonly, it
+can use the dimension attributes and dimension variable values from a netCDF
 resource. The package does not actually do any of the reading and the user is
-free to use their NetCDF package of preference (with the two main options
-being \href{https://cran.r-project.org/package=RNetCDF}{RNetCDF} and
+free to use their netCDF package of preference. The recommended package to
+use (with any netCDF resources) is \href{https://cran.r-project.org/package=ncdfCF}{ncdfCF}.
+\code{ncdfCF} will automatically use this package to manage the "time" dimension
+of any netCDF resource. As with this package, it reads and interprets the
+attributes of the resource to apply the CF Metadata Conventions, supporting
+axes, auxiliary coordinate variables, coordinate reference systems, etc.
+Alternatively, for more basic netCDF reading and writing, the two main options
+are \href{https://cran.r-project.org/package=RNetCDF}{RNetCDF} and
 \href{https://cran.r-project.org/package=ncdf4}{ncdf4}).
 
 \strong{Create, modify, inquire}
 \itemize{
-\item \code{\link[=CFtime]{CFtime()}}: Create a CFtime instance
-\item \code{\link[=properties]{Properties}} of the CFtime instance
-\item \code{\link[=CFparse]{CFparse()}}: Parse a vector of character timestamps into CFtime elements
-\item \code{\link[=CFtime-equivalent]{Compare}} two CFtime instances
-\item \code{\link[=CFtime-merge]{Merge}} two CFtime instances
-\item \code{\link[=CFtime-append]{Append}} additional time steps to a CFtime instance
-\item \code{\link[=as_timestamp]{as_timestamp()}} and \code{\link[=format]{format()}}: Generate a vector of character or \code{POSIXct} timestamps from a CFtime instance
+\item \code{\link[=CFtime]{CFtime()}}: Create a \link{CFTime} instance
+\item \code{\link[=properties]{Properties}} of the \code{CFTime} instance
+\item \code{\link[=parse_timestamps]{parse_timestamps()}}: Parse a vector of character timestamps into \code{CFTime} elements
+\item \code{\link[=CFtime-equivalent]{Compare}} two \code{CFTime} instances
+\item \code{\link[=CFtime-merge]{Merge}} two \code{CFTime} instances or append additional time steps to a \code{CFTime} instance
+\item \code{\link[=as_timestamp]{as_timestamp()}} and \code{\link[=format]{format()}}: Generate a vector of character or \code{POSIXct} timestamps from a \code{CFTime} instance
 \item \code{\link[=range]{range()}}: Timestamps of the two endpoints in the time series
-\item \code{\link[=is_complete]{is_complete()}}: Does the CFtime instance have a complete time series between endpoints?
-\item \code{\link[=month_days]{month_days()}}: How many days are there in a month using the CFtime calendar?
+\item \code{\link[=is_complete]{is_complete()}}: Does the \code{CFTime} instance have a complete time series between endpoints?
+\item \code{\link[=month_days]{month_days()}}: How many days are there in a month using the calendar of the \code{CFTime} instance?
 }
 
 \strong{Factors and coverage}

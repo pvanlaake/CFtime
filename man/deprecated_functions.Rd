@@ -5,16 +5,22 @@
 \alias{CFtimestamp}
 \alias{CFmonth_days}
 \alias{CFcomplete}
+\alias{CFsubset}
+\alias{CFparse}
 \title{Deprecated functions}
 \usage{
-CFtimestamp(cf, format = NULL, asPOSIX = FALSE)
+CFtimestamp(t, format = NULL, asPOSIX = FALSE)
 
-CFmonth_days(cf, x = NULL)
+CFmonth_days(t, x = NULL)
 
 CFcomplete(x)
+
+CFsubset(x, extremes)
+
+CFparse(t, x)
 }
 \arguments{
-\item{cf, x, format, asPOSIX}{See replacement functions.}
+\item{t, x, format, asPOSIX, extremes}{See replacement functions.}
 }
 \value{
 See replacement functions.
@@ -27,6 +33,7 @@ function if no arguments are given in the table.\tabular{ll}{
    \strong{Deprecated function} \tab \strong{Replacement function} \cr
    CFcomplete() \tab \code{\link[=is_complete]{is_complete()}} \cr
    CFmonth_days() \tab \code{\link[=month_days]{month_days()}} \cr
+   CFparse() \tab \code{\link[=parse_timestamps]{parse_timestamps()}} \cr
    CFrange() \tab \code{\link[=range]{range()}} \cr
    CFsubset() \tab \code{\link[=slab]{slab()}} \cr
    CFtimestamp() \tab \code{\link[=as_timestamp]{as_timestamp()}} \cr

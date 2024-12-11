@@ -10,24 +10,29 @@
 #' POSIXt). The CF time coordinate is formally defined in the
 #' [CF Metadata Conventions document](https://cfconventions.org/Data/cf-conventions/cf-conventions-1.11/cf-conventions.html#time-coordinate).
 #'
-#' The package can create a `CFtime` instance from scratch or, more commonly, it
-#' can use the dimension attributes and dimension variable values from a NetCDF
+#' The package can create a [CFTime] instance from scratch or, more commonly, it
+#' can use the dimension attributes and dimension variable values from a netCDF
 #' resource. The package does not actually do any of the reading and the user is
-#' free to use their NetCDF package of preference (with the two main options
-#' being [RNetCDF](https://cran.r-project.org/package=RNetCDF) and
+#' free to use their netCDF package of preference. The recommended package to
+#' use (with any netCDF resources) is [ncdfCF](https://cran.r-project.org/package=ncdfCF).
+#' `ncdfCF` will automatically use this package to manage the "time" dimension
+#' of any netCDF resource. As with this package, it reads and interprets the
+#' attributes of the resource to apply the CF Metadata Conventions, supporting
+#' axes, auxiliary coordinate variables, coordinate reference systems, etc.
+#' Alternatively, for more basic netCDF reading and writing, the two main options
+#' are [RNetCDF](https://cran.r-project.org/package=RNetCDF) and
 #' [ncdf4](https://cran.r-project.org/package=ncdf4)).
 #'
 #' **Create, modify, inquire**
-#' * [CFtime()]: Create a CFtime instance
-#' * [`Properties`][properties] of the CFtime instance
-#' * [CFparse()]: Parse a vector of character timestamps into CFtime elements
-#' * [`Compare`][CFtime-equivalent] two CFtime instances
-#' * [`Merge`][CFtime-merge] two CFtime instances
-#' * [`Append`][CFtime-append] additional time steps to a CFtime instance
-#' * [as_timestamp()] and [format()]: Generate a vector of character or `POSIXct` timestamps from a CFtime instance
+#' * [CFtime()]: Create a [CFTime] instance
+#' * [`Properties`][properties] of the `CFTime` instance
+#' * [parse_timestamps()]: Parse a vector of character timestamps into `CFTime` elements
+#' * [`Compare`][CFtime-equivalent] two `CFTime` instances
+#' * [`Merge`][CFtime-merge] two `CFTime` instances or append additional time steps to a `CFTime` instance
+#' * [as_timestamp()] and [format()]: Generate a vector of character or `POSIXct` timestamps from a `CFTime` instance
 #' * [range()]: Timestamps of the two endpoints in the time series
-#' * [is_complete()]: Does the CFtime instance have a complete time series between endpoints?
-#' * [month_days()]: How many days are there in a month using the CFtime calendar?
+#' * [is_complete()]: Does the `CFTime` instance have a complete time series between endpoints?
+#' * [month_days()]: How many days are there in a month using the calendar of the `CFTime` instance?
 #'
 #' **Factors and coverage**
 #' * [CFfactor()] and [cut()]: Create factors for different time periods
