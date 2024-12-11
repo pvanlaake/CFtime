@@ -1,3 +1,5 @@
+#' @import R6
+NULL
 #' @title Basic CF calendar
 #'
 #' @description This class represents a basic CF calendar. It should not be
