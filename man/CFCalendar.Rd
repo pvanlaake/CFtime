@@ -25,7 +25,7 @@ when the Gregorian calendar was adopted.
 }
 }
 \references{
-https://cfconventions.org/Data/cf-conventions/cf-conventions-1.11/cf-conventions.html#calendar
+https://cfconventions.org/Data/cf-conventions/cf-conventions-1.12/cf-conventions.html#calendar
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}

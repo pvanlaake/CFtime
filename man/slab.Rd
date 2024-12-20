@@ -7,32 +7,14 @@
 slab(x, extremes, rightmost.closed = FALSE)
 }
 \arguments{
-\item{x}{The \code{CFTime} instance to operate on.}
-
-\item{extremes}{Character vector of two timestamps that represent the
-extremes of the time period of interest. The timestamps must be in
-increasing order. The timestamps need not fall in the range of the time
-steps in argument `x.}
-
-\item{rightmost.closed}{Is the larger extreme value included in the result?
-Default is \code{FALSE}.}
+\item{x, extremes, rightmost.closed}{See \code{slice()}.}
 }
 \value{
-A logical vector with a length equal to the number of time steps in
-\code{x} with values \code{TRUE} for those time steps that fall between the two
-extreme values, \code{FALSE} otherwise. The earlier timestamp is included, the
-later timestamp is excluded. A specification of \code{c("2022-01-01", "2023-01-01")}
-will thus include all time steps that fall in the year 2022.
+See \code{slice()}.
 }
 \description{
-Given two extreme character timestamps, return a logical vector of a length
-equal to the number of time steps in the \link{CFTime} instance with values \code{TRUE}
-for those time steps that fall between the two extreme values, \code{FALSE}
-otherwise. This can be used to select slices from the time series in reading
-or analysing data.
-}
-\details{
-If bounds were set these will be preserved.
+Avoid using this function, use \code{\link[=slice]{slice()}} instead. This function will be
+deprecated in the near future.
 }
 \examples{
 t <- CFtime("hours since 2023-01-01 00:00:00", "standard", 0:23)

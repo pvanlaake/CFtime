@@ -13,6 +13,12 @@
 #' @docType class
 CFCalendarProleptic <- R6::R6Class("CFCalendarProleptic",
   inherit = CFCalendar,
+  private = list(
+    # Rata Die, the number of days from the day before 0001-01-01 to
+    # origin of this calendar. Used to convert offsets from the calendar origin
+    # to the day before 0001-01-01 for arithmetic calculations.
+    rd = 0L
+  ),
   public = list(
     #' @description Create a new CF calendar.
     #' @param nm The name of the calendar. This must be "proleptic_gregorian".
@@ -23,6 +29,7 @@ CFCalendarProleptic <- R6::R6Class("CFCalendarProleptic",
     #' @return A new instance of this class.
     initialize = function(nm, definition) {
       super$initialize(nm, definition)
+      private$rd <- .gregorian_date2offset(self$origin, self$leap_year(self$origin$year))
     },
 
     #' @description Indicate which of the supplied dates are valid.
@@ -77,8 +84,7 @@ CFCalendarProleptic <- R6::R6Class("CFCalendarProleptic",
     #' argument `x` indicating the number of days between `x` and the `origin`,
     #' or `NA` for rows in `x` with `NA` values.
     date2offset = function(x) {
-      origin <- lubridate::make_date(self$origin$year, self$origin$month, self$origin$day)
-      as.integer(lubridate::make_date(x$year, x$month, x$day) - origin)
+      .gregorian_date2offset(x, self$leap_year(x$year)) - private$rd
     },
 
     #' @description Calculate date parts from day differences from the origin. This
@@ -89,8 +95,49 @@ CFCalendarProleptic <- R6::R6Class("CFCalendarProleptic",
     #' @return A `data.frame` with columns 'year', 'month' and 'day' and as many
     #'   rows as the length of vector `x`.
     offset2date = function(x) {
-      dt <- lubridate::make_date(self$origin$year, self$origin$month, self$origin$day) + lubridate::days(x)
-      data.frame(year = lubridate::year(dt), month = lubridate::month(dt), day = lubridate::mday(dt), row.names = NULL)
+      .gregorian_offset2date(x + private$rd)
     }
   )
 )
+
+# The below functions use arithmetic offset calculation from date parts and
+# vice-versa. These functions are R-ified from pseudo-functions in Reingold &
+# Derschowitz, "Calendrical Calculations", 2018.
+
+#' Dates to offset, from function `fixed-from-gregorian()`
+#'
+#' @param x `data.frame` with columns "year", "month" and "date"
+#' @param leapyear Logical vector of the same length as `x` has rows indicating
+#' for each row in `x` if this is a leap year.
+#' @return Integer vector of offsets for the dates in `x`. The offsets are
+#' relative to the day before 0001-01-01.
+#' @noRd
+.gregorian_date2offset <- function(x, leapyear) {
+  year1 <- x$year - 1L
+  corr <- ifelse(x$month <= 2L, 0L, as.integer(leapyear) - 2L)
+  365L * year1 + year1 %/% 4L - year1 %/% 100L + year1 %/% 400L +
+    (367L * x$month - 362L) %/% 12L + corr + x$day
+}
+
+#' Offsets to dates, from function `gregorian-from-fixed()` and support functions.
+#'
+#' @param x Integer vector of offsets. The offsets must be relative to the day
+#' before 0001-01-01.
+#' @return `data.frame` with date elements "year", "month" and "day".
+#' @noRd
+.gregorian_offset2date <- function(x) {
+  d0 <- x - 1L
+  n400 <- d0 %/% 146097L; d1 <- d0 %% 146097L
+  n100 <- d1 %/% 36524L;  d2 <- d1 %% 36524L
+  n4 <-   d2 %/% 1461L;   d3 <- d2 %% 1461L
+  n1 <-   d3 %/% 365L
+  yr <- 400L * n400 + 100L * n100 + 4L * n4 + n1
+  yr <- ifelse(n100 == 4L | n1 == 4L, yr, yr + 1L)
+  leapyear <- ((yr %% 4L == 0L) & (yr %% 100L > 0L)) | (yr %% 400L == 0L)
+  yr1 <- yr - 1L
+  jan1 <- 365L * yr1 + yr1 %/% 4L - yr1 %/% 100L + yr1 %/% 400L + 1L
+  prior_days <- x - jan1 + ifelse(x < jan1 + 59L + as.integer(leapyear), 0L, 2L - as.integer(leapyear))
+  mon <- (12L * prior_days + 373L) %/% 367L
+  day <- x - .gregorian_date2offset(data.frame(year = yr, month = mon, day = 1), leapyear) + 1L
+  data.frame(year = yr, month = mon, day = day)
+}

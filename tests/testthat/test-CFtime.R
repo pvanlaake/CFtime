@@ -105,14 +105,14 @@ test_that("test all variants of creating a CFtime object and useful functions", 
 
   # Subsetting
   t <- CFtime("hours since 2023-01-01 00:00:00", "standard", 0:239)
-  expect_error(slab("zxcv"))
-  expect_true(all(slab(t, c("2023-01-01", "2023-02-01"))))
-  expect_true(length(which(slab(t, c("2023-01-01", "2023-05-01")))) == 240)
-  expect_true(length(which(slab(t, c("2023-01-01 00:00", "2023-01-01 04:00")))) == 4)
-  expect_true(length(which(slab(t, c("2023-01-01 04:00", "2023-01-01 00:00")))) == 4) # extremes in reverse order
-  expect_true(slab(t, c("2022-01-01", "2023-01-02"))[1]) # early extreme before timeseries
-  expect_true(all(!slab(t, c("2023-02-01", "2023-03-01")))) # both extremes outside time series
-  expect_error(slab(t, c("2023-01-01 00:00", "2023-01-01 04:00", "2023-01-02 00:00"))) # 3 extremes
+  expect_error(slice("zxcv"))
+  expect_true(all(slice(t, c("2023-01-01", "2023-02-01"))))
+  expect_true(length(which(slice(t, c("2023-01-01", "2023-05-01")))) == 240)
+  expect_true(length(which(slice(t, c("2023-01-01 00:00", "2023-01-01 04:00")))) == 4)
+  expect_true(length(which(slice(t, c("2023-01-01 04:00", "2023-01-01 00:00")))) == 4) # extremes in reverse order
+  expect_true(slice(t, c("2022-01-01", "2023-01-02"))[1]) # early extreme before timeseries
+  expect_true(all(!slice(t, c("2023-02-01", "2023-03-01")))) # both extremes outside time series
+  expect_error(slice(t, c("2023-01-01 00:00", "2023-01-01 04:00", "2023-01-02 00:00"))) # 3 extremes
 })
 
 test_that("Working with packages and files", {

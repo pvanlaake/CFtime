@@ -13,7 +13,7 @@ data used by climate change scientists and the Intergovernmental Panel on
 Climate Change (IPCC). This package specifically allows the user to work
 with any of the CF-compliant calendars (many of which are not compliant with
 POSIXt). The CF time coordinate is formally defined in the
-\href{https://cfconventions.org/Data/cf-conventions/cf-conventions-1.11/cf-conventions.html#time-coordinate}{CF Metadata Conventions document}.
+\href{https://cfconventions.org/Data/cf-conventions/cf-conventions-1.12/cf-conventions.html#time-coordinate}{CF Metadata Conventions document}.
 }
 \details{
 The package can create a \link{CFTime} instance from scratch or, more commonly, it

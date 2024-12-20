@@ -20,7 +20,7 @@ information when processing data from netCDF files. Filtering and indexing of
 time values is supported, as is the generation of factors.
 }
 \references{
-https://cfconventions.org/Data/cf-conventions/cf-conventions-1.11/cf-conventions.html#time-coordinate
+https://cfconventions.org/Data/cf-conventions/cf-conventions-1.12/cf-conventions.html#time-coordinate
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
@@ -42,6 +42,13 @@ values in the first row, high values in the second row.}
 }
 \if{html}{\out{</div>}}
 }
+\section{Active bindings}{
+\if{html}{\out{<div class="r6-active-bindings">}}
+\describe{
+\item{\code{unit}}{(read-only) The unit string of the calendar and time series.}
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
@@ -54,7 +61,7 @@ values in the first row, high values in the second row.}
 \item \href{#method-CFTime-get_bounds}{\code{CFTime$get_bounds()}}
 \item \href{#method-CFTime-set_bounds}{\code{CFTime$set_bounds()}}
 \item \href{#method-CFTime-equidistant}{\code{CFTime$equidistant()}}
-\item \href{#method-CFTime-slab}{\code{CFTime$slab()}}
+\item \href{#method-CFTime-slice}{\code{CFTime$slice()}}
 \item \href{#method-CFTime-POSIX_compatible}{\code{CFTime$POSIX_compatible()}}
 \item \href{#method-CFTime-cut}{\code{CFTime$cut()}}
 \item \href{#method-CFTime-factor}{\code{CFTime$factor()}}
@@ -360,19 +367,19 @@ all but the most non-conformal exotic arrangements.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-CFTime-slab"></a>}}
-\if{latex}{\out{\hypertarget{method-CFTime-slab}{}}}
-\subsection{Method \code{slab()}}{
-Given two extreme character timestamps, return a logical vector of a length
-equal to the number of time steps in the time series with values \code{TRUE}
-for those time steps that fall between the two extreme values, \code{FALSE}
-otherwise.
+\if{html}{\out{<a id="method-CFTime-slice"></a>}}
+\if{latex}{\out{\hypertarget{method-CFTime-slice}{}}}
+\subsection{Method \code{slice()}}{
+Given two extreme character timestamps, return a logical
+vector of a length equal to the number of time steps in the time series
+with values \code{TRUE} for those time steps that fall between the two
+extreme values, \code{FALSE} otherwise.
 
 \strong{NOTE} Giving crap as the earlier timestamp will set that value to 0. So
-invalid input will still generate a result. To be addressed. Crap in later
-timestamp is not tolerated.
+invalid input will still generate a result. To be addressed. Crap in
+later timestamp is not tolerated.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{CFTime$slab(extremes, closed)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{CFTime$slice(extremes, closed = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -381,20 +388,23 @@ timestamp is not tolerated.
 \item{\code{extremes}}{Character vector of two timestamps that represent the
 extremes of the time period of interest.}
 
-\item{\code{closed}}{Is the right side closed, i.e. included in the result?}
+\item{\code{closed}}{Is the right side closed, i.e. included in the result?
+Default is \code{FALSE}.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-A logical vector with a length equal to the number of time steps in
-\code{self} with values \code{TRUE} for those time steps that fall between the two
-extreme values, \code{FALSE} otherwise. The earlier timestamp is included, the
-later timestamp is excluded. A specification of \verb{c("2022-01-01", "2023-01-01)}
-will thus include all time steps that fall in the year 2022.
+A logical vector with a length equal to the number of time steps
+in \code{self} with values \code{TRUE} for those time steps that fall between the
+two extreme values, \code{FALSE} otherwise. The earlier timestamp is
+included, the later timestamp is excluded. A specification of
+\verb{c("2022-01-01", "2023-01-01)} will thus include all time steps that
+fall in the year 2022.
 
-An attribute 'CFTime' will have the same definition as \code{self} but with offsets
-corresponding to the time steps falling between the two extremes. If there
-are no values between the extremes, the attribute is \code{NULL}.
+An attribute 'CFTime' will have the same definition as \code{self} but with
+offsets corresponding to the time steps falling between the two
+extremes. If there are no values between the extremes, the attribute is
+\code{NULL}.
 }
 }
 \if{html}{\out{<hr>}}

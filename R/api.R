@@ -352,10 +352,26 @@ is_complete <- function(x) {
 #' @export
 #' @examples
 #' t <- CFtime("hours since 2023-01-01 00:00:00", "standard", 0:23)
+#' slice(t, c("2022-12-01", "2023-01-01 03:00"))
+slice <- function(x, extremes, rightmost.closed = FALSE) {
+  if (!inherits(x, "CFTime")) stop("First argument must be an instance of `CFTime`", call. = FALSE)
+  x$slice(extremes, rightmost.closed)
+}
+
+#' Which time steps fall within two extreme values
+#'
+#' Avoid using this function, use [slice()] instead. This function will be
+#' deprecated in the near future.
+#'
+#' @param x,extremes,rightmost.closed See `slice()`.
+#' @returns See `slice()`.
+#' @export
+#' @examples
+#' t <- CFtime("hours since 2023-01-01 00:00:00", "standard", 0:23)
 #' slab(t, c("2022-12-01", "2023-01-01 03:00"))
 slab <- function(x, extremes, rightmost.closed = FALSE) {
-  if (!inherits(x, "CFTime")) stop("First argument must be an instance of `CFTime`", call. = FALSE)
-  x$slab(extremes, rightmost.closed)
+  # FIXME: Deprecate 2025-06
+  x$slice(extremes, rightmost.closed)
 }
 
 #' Equivalence of CFTime objects

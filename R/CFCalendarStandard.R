@@ -12,11 +12,23 @@
 #'   recommended for periods before or straddling the introduction date, as that
 #'   calendar is compatible with POSIXt on most OSes.
 #'
-#' @importFrom lubridate make_date year month mday days
 #' @aliases CFCalendarStandard
 #' @docType class
 CFCalendarStandard <- R6::R6Class("CFCalendarStandard",
   inherit = CFCalendar,
+  private = list(
+    # Rata Die, the number of days from the day before 0001-01-01 to
+    # origin of the Gregorian part of this calendar, if present. Used to
+    # convert offsets from the Gregorian calendar origin to the day before
+    # 0001-01-01 for arithmetic calculations.
+    rd_greg = 0L,
+
+    # Rata Die, the number of days from the day before 0001-01-01 to
+    # origin of the Julian part of this calendar, if present. Used to convert
+    # offsets from the Julian calendar origin to the day before 0001-01-01
+    #for arithmetic calculations.
+    rd_juli = 0L
+  ),
   public = list(
     #' @field gap The integer offset for 1582-10-15 00:00:00, when the Gregorian
     #' calendar started, or 1582-10-05, when the gap between Julian and
@@ -32,12 +44,13 @@ CFCalendarStandard <- R6::R6Class("CFCalendarStandard",
     #' @return A new instance of this class.
     initialize = function(nm, definition) {
       super$initialize(nm, definition)
+      private$rd_greg <- .gregorian_date2offset(self$origin, self$leap_year(self$origin$year))
+      private$rd_juli <- .julian_date2offset(self$origin, self$leap_year(self$origin$year))
 
       self$gap <- if (self$is_gregorian_date(self$origin))
-        as.integer(lubridate::make_date(1582, 10, 15) -
-                   lubridate::make_date(self$origin$year, self$origin$month, self$origin$day))
+        .gregorian_date2offset(data.frame(year = 1582, month = 10, day = 15), self$leap_year(self$origin$year)) - private$rd_greg
       else
-        .julian_date2offset(data.frame(year = 1582, month = 10, day = 5), self$origin)
+        .julian_date2offset(data.frame(year = 1582, month = 10, day = 5), self$leap_year(self$origin$year)) - private$rd_juli
     },
 
     #' @description Indicate which of the supplied dates are valid.
@@ -118,26 +131,11 @@ CFCalendarStandard <- R6::R6Class("CFCalendarStandard",
     #'   argument `x` indicating the number of days between `x` and the origin
     #'   of the calendar, or `NA` for rows in `x` with `NA` values.
     date2offset = function(x) {
-      if (self$gap > 0L) {
-        # self$origin in Julian calendar part
-        greg0 <- lubridate::make_date(1582, 10, 15)
-        ifelse(self$is_gregorian_date(x),
-               # Calculate Gregorian dates from 1582-10-15, add gap
-               as.integer(lubridate::make_date(x$year, x$month, x$day) - greg0) + self$gap,
-               # Calculate julian days from self$origin
-               .julian_date2offset(x, self$origin)
-        )
-      } else {
-        # self$origin in Gregorian calendar part
-        self_origin <- lubridate::make_date(self$origin$year, self$origin$month, self$origin$day)
-        julian0 <- data.frame(year = 1582L, month = 10L, day = 5L)
-        ifelse(self$is_gregorian_date(x),
-               # Calculate Gregorian dates from self$origin
-               as.integer(lubridate::make_date(x$year, x$month, x$day) - self_origin),
-               # Calculate julian days from 1582-10-05, add gap
-               .julian_date2offset(x, julian0) + self$gap
-        )
-      }
+      leap <- self$leap_year(x$year)
+      ifelse(self$is_gregorian_date(x),
+             .gregorian_date2offset(x, leap),
+             .julian_date2offset(x, leap)
+      ) - if (self$gap > 0L) private$rd_juli else private$rd_greg
     },
 
     #' @description Calculate date parts from day differences from the origin. This
@@ -148,62 +146,19 @@ CFCalendarStandard <- R6::R6Class("CFCalendarStandard",
     #' @return A `data.frame` with columns 'year', 'month' and 'day' and as many
     #'   rows as the length of vector `x`.
     offset2date = function(x) {
-      if (self$gap <= 0L && all(x >= self$gap, na.rm = TRUE)) {
-        # If self$origin and all offsets are in the Gregorian calendar, use
-        # lubridate. Presumed to cover the majority of cases.
-        dt <- lubridate::make_date(self$origin$year, self$origin$month, self$origin$day) + lubridate::days(x)
-        data.frame(year = lubridate::year(dt), month = lubridate::month(dt), day = lubridate::mday(dt), row.names = NULL)
-      } else {
-        # Manage cases where self$origin is in the Julian calendar and/or `x`
-        # values straddle the Julian/Gregorian boundary.
-        common_days <- c(31L, 28L, 31L, 30L, 31L, 30L, 31L, 31L, 30L, 31L, 30L, 31L)
-        leap_days   <- c(31L, 29L, 31L, 30L, 31L, 30L, 31L, 31L, 30L, 31L, 30L, 31L)
-
-        # Is the leap day to consider ahead in the year from the base date (offset = 0) or in the next year (offset = 1)
-        offset <- as.integer(self$origin$month > 2L)
-
-        # Correct `x` values that straddle the gap from self$origin
-        if (self$gap <= 0L) { # Gregorian origin
-          ndx <- which(x < self$gap)
-          x[ndx] <- x[ndx] - 10L
-        } else { # Julian origin
-          ndx <- which(x >= self$gap)
-          if (length(ndx))
-            x[ndx] <- x[ndx] + 10L
-        }
-
-        x <- x + self$origin$day
-        ymd <- mapply(function(y, m, d) {
-          repeat {
-            test <- y + offset
-            leap <- if (test <= 1582) (test) %% 4L == 0L
-                    else ((test %% 4L == 0L) && (test %% 100L > 0L)) || (test %% 400L == 0L)
-            ydays <- 365L + as.integer(leap)
-
-            if (d <= 0L) {
-              d <- d + ydays
-              y <- y - 1L
-              if (d > 0L) break
-            } else if (d > ydays) {
-              d <- d - ydays
-              y <- y + 1L
-            } else break
-          }
-
-          month <- if (leap) leap_days else common_days
-
-          while (d > month[m]) {
-            d <- d - month[m]
-            m <- m + 1L
-            if (m == 13L) {
-              y <- y + 1L
-              m <- 1L
-            }
-          }
-          return(c(y, m, d))
-        }, self$origin$year, self$origin$month, x)
-        data.frame(year = ymd[1L,], month = ymd[2L,], day = ymd[3L,], row.names = NULL)
-      }
+      rd <- if (self$gap > 0L) private$rd_juli else private$rd_greg
+      len <- length(x)
+      gndx <- x >= self$gap & !is.na(x)
+      if (any(gndx)) greg <- .gregorian_offset2date(x[gndx] + rd)
+      else greg <- data.frame()
+      jndx <- x < self$gap & !is.na(x)
+      if (any(jndx)) juli <- .julian_offset2date(x[jndx] + rd)
+      else juli <- data.frame()
+      yr <- mon <- day <- rep(NA_integer_, len)
+      yr[gndx]  <- greg$year;  yr[jndx]  <- juli$year
+      mon[gndx] <- greg$month; mon[jndx] <- juli$month
+      day[gndx] <- greg$day;   day[jndx] <- juli$day
+      data.frame(year = yr, month = mon, day = day)
     }
   )
 )

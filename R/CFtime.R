@@ -16,7 +16,7 @@
 #'
 #' @export
 #' @references
-#'   https://cfconventions.org/Data/cf-conventions/cf-conventions-1.11/cf-conventions.html#time-coordinate
+#'   https://cfconventions.org/Data/cf-conventions/cf-conventions-1.12/cf-conventions.html#time-coordinate
 #' @docType class
 CFTime <- R6::R6Class("CFTime",
   public = list(
@@ -55,6 +55,7 @@ CFTime <- R6::R6Class("CFTime",
     #'   the `definition` argument.
     initialize = function(definition, calendar, offsets) {
       if (is.null(calendar)) calendar <- "standard" # This may occur when "calendar" attribute is not defined in the NC file
+      calendar <- tolower(calendar)
       self$cal <- switch(calendar,
         "standard" = CFCalendarStandard$new(calendar, definition),
         "gregorian" = CFCalendarStandard$new(calendar, definition),
@@ -425,28 +426,31 @@ CFTime <- R6::R6Class("CFTime",
       out
     },
 
-    #' @description Given two extreme character timestamps, return a logical vector of a length
-    #' equal to the number of time steps in the time series with values `TRUE`
-    #' for those time steps that fall between the two extreme values, `FALSE`
-    #' otherwise.
+    #' @description Given two extreme character timestamps, return a logical
+    #'   vector of a length equal to the number of time steps in the time series
+    #'   with values `TRUE` for those time steps that fall between the two
+    #'   extreme values, `FALSE` otherwise.
     #'
     #' **NOTE** Giving crap as the earlier timestamp will set that value to 0. So
-    #' invalid input will still generate a result. To be addressed. Crap in later
-    #' timestamp is not tolerated.
+    #'   invalid input will still generate a result. To be addressed. Crap in
+    #'   later timestamp is not tolerated.
     #'
     #' @param extremes Character vector of two timestamps that represent the
     #'   extremes of the time period of interest.
     #' @param closed Is the right side closed, i.e. included in the result?
-    #' @return A logical vector with a length equal to the number of time steps in
-    #'   `self` with values `TRUE` for those time steps that fall between the two
-    #'   extreme values, `FALSE` otherwise. The earlier timestamp is included, the
-    #'   later timestamp is excluded. A specification of `c("2022-01-01", "2023-01-01)`
-    #'   will thus include all time steps that fall in the year 2022.
+    #'   Default is `FALSE`.
+    #' @return A logical vector with a length equal to the number of time steps
+    #'   in `self` with values `TRUE` for those time steps that fall between the
+    #'   two extreme values, `FALSE` otherwise. The earlier timestamp is
+    #'   included, the later timestamp is excluded. A specification of
+    #'   `c("2022-01-01", "2023-01-01)` will thus include all time steps that
+    #'   fall in the year 2022.
     #'
-    #'   An attribute 'CFTime' will have the same definition as `self` but with offsets
-    #'   corresponding to the time steps falling between the two extremes. If there
-    #'   are no values between the extremes, the attribute is `NULL`.
-    slab = function(extremes, closed) {
+    #'   An attribute 'CFTime' will have the same definition as `self` but with
+    #'   offsets corresponding to the time steps falling between the two
+    #'   extremes. If there are no values between the extremes, the attribute is
+    #'   `NULL`.
+    slice = function(extremes, closed = FALSE) {
       if (!is.character(extremes) || length(extremes) != 2L)
         stop("Second argument must be a character vector of two timestamps", call. = FALSE)
       if (extremes[2L] < extremes[1L]) extremes <- c(extremes[2L], extremes[1L])
@@ -459,7 +463,7 @@ CFTime <- R6::R6Class("CFTime",
         attr(out, "CFTime") <- NULL
       } else {
         out <- if (closed) off >= ext[1L] & off <= ext[2L]
-        else off >= ext[1L] & off < ext[2L]
+               else off >= ext[1L] & off < ext[2L]
         t <- CFTime$new(self$cal$definition, self$cal$name, off[out])
         bnds <- self$get_bounds()
         if (!is.null(bnds))
@@ -832,6 +836,13 @@ CFTime <- R6::R6Class("CFTime",
 
       if (is.factor(f)) out <- out[[1L]]
       out
+    }
+  ),
+  active = list(
+    #' @field unit (read-only) The unit string of the calendar and time series.
+    unit = function(value) {
+      if (missing(value))
+        CFt$units$name[self$cal$unit]
     }
   )
 )

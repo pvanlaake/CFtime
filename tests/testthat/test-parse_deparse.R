@@ -3,7 +3,7 @@ test_that("timestamp string parsing to offsets and deparsing of offsets to times
   # decomposing offsets into timestamp elements, generating timestamp strings,
   # parsing timestamp strings back into timestamp elements, including negative
   # offsets.
-  for (c in c("standard", "gregorian", "proleptic_gregorian", "julian", "360_day", "365_day", "366_day", "noleap", "all_leap")) {
+  for (c in c("standard", "proleptic_gregorian", "julian", "360_day", "365_day", "366_day", "noleap", "all_leap")) {
     for (u in 1:4) {
       offsets <- -1000:1000
       def <- paste(CFt$units$name[u], "since 1952-08-20")
@@ -39,7 +39,7 @@ test_that("Testing milli-second timestamp string parsing to offsets and deparsin
   # This test tests: global CFt* constants, CFtime(), parse_timestamps(), as_timestamp():
   # decomposing offsets into milli-second timestamp elements, generating
   # timestamp strings, parsing timestamp strings back into timestamp elements.
-  for (c in c("standard", "gregorian", "proleptic_gregorian", "julian", "360_day", "365_day", "366_day", "noleap", "all_leap")) {
+  for (c in c("standard", "proleptic_gregorian", "julian", "360_day", "365_day", "366_day", "noleap", "all_leap")) {
     for (u in 1:2) {
       offsets <- runif(10000, max = 10000)
       def <- paste(CFt$units$name[u], "since 1953-08-20 07:34:12.2")
@@ -54,7 +54,7 @@ test_that("Testing milli-second timestamp string parsing to offsets and deparsin
 })
 
 test_that("Disallow parsing of timestamps on month and year calendar units", {
-  for (c in c("standard", "gregorian", "proleptic_gregorian", "julian", "360_day", "365_day", "366_day", "noleap", "all_leap")) {
+  for (c in c("standard", "proleptic_gregorian", "julian", "360_day", "365_day", "366_day", "noleap", "all_leap")) {
     for (u in 5:6) {
       def <- paste(CFt$units$name[u], "since 2020-01-01")
       t <- CFtime(def, c, 0:23)

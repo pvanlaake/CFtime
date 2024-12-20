@@ -30,16 +30,20 @@ Programme](https://www.wcrp-climate.org) and re-analysis data such as
 ERA5 from the European Centre for Medium-range Weather Forecasts
 (ECMWF).
 
-The data sets include in their metadata a datum, a point in time from
-which other points in time are calculated. This datum takes the form of
-`days since 1949-12-01`, with each data source (Coupled Model
-Intercomparison Project (CMIP) generation, model, etc) having its own
-datum. The data itself has a dimension attribute of “time” with offset
-values such as 43289. To convert this offset to a date, using a specific
-calendar, is what this package does. Given that most calendars supported
-by the CF Metadata Conventions are not compatible with `POSIXt`, this
-conversion is not trivial. That it is important to account for these
-differences is easily demonstrated:
+The data sets include in their metadata an epoch, or origin, a point in
+time from which other points in time are calculated. This epoch takes
+the form of `days since 1949-12-01`, with each data source (Coupled
+Model Intercomparison Project (CMIP) generation, model, etc) having its
+own epoch. The data itself has a temporal dimension if a variable in the
+netCDF file has an attribute `units` with a string value describing an
+epoch. The variable, say “time”, has data values such as 43289, which
+are offsets from the epoch in units of the epoch string (“days” in this
+case). To convert this offset to a date, using a specific calendar, is
+what this package does. Given that the calendars supported by the CF
+Metadata Conventions are not compatible with `POSIXt`, this conversion
+is not trivial because the standard R date-time operations do not give
+correct results. That it is important to account for these differences
+is easily demonstrated:
 
 ``` r
 library(CFtime)
@@ -58,20 +62,41 @@ valid date on a `360_day` calendar.)
 
 All defined calendars of the CF Metadata Conventions are supported:
 
-- `standard` or `gregorian`
-- `proleptic_gregorian`
-- `julian`
-- `365_day` or `noleap`
-- `366_day` or `all_leap`
-- `360_day`
+- `standard` or `gregorian`: This calendar is valid for the Common Era
+  only; it starts at 0001-01-01 00:00:00, i.e. 1 January of year 1. Time
+  periods prior to the introduction of the Gregorian calendar
+  (1582-10-15) use the `julian` calendar that was in common use then.
+  The 10-day gap between the Julian and Gregorian calendars is observed,
+  so dates in the range 5 to 14 October 1582 are invalid.
+- `proleptic_gregorian`: This calendar uses the Gregorian calendar for
+  periods prior to the introduction of that calendar as well, and it
+  extends to periods before the Common Era, e.g. year 0 and negative
+  years.
+- `tai`: International Atomic Time, a global standard for linear time
+  based on multiple atomic clocks: it counts seconds since its start at
+  1958-01-01 00:00:00. For presentation it uses the Gregorian calendar.
+  Timestamps prior to its start are not allowed.
+- `utc`: Coordinated Universal Time, the standard for civil timekeeping
+  all over the world. It is based on International Atomic Time but it
+  uses occasional leap seconds to remain synchronous with Earth’s
+  rotation around the Sun; at the end of 2024 it is 37 seconds behind
+  `tai`. It uses the Gregorian calendar with a start at 1958-01-01
+  00:00:00; earlier timestamps are not allowed. Future timestamps are
+  also not allowed because the insertion of leap seconds is
+  unpredictable. Most computer clocks use UTC.
+- `julian`: The `julian` calendar has a leap year every four years,
+  including centennial years. Otherwise it is the same as the `standard`
+  calendar.
+- `365_day` or `noleap`: This is a “model time” calendar in which no
+  leap years occur. Year 0 exists, as well as years prior to that.
+- `366_day` or `all_leap`: This is a “model time” calendar in which all
+  years are leap years. Year 0 exists, as well as years prior to that.
+- `360_day`: This is a “model time” calendar in which every year has 360
+  days divided over 12 months of 30 days each. Year 0 exists, as well as
+  years prior to that.
 
 Use of custom calendars is not supported. This package is also not
-suitable for paleo-calendars. Time periods prior to the introduction of
-the Gregorian calendar (1582-10-15) may be used but there are no special
-provisions for it. Finally, there is no specific consideration for the
-year 0 (which does not exist in any of the above calendars). Given that
-climate projections are typically made from 1850-01-01 onwards, these
-limitations should not be of any practical concern.
+suitable for paleo-calendars.
 
 This package IS NOT intended to support the full date and time
 functionality of the CF Metadata Conventions. Instead, it facilitates
@@ -107,9 +132,9 @@ devtools::install_github("pvanlaake/CFtime")
 
 ## Basic operation
 
-The package contains a class, `CFtime`, to describe the time coordinate
-system, including its calendar, - a *datum* - and which holds the time
-coordinate values that are offset from the datum to represent instants
+The package contains a class, `CFTime`, to describe the time coordinate
+system, including its calendar and origin, and which holds the time
+coordinate values that are offset from the origin to represent instants
 in time. This class operates on the data in the file of interest, here a
 Coordinated Regional Climate Downscaling Experiment (CORDEX) file of
 precipitation for the Central America domain:
@@ -127,16 +152,16 @@ attrs$title
 attrs$license
 #> [1] "CMIP6 model data produced by NOAA-GFDL is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License (https://creativecommons.org/licenses/). Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse for terms of use governing CMIP6 output, including citation requirements and proper acknowledgment. Further information about this data, including some limitations, can be found via the further_info_url (recorded as a global attribute in this file). The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law."
 
-# Create the CFtime instance
-cf <- CFtime(nc$dim$time$units, 
-             nc$dim$time$calendar, 
-             nc$dim$time$vals)
-cf
-#> CF datum of origin:
+# Create the CFTime instance
+time <- CFtime(nc$dim$time$units, 
+               nc$dim$time$calendar, 
+               nc$dim$time$vals)
+time
+#> CF calendar:
 #>   Origin  : 1850-01-01 00:00:00
 #>   Units   : days
-#>   Calendar: noleap
-#> CF time series:
+#>   Type    : noleap
+#> Time series:
 #>   Elements: [2015-01-01 12:00:00 .. 2099-12-31 12:00:00] (average of 1.000000 days between 31025 elements)
 #>   Bounds  : not set
 
@@ -146,23 +171,25 @@ nc_close(nc)
 
 Note that the information of interest (`nc$dim$time$units`, etc) is read
 out of the file “blindly”, without checking for available dimensions or
-attributes. This can be done because the `time` dimension and its
+attributes. This can be done because the “time” dimension and its
 attributes `units` and `calendar` are required by the CF Metadata
-Conventions. Should this fail, then your data set is not compliant. You
-could still use this package if the required information is contained in
-your file but using a different dimension name or different attribute
-names.
+Conventions. Should this fail, then your data set does not have a
+temporal dimension or it is not compliant (note that the name “time”
+could be different, a temporal dimension is defined by the “units”
+attribute only). You could still use this package if the required
+information is contained in your file but using a different dimension
+name or different attribute names.
 
 ##### Using RNetCDF
 
 If you are using the `RNetCDF` package rather than `ncdf4`, creating a
-`CFtime` instance goes like this:
+`CFTime` instance goes like this:
 
 ``` r
 nc <- open.nc(fn)
-cf <- CFtime(att.get.nc(nc, "time", "units"), 
-             att.get.nc(nc, "time", "calendar"), 
-             var.get.nc(nc, "time"))
+time <- CFtime(att.get.nc(nc, "time", "units"), 
+               att.get.nc(nc, "time", "calendar"), 
+               var.get.nc(nc, "time"))
 ```
 
 ## Typical workflow

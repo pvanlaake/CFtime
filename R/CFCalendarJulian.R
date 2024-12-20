@@ -12,6 +12,12 @@
 #' @docType class
 CFCalendarJulian <- R6::R6Class("CFCalendarJulian",
   inherit = CFCalendar,
+  private = list(
+    # Rata Die, the number of days from the day before 0001-01-01 to
+    # origin of this calendar. Used to convert offsets from the calendar origin
+    # to the day before 0001-01-01 for arithmetic calculations.
+    rd = 0L
+  ),
   public = list(
     #' @description Create a new CF calendar.
     #' @param nm The name of the calendar. This must be "julian". This argument
@@ -22,6 +28,7 @@ CFCalendarJulian <- R6::R6Class("CFCalendarJulian",
     #' @return A new instance of this class.
     initialize = function(nm, definition) {
       super$initialize(nm, definition)
+      private$rd <- .julian_date2offset(self$origin, self$leap_year(self$origin$year))
     },
 
     #' @description Indicate which of the supplied dates are valid.
@@ -67,7 +74,7 @@ CFCalendarJulian <- R6::R6Class("CFCalendarJulian",
     #'   argument `x` indicating the number of days between `x` and the origin
     #'   of the calendar, or `NA` for rows in `x` with `NA` values.
     date2offset = function(x) {
-      .julian_date2offset(x, self$origin)
+      .julian_date2offset(x, self$leap_year(x$year)) - private$rd
     },
 
     #' @description Calculate date parts from day differences from the origin. This
@@ -78,46 +85,7 @@ CFCalendarJulian <- R6::R6Class("CFCalendarJulian",
     #' @return A `data.frame` with columns 'year', 'month' and 'day' and as many
     #'   rows as the length of vector `x`.
     offset2date = function(x) {
-      common_days <- c(31L, 28L, 31L, 30L, 31L, 30L, 31L, 31L, 30L, 31L, 30L, 31L)
-      leap_days   <- c(31L, 29L, 31L, 30L, 31L, 30L, 31L, 31L, 30L, 31L, 30L, 31L)
-
-      # Is the leap day to consider ahead in the year from the base date (offset = 0) or in the next year (offset = 1)
-      offset <- as.integer(self$origin$month > 2L)
-
-      # First process 4-year cycles of 1,461 days over the vector
-      yr <- self$origin$year + (x %/% 1461L) * 4L
-      x <- x %% 1461L
-
-      # Remaining portion relative to the origin
-      x <- x + self$origin$day
-      ymd <- mapply(function(y, m, d) {
-        repeat {
-          leap <- (y + offset) %% 4L == 0L
-          ydays <- 365L + as.integer(leap)
-
-          if (d <= 0L) {
-            d <- d + ydays
-            y <- y - 1L
-            if (d > 0L) break
-          } else if (d > ydays) {
-            d <- d - ydays
-            y <- y + 1L
-          } else break
-        }
-
-        month <- if (leap) leap_days else common_days
-
-        while (d > month[m]) {
-          d <- d - month[m]
-          m <- m + 1L
-          if (m == 13L) {
-            y <- y + 1L
-            m <- 1L
-          }
-        }
-        return(c(y, m, d))
-      }, yr, self$origin$month, x)
-      data.frame(year = ymd[1L,], month = ymd[2L,], day = ymd[3L,], row.names = NULL)
+      .julian_offset2date(x + private$rd)
     }
   )
 )
@@ -125,7 +93,7 @@ CFCalendarJulian <- R6::R6Class("CFCalendarJulian",
 # Internal function to calculate dates from offsets. This function is here
 # because it is used by CFCalendarStandard. See further description in the
 # methods.
-.julian_date2offset <- function(x, origin) {
+.xxjulian_date2offset <- function(x, origin) {
   # days diff of 1st of month to 1 January in normal year
   yd0 <- c(0L, 31L, 59L, 90L, 120L, 151L, 181L, 212L, 243L, 273L, 304L, 334L)
 
@@ -155,3 +123,39 @@ CFCalendarJulian <- R6::R6Class("CFCalendarJulian",
     days + yd0[m] + d - days_into_year
   }, x$year, x$month, x$day)
 }
+
+# The below functions use arithmetic offset calculation from date parts and
+# vice-versa. These functions are R-ified from pseudo-functions in Reingold &
+# Derschowitz, "Calendrical Calculations", 2018.
+
+#' Dates to offset, from function `fixed-from-julian()`
+#'
+#' @param x `data.frame` with columns "year", "month" and "date"
+#' @param leapyear Logical vector of the same length as `x` has rows indicating
+#' for each row in `x` if this is a leap year.
+#' @return Integer vector of offsets for the dates in `x`. The offsets are
+#' relative to the day before 0001-01-01.
+#' @noRd
+.julian_date2offset <- function(x, leapyear) {
+  year1 <- x$year - 1L
+  corr <- ifelse(x$month <= 2L, 0L, as.integer(leapyear) - 2L)
+  365L * year1 + year1 %/% 4L + (367L * x$month - 362L) %/% 12L + corr + x$day - 2L
+}
+
+#' Offsets to dates, from function `julian-from-fixed()` and support functions.
+#'
+#' @param x Integer vector of offsets. The offsets must be relative to the day
+#' before 0001-01-01.
+#' @return `data.frame` with date elements "year", "month" and "day".
+#' @noRd
+.julian_offset2date <- function(x) {
+  yr <- (4 * (x + 1L) + 1464L) %/% 1461L
+  leapyear <- yr %% 4L == 0L
+  yr1 <- yr - 1L
+  jan1 <- -2L + 365L * yr1 + yr1 %/% 4L + 1L
+  prior_days <- x - jan1 + ifelse(x < jan1 + 59L + as.integer(leapyear), 0L, 2L - as.integer(leapyear))
+  mon <- (12L * prior_days + 373L) %/% 367L
+  day <- x - .julian_date2offset(data.frame(year = yr, month = mon, day = 1), leapyear) + 1L
+  data.frame(year = yr, month = mon, day = day)
+}
+

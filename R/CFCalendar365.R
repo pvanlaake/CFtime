@@ -10,6 +10,12 @@
 #' @docType class
 CFCalendar365 <- R6::R6Class("CFCalendar365",
   inherit = CFCalendar,
+  private = list(
+    # Rata Die, the number of days from the day before 0001-01-01 to
+    # origin of this calendar. Used to convert offsets from the calendar origin
+    # to the day before 0001-01-01 for arithmetic calculations.
+    rd = 0L
+  ),
   public = list(
     #' @description Create a new CF calendar of 365 days per year.
     #' @param nm The name of the calendar. This must be "365_day" or "noleap".
@@ -18,6 +24,7 @@ CFCalendar365 <- R6::R6Class("CFCalendar365",
     #' @return A new instance of this class.
     initialize = function(nm, definition) {
       super$initialize(nm, definition)
+      private$rd <- self$date2offset(self$origin)
     },
 
     #' @description Indicate which of the supplied dates are valid.
@@ -64,8 +71,8 @@ CFCalendar365 <- R6::R6Class("CFCalendar365",
     #' argument `x` indicating the number of days between `x` and the `origin`,
     #' or `NA` for rows in `x` with `NA` values.
     date2offset = function(x) {
-      yd0 <- c(0L, 31L, 59L, 90L, 120L, 151L, 181L, 212L, 243L, 273L, 304L, 334L) # days diff of 1st of month to 1 January
-      (x$year - self$origin$year) * 365L + yd0[x$month] - yd0[self$origin$month] + x$day - self$origin$day
+      corr <- ifelse(x$month <= 2L, 0L, -2L)
+      365L * (x$year - 1L) + (367L * x$month - 362L) %/% 12L + corr + x$day - private$rd
     },
 
     #' @description Calculate date parts from day differences from the origin. This
@@ -76,26 +83,13 @@ CFCalendar365 <- R6::R6Class("CFCalendar365",
     #' @return A `data.frame` with columns 'year', 'month' and 'day' and as many
     #'   rows as the length of vector `x`.
     offset2date = function(x) {
-      month <- c(31L, 28L, 31L, 30L, 31L, 30L, 31L, 31L, 30L, 31L, 30L, 31L)
-
-      # First process full years over the vector
-      yr <- self$origin$year + (x %/% 365L)
-      x <- x %% 365L
-
-      # Remaining portion relative to the origin
-      x <- x + self$origin$day
-      ymd <- mapply(function(y, m, d) {
-        while (d > month[m]) {
-          d <- d - month[m]
-          m <- m + 1L
-          if (m == 13L) {
-            y <- y + 1L
-            m <- 1L
-          }
-        }
-        return(c(y, m, d))
-      }, yr, self$origin$month, x)
-      data.frame(year = ymd[1L,], month = ymd[2L,], day = ymd[3L,], row.names = NULL)
+      d0 <- x - 1L + private$rd        # d0 is offset relative to year 0, 0-based
+      yr <- d0 %/% 365L + 1L           # full years
+      d1 <- d0 %% 365L                 # remaining days
+      corr <- ifelse(d1 < 59L, 0L, 2L) # correct for days past February
+      mon <- (12L * (d1 + corr) + 373L) %/% 367L
+      day <- d1 - (367L * mon - 362L) %/% 12L + corr + 1L
+      data.frame(year = yr, month = mon, day = day)
     }
   )
 )
