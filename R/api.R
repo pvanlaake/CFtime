@@ -787,6 +787,7 @@ month_days <- function(t, x = NULL) {
 #'   corresponding offset value from the origin. Invalid input data will appear
 #'   as `NA` - if this is the case, a warning message will be displayed - other
 #'   missing information on input will use default values.
+#' @importFrom stats na.omit
 #' @export
 #' @examples
 #' t <- CFtime("days since 0001-01-01", "proleptic_gregorian")
@@ -802,10 +803,9 @@ parse_timestamps <- function(t, x) {
   out <- t$cal$parse(x)
   if (anyNA(out$year))
     warning("Some dates could not be parsed. Result contains `NA` values.")
-  if (length(unique(out$tz)) > 1)
+  if (length(unique(na.omit(out$tz))) > 1)
     warning("Timestamps have multiple time zones. Some or all may be different from the calendar time zone.")
   else if (out$tz[1] != t$cal$timezone)
     warning("Timestamps have time zone that is different from the calendar.")
   out
 }
-

@@ -39,6 +39,8 @@ Collate:
     'CFCalendarJulian.R'
     'CFCalendarProleptic.R'
     'CFCalendarStandard.R'
+    'CFCalendarTAI.R'
+    'CFCalendarUTC.R'
     'CFtime-package.R'
     'CFtime.R'
     'deprecated.R'

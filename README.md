@@ -80,10 +80,11 @@ All defined calendars of the CF Metadata Conventions are supported:
   all over the world. It is based on International Atomic Time but it
   uses occasional leap seconds to remain synchronous with Earth’s
   rotation around the Sun; at the end of 2024 it is 37 seconds behind
-  `tai`. It uses the Gregorian calendar with a start at 1958-01-01
+  `tai`. It uses the Gregorian calendar with a start at 1972-01-01
   00:00:00; earlier timestamps are not allowed. Future timestamps are
   also not allowed because the insertion of leap seconds is
-  unpredictable. Most computer clocks use UTC.
+  unpredictable. Most computer clocks use UTC but calculations of
+  periods do not consider leap seconds.
 - `julian`: The `julian` calendar has a leap year every four years,
   including centennial years. Otherwise it is the same as the `standard`
   calendar.
@@ -176,7 +177,7 @@ attributes `units` and `calendar` are required by the CF Metadata
 Conventions. Should this fail, then your data set does not have a
 temporal dimension or it is not compliant (note that the name “time”
 could be different, a temporal dimension is defined by the “units”
-attribute only). You could still use this package if the required
+attribute alone). You could still use this package if the required
 information is contained in your file but using a different dimension
 name or different attribute names.
 
@@ -247,7 +248,7 @@ This package has been tested with the following data sets:
 - CMIP5
 - CORDEX
 - CMIP6
-- ROMS
+- ROMS (partial support)
 
 The package also operates on geographical and/or temporal subsets of
 data sets so long as the subsetted data complies with the CF Metadata

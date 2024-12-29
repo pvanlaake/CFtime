@@ -20,16 +20,6 @@ calendar is compatible with POSIXt on most OSes.
 \section{Super class}{
 \code{\link[CFtime:CFCalendar]{CFtime::CFCalendar}} -> \code{CFCalendarStandard}
 }
-\section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{gap}}{The integer offset for 1582-10-15 00:00:00, when the Gregorian
-calendar started, or 1582-10-05, when the gap between Julian and
-Gregorian calendars started. The former is set when the calendar origin
-is more recent, the latter when the origin is prior to the gap.}
-}
-\if{html}{\out{</div>}}
-}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{

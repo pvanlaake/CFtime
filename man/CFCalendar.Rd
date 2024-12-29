@@ -18,6 +18,8 @@ The following calendars are supported:
 \item \code{\link[=CFCalendarStandard]{gregorian\\standard}}, the international standard calendar for civil use.
 \item \code{\link[=CFCalendarProleptic]{proleptic_gregorian}}, the standard calendar but extending before 1582-10-15
 when the Gregorian calendar was adopted.
+\item \code{\link[=CFCalendarTAI]{tai}}, International Atomic Time clock with dates expressed using the Gregorian calendar.
+\item \code{\link[=CFCalendarUTC]{utc}}, Coordinated Universal Time clock with dates expressed using the Gregorian calendar.
 \item \code{\link[=CFCalendarJulian]{julian}}, every fourth year is a leap year (so including the years 1700, 1800, 1900, 2100, etc).
 \item \code{\link[=CFCalendar365]{noleap\\365_day}}, all years have 365 days.
 \item \code{\link[=CFCalendar366]{all_leap\\366_day}}, all years have 366 days.

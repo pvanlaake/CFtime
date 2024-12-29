@@ -27,15 +27,15 @@ CFCalendarStandard <- R6::R6Class("CFCalendarStandard",
     # origin of the Julian part of this calendar, if present. Used to convert
     # offsets from the Julian calendar origin to the day before 0001-01-01
     #for arithmetic calculations.
-    rd_juli = 0L
+    rd_juli = 0L,
+
+    # The integer offset for 1582-10-15 00:00:00, when the Gregorian
+    # calendar started, or 1582-10-05, when the gap between Julian and
+    # Gregorian calendars started. The former is set when the calendar origin
+    # is more recent, the latter when the origin is prior to the gap.
+    gap = -1L
   ),
   public = list(
-    #' @field gap The integer offset for 1582-10-15 00:00:00, when the Gregorian
-    #' calendar started, or 1582-10-05, when the gap between Julian and
-    #' Gregorian calendars started. The former is set when the calendar origin
-    #' is more recent, the latter when the origin is prior to the gap.
-    gap = -1L,
-
     #' @description Create a new CF calendar.
     #' @param nm The name of the calendar. This must be "standard" or
     #'   "gregorian" (deprecated).
@@ -47,7 +47,7 @@ CFCalendarStandard <- R6::R6Class("CFCalendarStandard",
       private$rd_greg <- .gregorian_date2offset(self$origin, self$leap_year(self$origin$year))
       private$rd_juli <- .julian_date2offset(self$origin, self$leap_year(self$origin$year))
 
-      self$gap <- if (self$is_gregorian_date(self$origin))
+      private$gap <- if (self$is_gregorian_date(self$origin))
         .gregorian_date2offset(data.frame(year = 1582, month = 10, day = 15), self$leap_year(self$origin$year)) - private$rd_greg
       else
         .julian_date2offset(data.frame(year = 1582, month = 10, day = 5), self$leap_year(self$origin$year)) - private$rd_juli
@@ -95,7 +95,7 @@ CFCalendarStandard <- R6::R6Class("CFCalendarStandard",
     #' @param offsets The offsets from the CFtime instance.
     #' @return `TRUE`.
     POSIX_compatible = function(offsets) {
-      all(offsets >= self$gap)
+      all(offsets >= private$gap)
     },
 
     #' @description Determine the number of days in the month of the calendar.
@@ -135,7 +135,7 @@ CFCalendarStandard <- R6::R6Class("CFCalendarStandard",
       ifelse(self$is_gregorian_date(x),
              .gregorian_date2offset(x, leap),
              .julian_date2offset(x, leap)
-      ) - if (self$gap > 0L) private$rd_juli else private$rd_greg
+      ) - if (private$gap > 0L) private$rd_juli else private$rd_greg
     },
 
     #' @description Calculate date parts from day differences from the origin. This
@@ -146,12 +146,12 @@ CFCalendarStandard <- R6::R6Class("CFCalendarStandard",
     #' @return A `data.frame` with columns 'year', 'month' and 'day' and as many
     #'   rows as the length of vector `x`.
     offset2date = function(x) {
-      rd <- if (self$gap > 0L) private$rd_juli else private$rd_greg
+      rd <- if (private$gap > 0L) private$rd_juli else private$rd_greg
       len <- length(x)
-      gndx <- x >= self$gap & !is.na(x)
+      gndx <- x >= private$gap & !is.na(x)
       if (any(gndx)) greg <- .gregorian_offset2date(x[gndx] + rd)
       else greg <- data.frame()
-      jndx <- x < self$gap & !is.na(x)
+      jndx <- x < private$gap & !is.na(x)
       if (any(jndx)) juli <- .julian_offset2date(x[jndx] + rd)
       else juli <- data.frame()
       yr <- mon <- day <- rep(NA_integer_, len)

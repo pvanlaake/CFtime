@@ -60,6 +60,8 @@ CFTime <- R6::R6Class("CFTime",
         "standard" = CFCalendarStandard$new(calendar, definition),
         "gregorian" = CFCalendarStandard$new(calendar, definition),
         "proleptic_gregorian" = CFCalendarProleptic$new(calendar, definition),
+        "tai" = CFCalendarTAI$new(calendar, definition),
+        "utc" = CFCalendarUTC$new(calendar, definition),
         "julian" = CFCalendarJulian$new(calendar, definition),
         "360_day" = CFCalendar360$new(calendar, definition),
         "365_day" = CFCalendar365$new(calendar, definition),
@@ -80,7 +82,7 @@ CFTime <- R6::R6Class("CFTime",
         } else {
           self$resolution <- NA_real_
         }
-        self$offsets <- offsets
+        self$offsets <- as.numeric(offsets)
       } else if (is.character(offsets)) {
         time <- self$cal$parse(offsets)
         if (anyNA(time$year)) stop("Argument `offsets` contains invalid timestamps", call. = FALSE)

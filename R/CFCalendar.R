@@ -16,6 +16,8 @@ NULL
 #'   \item [`gregorian\standard`][CFCalendarStandard], the international standard calendar for civil use.
 #'   \item [`proleptic_gregorian`][CFCalendarProleptic], the standard calendar but extending before 1582-10-15
 #'   when the Gregorian calendar was adopted.
+#'   \item [`tai`][CFCalendarTAI], International Atomic Time clock with dates expressed using the Gregorian calendar.
+#'   \item [`utc`][CFCalendarUTC], Coordinated Universal Time clock with dates expressed using the Gregorian calendar.
 #'   \item [`julian`][CFCalendarJulian], every fourth year is a leap year (so including the years 1700, 1800, 1900, 2100, etc).
 #'   \item [`noleap\365_day`][CFCalendar365], all years have 365 days.
 #'   \item [`all_leap\366_day`][CFCalendar366], all years have 366 days.
@@ -248,6 +250,7 @@ CFCalendar <- R6::R6Class("CFCalendar",
       cap$tz <- paste0(ifelse(cap$tz_sign == "", "+", cap$tz_sign),
                        ifelse(cap$tz_hour == "", "00", cap$tz_hour),
                        ifelse(cap$tz_min == "", "00", cap$tz_min))
+      cap$tz <- ifelse(cap$tz =="NANANA", "+0000", cap$tz)
       cap$tz_sign <- cap$tz_hour <- cap$tz_min <- NULL
 
       # Set optional date parts to 1 if not specified
@@ -256,7 +259,8 @@ CFCalendar <- R6::R6Class("CFCalendar",
 
       # Check date validity
       invalid <- !self$valid_days(cap)
-      if (sum(invalid, na.rm = TRUE) > 0L) cap[invalid,] <- rep(NA, 7)
+      invalid[is.na(invalid)] <- TRUE
+      if (sum(invalid) > 0L) cap[invalid,] <- rep(NA, 7)
 
       # Calculate offsets
       if (nrow(self$origin) == 0L) {        # if there's no origin yet, don't calculate offsets
@@ -264,8 +268,8 @@ CFCalendar <- R6::R6Class("CFCalendar",
       } else {
         days <- self$date2offset(cap)
         cap$offset <- round((days * 86400 + (cap$hour - self$origin$hour[1]) * 3600 +
-                               (cap$minute - self$origin$minute[1]) * 60 +
-                               cap$second - self$origin$second) / CFt$units$seconds[self$unit], 3)
+                             (cap$minute - self$origin$minute[1]) * 60 +
+                             cap$second - self$origin$second) / CFt$units$seconds[self$unit], 6)
       }
       cap
     },
@@ -282,14 +286,15 @@ CFCalendar <- R6::R6Class("CFCalendar",
     #'   many rows as there are offsets.
     offsets2time = function(offsets) {
       len <- length(offsets)
-      if(len == 0L) return(data.frame(year = integer(), month = integer(), day = integer(),
-                                      hour = integer(), minute = integer(), second = numeric(),
-                                      tz = character(), offset = numeric()))
+      if(len == 0L)
+        return(data.frame(year = integer(), month = integer(), day = integer(),
+                          hour = integer(), minute = integer(), second = numeric(),
+                          tz = character(), offset = numeric()))
 
       if (self$unit <= 4L) { # Days, hours, minutes, seconds
         # First add time: convert to seconds first, then recompute time parts
         secs <- offsets * CFt$units$seconds[self$unit] +
-                self$origin$hour * 3600L + self$origin$minute * 60L + self$origin$second
+                self$origin$hour * 3600 + self$origin$minute * 60 + self$origin$second
         days <- secs %/% 86400L            # overflow days
         secs <- round(secs %% 86400L, 3L)  # drop overflow days from time, round down to milli-seconds to avoid errors
 
