@@ -1,0 +1,123 @@
+---
+title: "Conformance with the CF Metadata Conventions"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Conformance with the CF Metadata Conventions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+`CFtime` is based on version 1.12 of the CF Metadata Conventions. The text for
+the *time coordinate* in the conventions may be consulted [here](https://cfconventions.org/Data/cf-conventions/cf-conventions-1.12/cf-conventions.html#time-coordinate).
+
+The *time coordinate* is one of four coordinate types that receive "special
+treatment" in the conventions. The other three are longitude, latitude and the
+vertical. If you require convention-compliant support for any of these three
+other coordinate types, please consider using package [`ncdfCF`](https://cran.r-project.org/package=ncdfCF) which supports all three
+coordinate types and links with `CFtime` for support of the time coordinate.
+
+This document sets out how the `CFtime` package conforms to the CF Metadata
+Conventions, by section of the conventions. This information is mostly useful
+for developers and expert users.
+
+Please note that there are many netCDF files out there that are not claiming 
+adherence to the CF Metadata Conventions but whose time coordinate can still be 
+successfully handled by `CFtime`: the `netCDF` library itself provides the basic
+plumbing.
+
+## 4.4. Time Coordinate
+
+A `CFTime` object is constructed from information that is contained in the 
+`units` and `calendar` attributes for a time coordinate read out of a netCDF 
+file.
+
+This package is agnostic to the orientation of the axes in any data variable
+that references the time coordinate. Consequently, the `standard_name` and 
+`axis` attributes are not considered by this package (but the `ncdfCF` package
+handles both). Identification of a time coordinate is done by the `units`
+attribute, alone.
+
+## 4.4.1. Time Coordinate Units
+
+The `CFtime` package fully supports the units `"second"`, `"minute"`, `"hour"` 
+and `"day"`, including abbreviated and/or plural forms. Unit `"second"` is the
+SI second, a `"minute"` equals 60 seconds, an `"hour"` equals 3,600 seconds,
+and a `"day"` equals 86,400 seconds. This is exactly as expected, but refer to
+the `utc` calendar, below, for peculiarities of that calendar.
+
+The `units` `"month"` and `"year"` are accepted on input but not using their
+definition in UDUNITS. Instead, `"year"` is a calendar year, so either 365 or
+366 days depending on its value and the calendar. A `"month"` is similarly a
+calendar month. Use of either of these time units is discouraged by the CF
+Metadata Conventions.
+
+Other UDUNITS time units are not supported by this package.
+
+All variants of the glue word `"since"` are accepted, being `"after"`, `"from"`,
+`"ref"` and `"per"`.
+
+The *"reference datetime string"* should be formatted using the UDUNITS broken
+timestamp format or following [ISO8601](https://en.wikipedia.org/wiki/ISO_8601)
+rules, but noting that datetimes valid in specific calendars other than
+Gregorian (such as `2023-02-30` in the `360_day` calendar) are acceptable as
+well. The UDUNITS "packed" format is not supported.
+
+Timezone information can only use `00`, `15`, `30` and `45` to indicate minutes;
+other minute offsets have never been used anywhere. A time zone value of `"UTC"`
+is accepted, as an extension to the conventions.The `tai` and `utc` calendars 
+can carry no time zone indication as that does not exist for either of these 
+calendars.
+
+## 4.4.2. Calendar
+
+If a `calendar` attribute is not given, `"standard"` is assumed.
+
+* `standard` (or the deprecated `gregorian`): Fully conformant, but leap seconds
+are never considered (see below).
+* `proleptic_gregorian`: Fully conformant, but leap seconds are never considered
+(see below).
+* `julian`: Fully conformant, but leap seconds do not exist in this calendar and
+are thus never considered.
+* `utc`: Fully conformant, but the start is `1972-01-01` when leap seconds were
+introduced. Leap seconds are always accounted so when a leap second is included,
+UTC time progresses like `23:59:58 ... 23:59:59 ... 23:59:60 ... 00:00:00 ... 00:00:01`.
+This also extends to minutes `23:59:00 ... 23:59:60 ... 00:00:59 ... 00:01:59`, 
+always adding 60 seconds. Likewise for `hours` and `days`. `units` `"year"` and 
+`"month"` are not allowed, and neither is any time zone indication.
+* `tai`: Fully conformant. `units` `"year"` and `"month"` are not allowed, and 
+neither is any time zone indication.
+* `no_leap` / `365_day`: Fully conformant.
+* `all_leap` / `366_day`: Fully conformant.
+* `360_day`: Fully conformant.
+* `none`: Not implemented.
+
+## 4.4.3. Leap seconds
+
+The `utc` calendar fully supports leap seconds.
+
+The `julian` calendar has no concept of leap seconds so these are never
+possible or considered. Using a leap second in a `julian` calendar is an error.
+
+In the `standard` and `proleptic_gregorian` calendars only the variant without
+leap seconds is considered. The `units_metadata` attribute is not considered, so
+assumed to be `"leap seconds: unknown"`. The assumption here is that if second
+accuracy for a data producer is essential, then the entire tool chain from
+observation equipment, to processing, to file recording will have to be of
+known characteristics with regards to UTC time and leap seconds and thus the
+`utc` calendar would be used, rather than `standard` or `proleptic_gregorian`
+with a caveat communicated through the `units_metdata` attribute.
+
+## 4.4.4. Time Coordinates with no Annual Cycle
+
+Not implemented.
+
+## 4.4.5. Explicitly Defined Calendar
+
+Not implemented.
