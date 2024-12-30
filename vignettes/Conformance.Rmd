@@ -36,7 +36,10 @@ plumbing.
 
 A `CFTime` object is constructed from information that is contained in the 
 `units` and `calendar` attributes for a time coordinate read out of a netCDF 
-file.
+file. The package does not actually access the netCDF file, it only uses the
+information that was read out of the file by e.g. `ncdfCF`. Consequently, the
+`CFtime` package can also construct a `CFTime` object from suitable character
+strings.
 
 This package is agnostic to the orientation of the axes in any data variable
 that references the time coordinate. Consequently, the `standard_name` and 
@@ -53,8 +56,8 @@ and a `"day"` equals 86,400 seconds. This is exactly as expected, but refer to
 the `utc` calendar, below, for peculiarities of that calendar.
 
 The `units` `"month"` and `"year"` are accepted on input but not using their
-definition in UDUNITS. Instead, `"year"` is a calendar year, so either 365 or
-366 days depending on its value and the calendar. A `"month"` is similarly a
+definition in UDUNITS. Instead, `"year"` is a calendar year, so either 360, 365 
+or 366 days depending on its value and the calendar. A `"month"` is similarly a
 calendar month. Use of either of these time units is discouraged by the CF
 Metadata Conventions.
 
@@ -71,27 +74,36 @@ well. The UDUNITS "packed" format is not supported.
 
 Timezone information can only use `00`, `15`, `30` and `45` to indicate minutes;
 other minute offsets have never been used anywhere. A time zone value of `"UTC"`
-is accepted, as an extension to the conventions.The `tai` and `utc` calendars 
-can carry no time zone indication as that does not exist for either of these 
-calendars.
+is accepted, as an extension to the conventions. Even though the conventions 
+don't indicate it, the `tai` and `utc` calendars can carry no time zone 
+indication as that does not exist for either of these calendars.
 
 ## 4.4.2. Calendar
 
-If a `calendar` attribute is not given, `"standard"` is assumed.
+If a `calendar` attribute is not given, `"standard"` is assumed, being the
+default calendar as per the conventions.
 
 * `standard` (or the deprecated `gregorian`): Fully conformant, but leap seconds
-are never considered (see below).
+are never considered (see below). The combination of a *reference datetime* and
+other *datetimes* spanning the gap between 1582-10-05 and 1582-10-15, in either 
+direction, is supported.
 * `proleptic_gregorian`: Fully conformant, but leap seconds are never considered
 (see below).
-* `julian`: Fully conformant, but leap seconds do not exist in this calendar and
-are thus never considered.
+* `julian`: Fully conformant, but, despite the suggestion in the conventions,
+leap seconds do not exist in this calendar and are thus never considered.
 * `utc`: Fully conformant, but the start is `1972-01-01` when leap seconds were
-introduced. Leap seconds are always accounted so when a leap second is included,
-UTC time progresses like `23:59:58 ... 23:59:59 ... 23:59:60 ... 00:00:00 ... 00:00:01`.
+introduced. From its introduction in 1962 until the end of 1971 the UTC clock
+used a "second" that was slightly faster than the SI second, as well as periodic
+jumps of 50 to 300 ms to synchronize the clock with the Earth's rotation around
+the Sun. At the end of 1971 the difference between TAI and UTC was set to 
+exactly 10 seconds (SI) and 27 leap seconds have been added since (for a total
+difference of 37 seconds, but **not 37 leap seconds** as the conventions state).
+Leap seconds are always accounted so when a leap second is included, UTC time 
+progresses like `23:59:58 ... 23:59:59 ... 23:59:60 ... 00:00:00 ... 00:00:01`.
 This also extends to minutes `23:59:00 ... 23:59:60 ... 00:00:59 ... 00:01:59`, 
-always adding 60 seconds. Likewise for `hours` and `days`. `units` `"year"` and 
+always adding 60 seconds. Likewise for `hours` and `days`. Units `"year"` and 
 `"month"` are not allowed, and neither is any time zone indication.
-* `tai`: Fully conformant. `units` `"year"` and `"month"` are not allowed, and 
+* `tai`: Fully conformant. Units `"year"` and `"month"` are not allowed, and 
 neither is any time zone indication.
 * `no_leap` / `365_day`: Fully conformant.
 * `all_leap` / `366_day`: Fully conformant.
