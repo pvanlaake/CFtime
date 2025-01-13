@@ -11,6 +11,8 @@ difference in case). S4 class CFdatum has been replaced by hierarchy of
 R6 CFCalendar classes, with various non-exported functions converted into
 methods of CFCalendar. The code is now much cleaner and easier to extend, such
 as with the two new calendars `utc` and `tai`.
+* ISO8601 timestamps can use a comma "," as decimal mark to separate a 
+fractional part from a time element, in addition to the dot ".".
 * Do not drop degenerate dimension on bounds when only 1 offset is included in
 subsetting.
 

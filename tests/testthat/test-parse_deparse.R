@@ -18,7 +18,7 @@ test_that("timestamp string parsing to offsets and deparsing of offsets to times
 })
 
 test_that("testing calendars with leap years", {
-  # This test tests that for standard, proleptic_gregorian, julian, tai and utc
+  # This test tests that for standard, proleptic_gregorian, julian and tai
   # calendars in leap years before/on/after the leap day function as needed.
   # Also testing year 2000 and 2100 offsets.
   for (c in c("standard", "proleptic_gregorian", "tai", "julian")) {

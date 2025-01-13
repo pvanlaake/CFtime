@@ -90,40 +90,7 @@ CFCalendarJulian <- R6::R6Class("CFCalendarJulian",
   )
 )
 
-# Internal function to calculate dates from offsets. This function is here
-# because it is used by CFCalendarStandard. See further description in the
-# methods.
-.xxjulian_date2offset <- function(x, origin) {
-  # days diff of 1st of month to 1 January in normal year
-  yd0 <- c(0L, 31L, 59L, 90L, 120L, 151L, 181L, 212L, 243L, 273L, 304L, 334L)
-
-  origin_year <- origin$year
-  days_into_year <- yd0[origin$month] + origin$day
-  if (origin$month <= 2L && origin_year %% 4L == 0L)
-    days_into_year <- days_into_year - 1L
-
-  mapply(function(y, m, d) {
-    if (is.na(y)) return(NA_integer_)
-
-    # Adjust for where the leap day falls
-    if (y >= origin_year)
-      days <- if (m <= 2L && y %% 4L == 0L) -1L else 0L
-    else
-      days <- if (m > 2L && y %% 4L == 0L) 0L else -1L
-
-    repeat {
-      if (y > origin_year) {
-        days <- days + 365L + as.integer(y %% 4L == 0L)
-        y <- y - 1L
-      } else if (y < origin_year) {
-        days <- days - 365L - as.integer(y %% 4L == 0L)
-        y <- y + 1L
-      } else break
-    }
-    days + yd0[m] + d - days_into_year
-  }, x$year, x$month, x$day)
-}
-
+# ==============================================================================
 # The below functions use arithmetic offset calculation from date parts and
 # vice-versa. These functions are R-ified from pseudo-functions in Reingold &
 # Derschowitz, "Calendrical Calculations", 2018.
