@@ -17,15 +17,19 @@ knitr::opts_chunk$set(
 `CFtime` is based on version 1.12 of the CF Metadata Conventions. The text for
 the *time coordinate* in the conventions may be consulted [here](https://cfconventions.org/Data/cf-conventions/cf-conventions-1.12/cf-conventions.html#time-coordinate).
 
-The *time coordinate* is one of four coordinate types that receive "special
+> The *time coordinate* is one of four coordinate types that receive "special
 treatment" in the conventions. The other three are longitude, latitude and the
 vertical. If you require convention-compliant support for any of these three
-other coordinate types, please consider using package [`ncdfCF`](https://cran.r-project.org/package=ncdfCF) which supports all three
-coordinate types and links with `CFtime` for support of the time coordinate.
+other coordinate types, please consider using package [`ncdfCF`](https://cran.r-project.org/package=ncdfCF) 
+which supports all three coordinate types and links with `CFtime` for support of 
+the time coordinate.
 
 This document sets out how the `CFtime` package conforms to the CF Metadata
 Conventions, by section of the conventions. This information is mostly useful
 for developers and expert users.
+
+If you have issues reading a netCDF file that is due to conformance of package
+`CFtime` with the CF Metadata Conventions, please [open an issue on GitHub](https://github.com/pvanlaake/CFtime/issues).
 
 Please note that there are many netCDF files out there that are not claiming 
 adherence to the CF Metadata Conventions but whose time coordinate can still be 
@@ -91,15 +95,9 @@ direction, is supported.
 (see below).
 * `julian`: Fully conformant, but, despite the suggestion in the conventions,
 leap seconds do not exist in this calendar and are thus never considered.
-* `utc`: Fully conformant, but the start is `1972-01-01` when leap seconds were
-introduced. From its introduction in 1962 until the end of 1971 the UTC clock
-used a "second" that was slightly faster than the SI second, as well as periodic
-jumps of 50 to 300 ms to synchronize the clock with the Earth's rotation around
-the Sun. At the end of 1971 the difference between TAI and UTC was set to 
-exactly 10 seconds (SI) and 27 leap seconds have been added since (for a total
-difference of 37 seconds, but **not 37 leap seconds** as the conventions state).
-Leap seconds are always accounted so when a leap second is included, UTC time 
-progresses like `23:59:58 ... 23:59:59 ... 23:59:60 ... 00:00:00 ... 00:00:01`.
+* `utc`: Fully conformant. Leap seconds are always accounted so when a leap 
+second is included, UTC time progresses like 
+`23:59:58 ... 23:59:59 ... 23:59:60 ... 00:00:00 ... 00:00:01`.
 This also extends to minutes `23:59:00 ... 23:59:60 ... 00:00:59 ... 00:01:59`, 
 always adding 60 seconds. Likewise for `hours` and `days`. Units `"year"` and 
 `"month"` are not allowed, and neither is any time zone indication.
