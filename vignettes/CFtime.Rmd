@@ -122,7 +122,7 @@ should take care to avoid entering times with DST.
 
 The time zone offset from UTC is stored in the `CFTime` instance and can be 
 retrieved with the `timezone()` function. If a vector of character timestamps with time
-zone information is parsed with the `CFparse()` function and the time zones are 
+zone information is parsed with the `parse_timestamps()` function and the time zones are 
 found to be different from the `CFTime` time zone, a warning message is generated
 but the timestamp is interpreted as being in the `CFTime` time zone. No correction 
 of timestamp to `CFTime` time zone is performed.
