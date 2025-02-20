@@ -112,7 +112,8 @@ test_that("test all variants of creating a CFtime object and useful functions", 
   expect_true(length(which(slice(t, c("2023-01-01 04:00", "2023-01-01 00:00")))) == 4) # extremes in reverse order
   expect_true(slice(t, c("2022-01-01", "2023-01-02"))[1]) # early extreme before timeseries
   expect_true(all(!slice(t, c("2023-02-01", "2023-03-01")))) # both extremes outside time series
-  expect_error(slice(t, c("2023-01-01 00:00", "2023-01-01 04:00", "2023-01-02 00:00"))) # 3 extremes
+  expect_equal(sum(slice(t, c("2023-01-01 00:00", "2023-01-01 04:00", "2023-01-02 00:00"))), 24)
+  expect_equal(sum(slice(t, c("2023-01-01 00:00", "2023-01-01 04:00", "2023-01-02 00:00"), TRUE)), 25)
 })
 
 test_that("Working with packages and files", {

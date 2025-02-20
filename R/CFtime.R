@@ -36,7 +36,8 @@ CFTime <- R6::R6Class("CFTime",
     #'   bounds are regular with respect to the regularly spaced offsets (e.g.
     #'   successive bounds are contiguous and at mid-points between the
     #'   offsets); otherwise a `matrix` with columns for `offsets` and low
-    #'   values in the first row, high values in the second row.
+    #'   values in the first row, high values in the second row. Use
+    #'   `get_bounds()` to get bounds values when they are regularly spaced.
     bounds = FALSE,
 
     #' @description Create a new instance of this class.
@@ -428,49 +429,48 @@ CFTime <- R6::R6Class("CFTime",
       out
     },
 
-    #' @description Given two extreme character timestamps, return a logical
+    #' @description Given a vector of character timestamps, return a logical
     #'   vector of a length equal to the number of time steps in the time series
     #'   with values `TRUE` for those time steps that fall between the two
-    #'   extreme values, `FALSE` otherwise.
+    #'   extreme values of the vector values, `FALSE` otherwise.
     #'
-    #' **NOTE** Giving crap as the earlier timestamp will set that value to 0. So
-    #'   invalid input will still generate a result. To be addressed. Crap in
-    #'   later timestamp is not tolerated.
-    #'
-    #' @param extremes Character vector of two timestamps that represent the
-    #'   extremes of the time period of interest.
+    #' @param extremes Character vector of timestamps that represent the
+    #'   time period of interest. The extreme values are selected. Badly
+    #'   formatted timestamps are silently dropped.
     #' @param closed Is the right side closed, i.e. included in the result?
-    #'   Default is `FALSE`.
+    #'   Default is `FALSE`. A specification of `c("2022-01-01", "2023-01-01)`
+    #'   will thus include all time steps that fall in the year 2022 when
+    #'   `closed = FALSE` but include `2023-01-01` if that exact value is
+    #'   present in the time series.
     #' @return A logical vector with a length equal to the number of time steps
     #'   in `self` with values `TRUE` for those time steps that fall between the
-    #'   two extreme values, `FALSE` otherwise. The earlier timestamp is
-    #'   included, the later timestamp is excluded. A specification of
-    #'   `c("2022-01-01", "2023-01-01)` will thus include all time steps that
-    #'   fall in the year 2022.
+    #'   extreme values, `FALSE` otherwise.
     #'
     #'   An attribute 'CFTime' will have the same definition as `self` but with
     #'   offsets corresponding to the time steps falling between the two
     #'   extremes. If there are no values between the extremes, the attribute is
     #'   `NULL`.
     slice = function(extremes, closed = FALSE) {
-      if (!is.character(extremes) || length(extremes) != 2L)
-        stop("Second argument must be a character vector of two timestamps", call. = FALSE)
-      if (extremes[2L] < extremes[1L]) extremes <- c(extremes[2L], extremes[1L])
+      if (!is.character(extremes) || length(extremes) < 1L)
+        stop("Second argument must be a character vector of at least one timestamp.", call. = FALSE)
 
-      ext <- self$cal$parse(extremes)$offset
-      if (is.na(ext[1L])) ext[1L] <- 0
       off <- self$offsets
-      if (ext[1L] > max(off) || is.na(ext[2L])) {
+      roff <- range(off)
+      ext <- range(self$cal$parse(extremes)$offset, na.rm = TRUE)
+      if (all(is.na(ext)) || ext[1L] > roff[2L] || ext[2L] < roff[1L])
         out <- rep(FALSE, length(off))
-        attr(out, "CFTime") <- NULL
-      } else {
+      else {
+        if (ext[1L] == ext[2L]) closed <- TRUE
         out <- if (closed) off >= ext[1L] & off <= ext[2L]
                else off >= ext[1L] & off < ext[2L]
-        t <- CFTime$new(self$cal$definition, self$cal$name, off[out])
-        bnds <- self$get_bounds()
-        if (!is.null(bnds))
-          t$set_bounds(bnds[, out])
-        attr(out, "CFTime") <- t
+        if (any(out)) {
+          t <- CFTime$new(self$cal$definition, self$cal$name, off[out])
+          bnds <- self$get_bounds()
+          if (!is.null(bnds))
+            t$set_bounds(bnds[, out])
+          attr(out, "CFTime") <- t
+        } else
+          out <- rep(FALSE, length(off))
       }
       out
     },

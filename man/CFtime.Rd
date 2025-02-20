@@ -38,7 +38,8 @@ logical value \code{FALSE}. If set, it is the logical value \code{TRUE} if the
 bounds are regular with respect to the regularly spaced offsets (e.g.
 successive bounds are contiguous and at mid-points between the
 offsets); otherwise a \code{matrix} with columns for \code{offsets} and low
-values in the first row, high values in the second row.}
+values in the first row, high values in the second row. Use
+\code{get_bounds()} to get bounds values when they are regularly spaced.}
 }
 \if{html}{\out{</div>}}
 }
@@ -370,14 +371,10 @@ all but the most non-conformal exotic arrangements.
 \if{html}{\out{<a id="method-CFTime-slice"></a>}}
 \if{latex}{\out{\hypertarget{method-CFTime-slice}{}}}
 \subsection{Method \code{slice()}}{
-Given two extreme character timestamps, return a logical
+Given a vector of character timestamps, return a logical
 vector of a length equal to the number of time steps in the time series
 with values \code{TRUE} for those time steps that fall between the two
-extreme values, \code{FALSE} otherwise.
-
-\strong{NOTE} Giving crap as the earlier timestamp will set that value to 0. So
-invalid input will still generate a result. To be addressed. Crap in
-later timestamp is not tolerated.
+extreme values of the vector values, \code{FALSE} otherwise.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{CFTime$slice(extremes, closed = FALSE)}\if{html}{\out{</div>}}
 }
@@ -385,21 +382,22 @@ later timestamp is not tolerated.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{extremes}}{Character vector of two timestamps that represent the
-extremes of the time period of interest.}
+\item{\code{extremes}}{Character vector of timestamps that represent the
+time period of interest. The extreme values are selected. Badly
+formatted timestamps are silently dropped.}
 
 \item{\code{closed}}{Is the right side closed, i.e. included in the result?
-Default is \code{FALSE}.}
+Default is \code{FALSE}. A specification of \verb{c("2022-01-01", "2023-01-01)}
+will thus include all time steps that fall in the year 2022 when
+\code{closed = FALSE} but include \code{2023-01-01} if that exact value is
+present in the time series.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
 A logical vector with a length equal to the number of time steps
 in \code{self} with values \code{TRUE} for those time steps that fall between the
-two extreme values, \code{FALSE} otherwise. The earlier timestamp is
-included, the later timestamp is excluded. A specification of
-\verb{c("2022-01-01", "2023-01-01)} will thus include all time steps that
-fall in the year 2022.
+extreme values, \code{FALSE} otherwise.
 
 An attribute 'CFTime' will have the same definition as \code{self} but with
 offsets corresponding to the time steps falling between the two
