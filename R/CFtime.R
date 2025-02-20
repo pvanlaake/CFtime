@@ -110,16 +110,17 @@ CFTime <- R6::R6Class("CFTime",
         b  <- "  Bounds  : (not set)\n"
       } else {
         d <- self$range()
-        if (noff > 1L) {
-          el <- sprintf("  Elements: [%s .. %s] (average of %f %s between %d elements)\n",
-                        d[1L], d[2L], self$resolution, CFt$units$name[self$cal$unit], noff)
-        } else {
-          el <- paste("  Elements:", d[1L], "\n")
-        }
-        if (is.logical(self$bounds)) {
-          if (self$bounds) b <- "  Bounds  : regular and consecutive\n"
-          else b <- "  Bounds  : not set\n"
-        } else b <- "  Bounds  : irregular\n"
+        el <- if (noff > 1L) {
+          sprintf("  Elements: [%s .. %s] (average of %f %s between %d elements)\n",
+                 d[1L], d[2L], self$resolution, CFt$units$name[self$cal$unit], noff)
+        } else
+          paste("  Elements:", d[1L], "\n")
+
+        b <- if (is.logical(self$bounds)) {
+          if (self$bounds) "  Bounds  : regular and consecutive\n"
+          else "  Bounds  : not set\n"
+        } else if (noff == 1L) "  Bounds  : set\n"
+        else "  Bounds  : irregular\n"
       }
       cal <- capture.output(self$cal$print())
       cat(paste(cal, collapse = "\n"), "\nTime series:\n",  el, b, sep = "")
@@ -361,7 +362,7 @@ CFTime <- R6::R6Class("CFTime",
     #' @description Set the bounds of the `CFTime` instance.
     #'
     #' @param value The bounds to set, in units of the offsets. Either a matrix
-    #'   `(2, length(self$offsets))` or a logical.
+    #'   `(2, length(self$offsets))` or a single logical value.
     #' @return `self` invisibly.
     set_bounds = function(value) {
       if (isFALSE(value)) self$bounds <- FALSE
@@ -467,7 +468,7 @@ CFTime <- R6::R6Class("CFTime",
           t <- CFTime$new(self$cal$definition, self$cal$name, off[out])
           bnds <- self$get_bounds()
           if (!is.null(bnds))
-            t$set_bounds(bnds[, out])
+            t$set_bounds(bnds[, out, drop = FALSE])
           attr(out, "CFTime") <- t
         } else
           out <- rep(FALSE, length(off))

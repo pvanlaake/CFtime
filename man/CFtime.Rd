@@ -337,7 +337,7 @@ Set the bounds of the \code{CFTime} instance.
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{value}}{The bounds to set, in units of the offsets. Either a matrix
-\verb{(2, length(self$offsets))} or a logical.}
+\verb{(2, length(self$offsets))} or a single logical value.}
 }
 \if{html}{\out{</div>}}
 }
