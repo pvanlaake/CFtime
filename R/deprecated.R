@@ -20,6 +20,8 @@
 #'
 #' @returns See replacement functions.
 
+# nocov start
+
 #' @rdname deprecated_functions
 #' @export
 CFtimestamp <- function(t, format = NULL, asPOSIX = FALSE) {
@@ -54,3 +56,5 @@ CFparse <- function(t, x) {
   warning("Function `CFparse()` is deprecated. Use `parse_timestamps()` instead.")
   parse_timestamps(t, x)
 }
+
+# nocov end

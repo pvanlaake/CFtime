@@ -66,7 +66,7 @@ CFCalendarUTC <- R6::R6Class("CFCalendarUTC",
     initialize = function(nm, definition) {
       super$initialize(nm, definition)
       if (self$unit > 4L)
-        stop("Unit for an UTC calendar cannot be 'month' or 'year'.", call. = FALSE)
+        stop("Unit for an UTC calendar cannot be 'month' or 'year'.", call. = FALSE) # nocov
 
       # How many leap seconds have been applied to the origin?
       private$origin_leapsecs <- findInterval(self$origin$year * 10000L +
@@ -124,28 +124,34 @@ CFCalendarUTC <- R6::R6Class("CFCalendarUTC",
       # fractional part   (\.[0-9]*)?
       broken <- paste0(
         "^",                                    # anchor string at start
-        "([0-9]{1,4})",                         # year
+        "([+-]?[0-9]{1,4})",                    # year, with optional sign
         "-(0?[1-9]|1[012])",                    # month
         "(?:-(0?[1-9]|[12][0-9]|3[01]))?",      # day, optional
         "(?:[T ]",                              # if a time is following, separate with a single whitespace character or a "T"
         "([01]?[0-9]|2[0-3])",                  # hour
         ":([0-5]?[0-9])",                       # minute
-        "(?::(60|[0-5]?[0-9]))?",               # second, optional
+        "(?::([0-6]?[0-9]))?",                  # second, optional
         "(?:\\.([0-9]*))?",                     # optional fractional part of the smallest specified unit
         ")?",                                   # close optional time capture group
+        "(?:\\s",                               # if a time zone offset is following, separate with a single whitespace character
+        "([+-])?([01]?[0-9]|2[0-3])",           # tz hour, with optional sign
+        "(?::(00|15|30|45))?",                  # optional tz minute, only 4 possible values
+        ")?",                                   # close optional timezone capture group
         "$"                                     # anchor string at end
       )
 
       iso8601 <- paste0(
         "^",
-        "(19|20[012789][0-9])",
+        "([0-9]{4})",
         "-(0[1-9]|1[012])",
         "-(0[1-9]|[12][0-9]|3[01])?",
         "(?:",
         "[T ]([01][0-9]|2[0-3])",
         "(?::([0-5][0-9]))?",
-        "(?::(60|[0-5][0-9]))?",
-        "(?:\\.([0-9]*))?",
+        "(?::([0-6][0-9]))?",
+        "(?:[\\.,]([0-9]*))?",
+        ")?",
+        "(?:([Z+-])([01][0-9]|2[0-3])?(?::(00|15|30|45))?", ## FIXME: Z?, smaller number of captures
         ")?$"
       )
 
@@ -167,7 +173,8 @@ CFCalendarUTC <- R6::R6Class("CFCalendarUTC",
       # )
 
       parse <- data.frame(year = integer(), month = integer(), day = integer(),
-                          hour = integer(), minute = integer(), second = numeric(), frac = character())
+                          hour = integer(), minute = integer(), second = numeric(), frac = character(),
+                          tz_sign = character(), tz_hour = character(), tz_min = character())
 
       cap <- utils::strcapture(iso8601, d, parse)
       missing <- which(is.na(cap$year))
@@ -197,6 +204,7 @@ CFCalendarUTC <- R6::R6Class("CFCalendarUTC",
       cap$second[is.na(cap$second)] <- 0L
 
       # Set timezone to 00:00 to align cap data.frame with other calendars
+      cap$tz_sign <- cap$tz_hour <- cap$tz_min <- NULL
       cap$tz <- "+0000"
 
       # Set optional date parts to 1 if not specified

@@ -15,6 +15,11 @@ test_that("timestamp string parsing to offsets and deparsing of offsets to times
       expect_equal(tp, time)
     }
   }
+
+  # Add no offsets, test return value
+  t <- CFTime$new("days since 1992-08-20", "standard")
+  res <- t$cal$offsets2time()
+  expect_equal(nrow(res), 0L)
 })
 
 test_that("testing calendars with leap years", {
@@ -65,9 +70,13 @@ test_that("Disallow parsing of timestamps on month and year calendar units", {
 })
 
 test_that("Gregorian/Julian calendar gap in the standard calendar", {
-  t <- CFtime("days since 1582-10-01", "standard", 0:10)
+  t <- CFtime("days since 1582-10-01", "standard", 0:3)
   ts <- as_timestamp(t)
   expect_equal(ts[4], "1582-10-04")
+  expect_false(t$cal$POSIX_compatible(0:3))
+
+  t <- t + 4:10
+  ts <- as_timestamp(t)
   expect_equal(ts[5], "1582-10-15")
   expect_equal(ts[11], "1582-10-21")
   expect_equal(parse_timestamps(t, c("1582-09-30", ts))$offset, -1:10)
@@ -77,7 +86,8 @@ test_that("Gregorian/Julian calendar gap in the standard calendar", {
   expect_equal(ts[5], "1582-10-04")
   expect_equal(ts[6], "1582-10-15")
 
-  expect_true(t$cal$POSIX_compatible(0:100))
+  expect_false(t$POSIX_compatible())            # use t$offsets
+  expect_true(t$cal$POSIX_compatible(0:100))    # use supplied offsets
   expect_true(t$cal$POSIX_compatible(-5:100))
   expect_false(t$cal$POSIX_compatible(-6:100))
 })
@@ -108,4 +118,34 @@ test_that("Leap seconds in the utc calendar work fine", {
   t <- CFTime$new("days since 2016-12-30", "utc", 1:4)
   expect_equal(as_timestamp(t), c("2016-12-31 00:00:00", "2016-12-31 23:59:60",
                                   "2017-01-01 23:59:59", "2017-01-02 23:59:59"))
+})
+
+test_that("Fractional time parts and replace Z timezone with offset", {
+  offsets <- c("1980-05-06Z", "1980-05-06 12.32Z", "1980-05-06 12:54.38Z", "1980-05-06 12:54:12.32Z")
+  res <- matrix(c(0.00, 0.00, 0.80, 0.32,
+                  0.0000, 0.2000, 0.3800, 0.2053,
+                  0.0000, 0.3200, 0.9063, 0.9034,
+                  0.0000, 0.5133, 0.5378, 0.5376), ncol = 4)
+  for (c in c("standard", "proleptic_gregorian", "julian", "tai", "360_day", "365_day", "366_day", "noleap", "all_leap")) {
+    for (u in 1:4) {
+      def <- paste(CFt$units$name[u], "since 1978-08-20")
+      t <- CFtime(def, c)
+      p <- t$cal$parse(offsets)
+      expect_equal(round(p$offset %% 1, 4), res[,u])
+      expect_equal(p$tz, rep("+0000", 4))
+    }
+  }
+
+  offsets <- c("1980-05-06", "1980-05-06 12.32", "1980-05-06 12:54.38", "1980-05-06 12:54:12.32")
+  res <- matrix(c(0.00, 0.00, 0.80, 0.32,
+                  0.0333, 0.2333, 0.4133, 0.2387,
+                  0.0006, 0.3206, 0.9069, 0.9040,
+                  0.0000, 0.5134, 0.5378, 0.5377), ncol = 4)
+  for (u in 1:4) {
+    def <- paste(CFt$units$name[u], "since 1978-08-20")
+    t <- CFtime(def, "utc")
+    p <- t$cal$parse(offsets)
+    expect_equal(round(p$offset %% 1, 4), res[,u])
+  }
+
 })

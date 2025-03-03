@@ -16,7 +16,10 @@ test_that("Creating timestamps", {
 })
 
 test_that("Using format()", {
-  cf <- CFtime("days since 2001-01-01 18:10:30-04", "365_day", 0:364)
+  cf <- CFTime$new("days since 2001-01-01 18:10:30-04", "365_day")
+  expect_equal(length(cf$format()), 0L) # no offsets
+
+  cf <- cf + 0:364
 
   expect_equal(format(cf)[1], "2001-01-01 18:10:30")      # format parameter missing
   expect_error(format(cf, 123)) # format parameter must be character
@@ -28,7 +31,6 @@ test_that("Using format()", {
   #expect_equal(format(cf, "%b")[c(1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335)], month.abb)  # en_EN only
   #expect_equal(format(cf, "%B")[c(1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335)], month.name) #
   expect_equal(format(cf, "%Od-%e-%I%p")[5], "05- 5-06PM")
-
 })
 
 test_that("CFfactor testing", {
@@ -70,6 +72,7 @@ test_that("CFfactor testing", {
   # Era factors for all available periods
   eras <- list(first = 2001L, double = 2002L:2003L, final3 = 2018L:2020L, outside = 2022L)
   lvls <- c(1L, 4L, 4L, 12L, 36L, 365L)
+  expect_error(cf$factor("month", "bad"))
   for (p in 1:6) { # year, season, quarter, month, dekad, day
     f <- CFfactor(cf, CFt$factor_periods[p], eras)
     expect_type(f, "list")
@@ -243,6 +246,16 @@ test_that("CFfactor testing", {
   expect_true(all(x$double == 2L))
   expect_true(all(x$final3 == 3L))
   expect_true(all(unlist(CFfactor_coverage(cf366, f, "relative")) == 1L))
+
+  # Factors on data not aligned by year
+  t <- CFTime$new("days since 2020-07-01", "standard", 0:364)
+  first <- c("2020", "2020S3", "2020Q3", "2020-07", "2020D19", "2020-07-01")
+  last <-  c("2021", "2021S3", "2021Q2", "2021-06", "2021D18", "2021-06-30")
+  for (p in 1:6) {
+    f <- t$factor(CFt$factor_periods[p])
+    expect_equal(as.character(f)[1L], first[p])
+    expect_equal(as.character(f)[365L], last[p])
+  }
 
   # Incomplete coverage
   n <- 365L * 20L

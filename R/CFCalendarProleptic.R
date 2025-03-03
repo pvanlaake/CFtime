@@ -73,7 +73,7 @@ CFCalendarProleptic <- R6::R6Class("CFCalendarProleptic",
    #' @param offsets The offsets from the CFtime instance.
     #' @return `TRUE`.
     POSIX_compatible = function(offsets) {
-      TRUE
+      TRUE # nocov
     },
 
     #' @description Calculate difference in days between a `data.frame` of time

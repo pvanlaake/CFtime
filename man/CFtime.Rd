@@ -77,7 +77,7 @@ values in the first row, high values in the second row. Use
 \subsection{Method \code{new()}}{
 Create a new instance of this class.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{CFTime$new(definition, calendar, offsets)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{CFTime$new(definition, calendar, offsets = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{

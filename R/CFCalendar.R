@@ -85,8 +85,8 @@ CFCalendar <- R6::R6Class("CFCalendar",
     #' @return `NULL`. A warning will be generated to the effect that a
     #' descendant class should be used for this method.
     valid_days = function(ymd) {
-      warning("Use a descendant class from `CFCalendar` to call this method.", call. = FALSE)
-      NULL
+      warning("Use a descendant class from `CFCalendar` to call this method.", call. = FALSE) # nocov
+      NULL                                                                                    # nocov
     },
 
     #' @description Indicate if the time series described using this calendar
@@ -284,9 +284,8 @@ CFCalendar <- R6::R6Class("CFCalendar",
     #'   calendar.
     #' @return A `data.frame` with columns for the timestamp elements and as
     #'   many rows as there are offsets.
-    offsets2time = function(offsets) {
-      len <- length(offsets)
-      if(len == 0L)
+    offsets2time = function(offsets = NULL) {
+      if(is.null(offsets) || (len <- length(offsets)) == 0L)
         return(data.frame(year = integer(), month = integer(), day = integer(),
                           hour = integer(), minute = integer(), second = numeric(),
                           tz = character(), offset = numeric()))

@@ -248,7 +248,7 @@ origin of a \code{CFTime} object.
 This method may introduce inaccuracies where the calendar unit is
 "months" or "years", due to the ambiguous definition of these units.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{CFCalendar$offsets2time(offsets)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{CFCalendar$offsets2time(offsets = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{

@@ -64,7 +64,7 @@ calendar <- function(t) t$cal$name
 
 #' @describeIn properties The unit of the `CFTime` instance.
 #' @export
-unit <- function(t) CFt$units$name[t$cal$unit]
+unit <- function(t) t$unit
 
 #' @describeIn properties The origin of the `CFTime` instance in timestamp elements.
 #' @export
@@ -445,7 +445,7 @@ slab <- function(x, extremes, rightmost.closed = FALSE) {
 #' e1 + e2
 "+.CFTime" <- function(e1, e2) {
   if (inherits(e2, "CFTime")) {
-    if (!e1$cal$is_compatible(e2$cal)) stop("Calendars not compatible", call. = FALSE)
+    if (!e1$cal$is_compatible(e2$cal)) stop("Calendars not compatible", call. = FALSE) # nocov
     if (all(e1$cal$origin[1:6] == e2$cal$origin[1:6]))
       CFTime$new(e1$cal$definition, e1$cal$name, c(e1$offsets, e2$offsets))
     else {
@@ -456,7 +456,7 @@ slab <- function(x, extremes, rightmost.closed = FALSE) {
     CFTime$new(e1$cal$definition, e1$cal$name, c(e1$offsets, e2))
   } else {
     time <- e1$cal$parse(e2)
-    if (anyNA(time$year)) stop("Argument `e2` contains invalid timestamps", call. = FALSE)
+    if (anyNA(time$year)) stop("Argument `e2` contains invalid timestamps", call. = FALSE) # nocov
     CFTime$new(e1$cal$definition, e1$cal$name, c(e1$offsets, time$offset))
   }
 }
@@ -567,7 +567,7 @@ slab <- function(x, extremes, rightmost.closed = FALSE) {
 #' # Create three monthly factors for early, mid and late 21st century eras
 #' ep <- CFfactor(t, era = list(early = 2021:2040, mid = 2041:2060, late = 2061:2080))
 CFfactor <- function(t, period = "month", era = NULL) {
-  if (!(inherits(t, "CFTime"))) stop("First argument to CFfactor() must be an instance of the `CFTime` class", call. = FALSE)
+  if (!(inherits(t, "CFTime"))) stop("First argument to CFfactor() must be an instance of the `CFTime` class", call. = FALSE) # nocov
   t$factor(period, era)
 }
 
@@ -641,7 +641,7 @@ CFfactor_units <- function(t, f) {
 #' f <- CFfactor(t, "dekad")
 #' CFfactor_coverage(t, f, "absolute")
 CFfactor_coverage <- function(t, f, coverage = "absolute") {
-  if (!inherits(t, "CFTime")) stop("First argument to `CFfactor_coverage()` must be an instance of the `CFTime` class", call. = FALSE)
+  if (!inherits(t, "CFTime")) stop("First argument to `CFfactor_coverage()` must be an instance of the `CFTime` class", call. = FALSE) # nocov
   t$factor_coverage(f, coverage)
 }
 
@@ -802,10 +802,10 @@ parse_timestamps <- function(t, x) {
 
   out <- t$cal$parse(x)
   if (anyNA(out$year))
-    warning("Some dates could not be parsed. Result contains `NA` values.")
+    warning("Some dates could not be parsed. Result contains `NA` values.") # nocov
   if (length(unique(na.omit(out$tz))) > 1)
-    warning("Timestamps have multiple time zones. Some or all may be different from the calendar time zone.")
+    warning("Timestamps have multiple time zones. Some or all may be different from the calendar time zone.") # nocov
   else if (out$tz[1] != t$cal$timezone)
-    warning("Timestamps have time zone that is different from the calendar.")
+    warning("Timestamps have time zone that is different from the calendar.") # nocov
   out
 }

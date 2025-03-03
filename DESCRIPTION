@@ -21,9 +21,7 @@ Imports:
 Suggests: 
     knitr,
     rmarkdown,
-    ncdf4,
     ncdfCF,
-    RNetCDF,
     testthat (>= 3.0.0),
     stringr
 URL: https://github.com/pvanlaake/CFtime

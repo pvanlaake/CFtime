@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 
 ```{r setup, include = FALSE}
 library(CFtime)
-library(ncdf4)
+library(ncdfCF)
 ```
 
 ## Climate change models and calendars
@@ -161,52 +161,55 @@ dimension of the file. The process then becomes as follows, for a CMIP6 file of
 daily precipitation:
 
 ```{r}
-# Opening a data file that is included with the package and showing some attributes.
+# Opening a data file that is included with the package.
 # Usually you would `list.files()` on a directory of your choice.
 fn <- list.files(path = system.file("extdata", package = "CFtime"), full.names = TRUE)[1]
-nc <- nc_open(fn)
-attrs <- ncatt_get(nc, "")
-attrs$title
+(ds <- ncdfCF::open_ncdf(fn))
 
 # "Conventions" global attribute must have a string like "CF-1.*" for this package to work reliably
-attrs$Conventions
 
-# Create the CFTime instance from the metadata in the file.
-(t <- CFtime(nc$dim$time$units, 
-             nc$dim$time$calendar, 
-             nc$dim$time$vals))
+# Look at the "time" axis
+(time <- ds[["time"]])
+
+# Get the CFTime instance from the "time" axis
+(t <- time$time())
 ```
 
 You can see from the global attribute "Conventions" that the file adheres to the
 CF Metadata Conventions, among others. According to the CF conventions, `units` 
-and `calendar` are required attributes of the `time` dimension in the netCDF file, 
-and `nc$dim$time$vals` are the offset values, or `dimnames()` in `R` terms, for 
-the `time` dimension of the data.
+and `calendar` are required attributes of the "time" dimension in the netCDF file.
 
-The above example (and others in this vignette) use the `ncdf4` package. If you 
-are using the `RNetCDF` package, checking for CF conventions and then creating a 
-`CFTime` instance goes like this:
+The above example (and others in this vignette) use the `ncdfCF` package. If you 
+are using the `RNetCDF` or `ncdf4` package, checking for CF conventions and then 
+creating a `CFTime` instance goes like this:
 
-```{r}
+```{r, eval = FALSE}
 library(RNetCDF)
 nc <- open.nc(fn)
 att.get.nc(nc, -1, "Conventions")
-(t <- CFtime(att.get.nc(nc, "time", "units"), 
-             att.get.nc(nc, "time", "calendar"), 
-             var.get.nc(nc, "time")))
+t <- CFtime(att.get.nc(nc, "time", "units"), 
+            att.get.nc(nc, "time", "calendar"), 
+            var.get.nc(nc, "time"))
+
+library(ncdf4)
+nc <- nc_open(fn)
+nc_att_get(nc, 0, "Conventions")
+t <- CFtime(nc$dim$time$units, 
+            nc$dim$time$calendar, 
+            nc$dim$time$vals)
 ```
 
-The corresponding character representations of the time series can be easily generated:
+The character representations of the time series can be easily generated:
 
 ```{r}
-dates <- as_timestamp(t, format = "date")
+dates <- t$as_timestamp(format = "date")
 dates[1:10]
 ```
 
 ...as well as the range of the time series:
 
 ```{r}
-range(t)
+t$range()
 ```
 
 Note that in this latter case, if any of the timestamps in the time series have a time that is
@@ -234,12 +237,12 @@ prepared:
 
 ```{r}
 # Create a dekad factor for the whole `t` time series that was created above
-f_k <- CFfactor(t, "dekad")
+f_k <- t$factor("dekad")
 str(f_k)
 
 # Create monthly factors for a baseline era and early, mid and late 21st century eras
-baseline <- CFfactor(t, era = 1991:2020)
-future <- CFfactor(t, era = list(early = 2021:2040, mid = 2041:2060, late = 2061:2080))
+baseline <- t$factor(era = 1991:2020)
+future <- t$factor(era = list(early = 2021:2040, mid = 2041:2060, late = 2061:2080))
 str(future)
 ```
 
@@ -254,7 +257,7 @@ For the "era" version, there are two interesting things to note here:
  factor is compatible with the data set which the time series describes, such
  that functions like `tapply()` will not throw an error.
  
-There are six periods defined for `CFfactor()`:
+There are six periods defined for factoring:
 
  - `year`, to summarize data to yearly timescales
  - `season`, the meteorological seasons. Note that the month of December will be
@@ -269,7 +272,7 @@ There are six periods defined for `CFfactor()`:
 ##### New "time" dimension
 
 A `CFTime` instance describes the "time" dimension of an associated data set. When
-you process that dimension of the data set using `CFfactor()` or another method
+you process that dimension of the data set using `CFTime$factor()` or another method
 to filter or otherwise subset the "time" dimension, the resulting data set will
 have a different "time" dimension. To associate a proper `CFTime` instance with
 your processing result, the methods in this package return that `CFTime` instance
@@ -284,7 +287,7 @@ fully worked out example of this.
 
 ##### Incomplete time series
 
-You can test if your time series is complete with the function `CFcomplete()`.
+You can test if your time series is complete with the function `is_complete()`.
 A time series is considered complete if the time steps between the two extreme 
 values are equally spaced. There is a "fuzzy" assessment of completeness for
 time series with a datum unit of "days" or smaller where the time steps are
@@ -301,11 +304,11 @@ processing or apply weights based on the actual coverage.
 is_complete(t)
 
 # How many time units fit in a factor level?
-CFfactor_units(t, baseline)
+t$factor_units(baseline)
 
 # What's the absolute and relative coverage of our time series
-CFfactor_coverage(t, baseline, "absolute")
-CFfactor_coverage(t, baseline, "relative")
+t$factor_coverage(baseline, "absolute")
+t$factor_coverage(baseline, "relative")
 ```
 
 The time series is complete but coverage of the baseline era is only 
@@ -324,9 +327,9 @@ offsets <- sample(0:(n-1), n * cov)
 (t <- CFtime("days since 2020-01-01", "365_day", offsets))
 # Note that there are about 1.25 days between observations
 
-mon <- CFfactor(t, "month")
-CFfactor_coverage(t, mon, "absolute")
-CFfactor_coverage(t, mon, "relative")
+mon <- t$factor("month")
+t$factor_coverage(mon, "absolute")
+t$factor_coverage(mon, "relative")
 ```
 
 Keep in mind, though, that there are data sets where the time unit is lower than
@@ -390,7 +393,7 @@ to produce problems. This is most pronounced for the `360_day` calendar:
 ```{r}
 # Days in January and February
 t <- CFtime("days since 2023-01-01", "360_day", 0:59)
-ts_days <- as_timestamp(t, "date")
+ts_days <- t$as_timestamp("date")
 as.Date(ts_days)
 ```
 

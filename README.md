@@ -32,18 +32,18 @@ ERA5 from the European Centre for Medium-range Weather Forecasts
 
 The data sets include in their metadata an epoch, or origin, a point in
 time from which other points in time are calculated. This epoch takes
-the form of `days since 1949-12-01`, with each data source (Coupled
+the form of `days since 1949-12-01`, with each data collection (Coupled
 Model Intercomparison Project (CMIP) generation, model, etc) having its
-own epoch. The data itself has a temporal dimension if a variable in the
-netCDF file has an attribute `units` with a string value describing an
-epoch. The variable, say “time”, has data values such as 43289, which
-are offsets from the epoch in units of the epoch string (“days” in this
-case). To convert this offset to a date, using a specific calendar, is
-what this package does. Given that the calendars supported by the CF
-Metadata Conventions are not compatible with `POSIXt`, this conversion
-is not trivial because the standard R date-time operations do not give
-correct results. That it is important to account for these differences
-is easily demonstrated:
+own epoch. The data itself has a temporal dimension if a coordinate
+variable in the netCDF file has an attribute `units` with a string value
+describing an epoch. The coordinate variable, say “time”, has data
+values such as 43289, which are offsets from the epoch in units of the
+epoch string (“days” in this case). To convert this offset to a date,
+using a specific calendar, is what this package does. Given that the
+calendars supported by the CF Metadata Conventions are not compatible
+with `POSIXt`, this conversion is not trivial because the standard R
+date-time operations do not give correct results. That it is important
+to account for these differences is easily demonstrated:
 
 ``` r
 library(CFtime)
@@ -83,8 +83,8 @@ All defined calendars of the CF Metadata Conventions are supported:
   `tai`. It uses the Gregorian calendar with a start at 1972-01-01
   00:00:00; earlier timestamps are not allowed. Future timestamps are
   also not allowed because the insertion of leap seconds is
-  unpredictable. Most computer clocks use UTC but calculations of
-  periods do not consider leap seconds.
+  unpredictable. Most computer clocks synchronize against UTC but
+  calculations of periods do not consider leap seconds.
 - `julian`: The `julian` calendar has a leap year every four years,
   including centennial years. Otherwise it is the same as the `standard`
   calendar.
@@ -96,17 +96,13 @@ All defined calendars of the CF Metadata Conventions are supported:
   days divided over 12 months of 30 days each. Year 0 exists, as well as
   years prior to that.
 
-Use of custom calendars is not supported. This package is also not
-suitable for paleo-calendars.
+Use of custom calendars is currently not supported.
 
-This package IS NOT intended to support the full date and time
-functionality of the CF Metadata Conventions. Instead, it facilitates
-use of a suite of models of climate projections that use different
-calendars in a consistent manner.
-
-This package is particularly useful for working with climate projection
-data having a daily or higher resolution, but it will work equally well
-on data with a lower resolution.
+This package facilitates use of a suite of models of climate projections
+that use different calendars in a consistent manner. This package is
+particularly useful for working with climate projection data having a
+daily or higher resolution, but it will work equally well on data with a
+lower resolution.
 
 Timestamps are generated using the [ISO8601
 standard](https://en.wikipedia.org/wiki/ISO_8601).
@@ -134,63 +130,63 @@ devtools::install_github("pvanlaake/CFtime")
 ## Basic operation
 
 The package contains a class, `CFTime`, to describe the time coordinate
-system, including its calendar and origin, and which holds the time
-coordinate values that are offset from the origin to represent instants
-in time. This class operates on the data in the file of interest, here a
-Coordinated Regional Climate Downscaling Experiment (CORDEX) file of
-precipitation for the Central America domain:
+reference system, including its calendar and origin, and which holds the
+time coordinate values that are offset from the origin to represent
+instants in time. This class operates on the data in the file of
+interest, here a Coordinated Regional Climate Downscaling Experiment
+(CORDEX) file of precipitation for the Central America domain:
 
 ``` r
-library(ncdf4)
+library(ncdfCF)
 
-# Opening a data file that is included with the package.
+# Opening a data set that is included with the package.
 # Usually you would `list.files()` on a directory of your choice.
 fn <- list.files(path = system.file("extdata", package = "CFtime"), full.names = TRUE)[1]
-nc <- nc_open(fn)
-attrs <- ncatt_get(nc, "")
-attrs$title
+ds <- open_ncdf(fn)
+ds$attribute("title")
 #> [1] "NOAA GFDL GFDL-ESM4 model output prepared for CMIP6 update of RCP4.5 based on SSP2"
-attrs$license
+ds$attribute("license")
 #> [1] "CMIP6 model data produced by NOAA-GFDL is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License (https://creativecommons.org/licenses/). Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse for terms of use governing CMIP6 output, including citation requirements and proper acknowledgment. Further information about this data, including some limitations, can be found via the further_info_url (recorded as a global attribute in this file). The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law."
 
-# Create the CFTime instance
-time <- CFtime(nc$dim$time$units, 
-               nc$dim$time$calendar, 
-               nc$dim$time$vals)
-time
+# What axes are there in the data set?
+dimnames(ds)
+#> [1] "bnds" "lat"  "time" "lon"
+
+# Get the CFTime instance from the "time" axis
+(time <- ds[["time"]]$time())
 #> CF calendar:
 #>   Origin  : 1850-01-01 00:00:00
 #>   Units   : days
 #>   Type    : noleap
 #> Time series:
 #>   Elements: [2015-01-01 12:00:00 .. 2099-12-31 12:00:00] (average of 1.000000 days between 31025 elements)
-#>   Bounds  : not set
-
-# ... work with the data ...
-nc_close(nc)
+#>   Bounds  : regular and consecutive
 ```
 
-Note that the information of interest (`nc$dim$time$units`, etc) is read
-out of the file “blindly”, without checking for available dimensions or
-attributes. This can be done because the “time” dimension and its
-attributes `units` and `calendar` are required by the CF Metadata
-Conventions. Should this fail, then your data set does not have a
-temporal dimension or it is not compliant (note that the name “time”
-could be different, a temporal dimension is defined by the “units”
-attribute alone). You could still use this package if the required
-information is contained in your file but using a different dimension
-name or different attribute names.
+Note that the `ncdfCF` package reads the netCDF file and interprets its
+contents on the basis of its attribute values. If an axis is found that
+represents time, then a `CFTime` instance is created for it, which can
+be accessed with the `time()` method.
 
-##### Using RNetCDF
+##### Using RNetCDF or ncdf4
 
-If you are using the `RNetCDF` package rather than `ncdf4`, creating a
-`CFTime` instance goes like this:
+If you are using the `RNetCDF` or `ncdf4` package rather than `ncdfCF`,
+creating a `CFTime` instance goes like this (but note that this assumes
+that the axis is called “time”):
 
 ``` r
+library(RNetCDF)
 nc <- open.nc(fn)
 time <- CFtime(att.get.nc(nc, "time", "units"), 
                att.get.nc(nc, "time", "calendar"), 
                var.get.nc(nc, "time"))
+
+library(ncdf4)
+nc <- nc_open(fn)
+names(nc$var) # A mix of data variables, axes, and other objects
+t <- CFtime(nc$dim$time$units, 
+            nc$dim$time$calendar, 
+            nc$dim$time$vals)
 ```
 
 ## Typical workflow
@@ -203,28 +199,23 @@ period 2041 - 2050 as follows:
 
 ``` r
 # NOT RUN
-library(CFtime)
-library(ncdf4)
+library(ncdfCF)
 library(abind)
+
 # Open the files - one would typically do this in a loop
-nc2041 <- nc_open("~/CC/CORDEX/CAM-22/RCP2.6/pr_CAM-22_MOHC-HadGEM2-ES_rcp26_r1i1p1_GERICS-REMO2015_v1_day_20410101-20451230.nc")
-nc2046 <- nc_open("~/CC/CORDEX/CAM-22/RCP2.6/pr_CAM-22_MOHC-HadGEM2-ES_rcp26_r1i1p1_GERICS-REMO2015_v1_day_20460101-20501230.nc")
+ds2041 <- open_ncdf("~/pr_CAM-22_MOHC-HadGEM2-ES_rcp26_r1i1p1_GERICS-REMO2015_v1_day_20410101-20451230.nc")
+ds2046 <- open_ncdf("~/pr_CAM-22_MOHC-HadGEM2-ES_rcp26_r1i1p1_GERICS-REMO2015_v1_day_20460101-20501230.nc")
 
 # Create the time object from the first file
-# All files have an identical datum as per the CORDEX specifications
-time <- CFtime(nc2041$dim$time$units, nc2041$dim$time$calendar, nc2041$dim$time$vals)
+# All files have an identical "time" axis as per the CORDEX specifications
+time <- ds2041[["time"]]$time()
 
 # Add the time values from the remaining files
-time <- time + as.vector(nc2046$dim$time$vals)
+time <- time + ds2046[["pr"]]$time()$offsets
 
 # Grab the data from the files and merge the arrays into one, in the same order
 # as the time values
-pr <- abind(ncvar_get(nc2041, "pr"), ncvar_get(nc2046, "pr"))
-nc_close(nc2041)
-nc_close(nc2046)
-
-# Optionally - Set the time dimension to the timestamps from the time object
-dimnames(pr)[[3]] <- as_timestamp(time)
+pr <- abind(ds2041[["pr"]]$data()$array(), ds2046[["pr"]]$data()$array())
 
 # Create the month factor from the time object
 f_month <- CFfactor(time, "month")
@@ -232,7 +223,7 @@ f_month <- CFfactor(time, "month")
 # The result from applying this factor to a data set that it describes is a new
 # data set with a different "time" dimension. The function result stores this
 # new time object as an attribute.
-pr_month_time <- attr(f_month, "CFtime")
+pr_month_time <- attr(f_month, "CFTime")
 
 # Now sum the daily data to monthly data
 # Dimensions 1 and 2 are longitude and latitude, the third dimension is time
@@ -248,7 +239,7 @@ This package has been tested with the following data sets:
 - CMIP5
 - CORDEX
 - CMIP6
-- ROMS (partial support)
+- ROMS
 
 The package also operates on geographical and/or temporal subsets of
 data sets so long as the subsetted data complies with the CF Metadata

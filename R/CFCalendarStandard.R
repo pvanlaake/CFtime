@@ -150,10 +150,10 @@ CFCalendarStandard <- R6::R6Class("CFCalendarStandard",
       len <- length(x)
       gndx <- x >= private$gap & !is.na(x)
       if (any(gndx)) greg <- .gregorian_offset2date(x[gndx] + rd)
-      else greg <- data.frame()
+      else greg <- data.frame(year = integer(), month = integer(), day = integer())
       jndx <- x < private$gap & !is.na(x)
       if (any(jndx)) juli <- .julian_offset2date(x[jndx] + rd)
-      else juli <- data.frame()
+      else juli <- data.frame(year = integer(), month = integer(), day = integer())
       yr <- mon <- day <- rep(NA_integer_, len)
       yr[gndx]  <- greg$year;  yr[jndx]  <- juli$year
       mon[gndx] <- greg$month; mon[jndx] <- juli$month

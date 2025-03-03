@@ -54,7 +54,7 @@ CFTime <- R6::R6Class("CFTime",
     #'   equal to the unit of measure in the definition, inclusive of the
     #'   definition timestamp. The unit of measure of the offsets is defined by
     #'   the `definition` argument.
-    initialize = function(definition, calendar, offsets) {
+    initialize = function(definition, calendar, offsets = NULL) {
       if (is.null(calendar)) calendar <- "standard" # This may occur when "calendar" attribute is not defined in the NC file
       calendar <- tolower(calendar)
       self$cal <- switch(calendar,
@@ -72,6 +72,8 @@ CFTime <- R6::R6Class("CFTime",
         stop("Invalid calendar specification", call. = FALSE)
       )
 
+      if (is.null(offsets)) return()
+
       if (is.numeric(offsets)) {
         dim(offsets) <- NULL
         stopifnot(.validOffsets(offsets))
@@ -86,7 +88,7 @@ CFTime <- R6::R6Class("CFTime",
         self$offsets <- as.numeric(offsets)
       } else if (is.character(offsets)) {
         time <- self$cal$parse(offsets)
-        if (anyNA(time$year)) stop("Argument `offsets` contains invalid timestamps", call. = FALSE)
+        if (anyNA(time$year)) stop("Argument `offsets` contains invalid timestamps", call. = FALSE) # nocov
 
         if (length(offsets) == 1L) {
           self$offsets <- seq(0L, time$offset[1L])
@@ -144,9 +146,9 @@ CFTime <- R6::R6Class("CFTime",
     range = function(format = "", bounds = FALSE) {
       if (length(self$offsets) == 0L) return(c(NA_character_, NA_character_))
       if (!missing(format) && ((!is.character(format)) || length(format) != 1L))
-        stop("`format` argument, when present, must be a character string with formatting specifiers", call. = FALSE)
+        stop("`format` argument, when present, must be a character string with formatting specifiers", call. = FALSE) # nocov
       if (!is.logical(bounds) || length(bounds) != 1L)
-        stop("`bounds` argument, when present, must be a single logical value", call. = FALSE)
+        stop("`bounds` argument, when present, must be a single logical value", call. = FALSE) # nocov
 
       if (bounds) {
         bnds <- self$get_bounds()
@@ -192,7 +194,7 @@ CFTime <- R6::R6Class("CFTime",
       if (is.null(format))
         format <- ifelse(self$cal$unit < 4L || .has_time(time), "timestamp", "date")
       else if (!(format %in% c("date", "timestamp")))
-        stop("Format specifier not recognized", call. = FALSE)
+        stop("Format specifier not recognized", call. = FALSE) # nocov
 
       if (asPOSIX) {
         if (format == "date") ISOdate(time$year, time$month, time$day, 0L)
@@ -516,20 +518,20 @@ CFTime <- R6::R6Class("CFTime",
     #'   is always -1.
     cut = function(breaks) {
       if (missing(breaks) || !is.character(breaks) || (len <- length(breaks)) < 1L)
-        stop("Argument 'breaks' must be a character vector with at least 1 value", call. = FALSE)
+        stop("Argument 'breaks' must be a character vector with at least 1 value", call. = FALSE) # nocov
 
       if(len == 1L) {
         breaks <- sub("s$", "", tolower(breaks))
         if (breaks %in% CFt$factor_periods)
           return(CFfactor(self, breaks)) # FIXME after CFfactor is done
-        else stop("Invalid specification of 'breaks'", call. = FALSE)
+        else stop("Invalid specification of 'breaks'", call. = FALSE) # nocov
       }
 
       # breaks is a character vector of multiple timestamps
-      if (self$cal$unit > 4L) stop("Factorizing on a 'month' or 'year' time unit is not supported", call. = FALSE)
+      if (self$cal$unit > 4L) stop("Factorizing on a 'month' or 'year' time unit is not supported", call. = FALSE) # nocov
       time <- self$cal$parse(breaks)
       if (anyNA(time$year))
-        stop("Invalid specification of 'breaks'", call. = FALSE)
+        stop("Invalid specification of 'breaks'", call. = FALSE) # nocov
       sorted <- order(time$offset)
       ooff <- time$offset[sorted]
       intv <- findInterval(self$offsets, ooff)
@@ -631,11 +633,11 @@ CFTime <- R6::R6Class("CFTime",
     #'   non-era factor levels; if the `era` argument is specified,
     #'   attribute 'CFTime' is `NULL`.
     factor = function(period = "month", era = NULL) {
-      if (length(self$offsets) < 10L) stop("Cannot create a factor for very short time series", call. = FALSE)
+      if (length(self$offsets) < 10L) stop("Cannot create a factor for very short time series", call. = FALSE) # nocov
 
       period <- tolower(period)
       if (!((length(period) == 1L) && (period %in% CFt$factor_periods)))
-        stop("Period specifier must be a single value of a supported period", call. = FALSE)
+        stop("Period specifier must be a single value of a supported period", call. = FALSE) # nocov
 
       # No fine-grained period factors for coarse source data
       timestep <- CFt$units$seconds[self$cal$unit] * self$resolution;
@@ -644,7 +646,7 @@ CFTime <- R6::R6Class("CFTime",
           (period == "month") && (timestep > 86400 * 31) ||
           (period == "dekad") && (timestep > 86400) ||       # Must be constructed from daily or finer data
           (period == "day") && (timestep > 86400))           # Must be no longer than a day
-        stop("Cannot produce a short period factor from source data with long time interval", call. = FALSE)
+        stop("Cannot produce a short period factor from source data with long time interval", call. = FALSE) # nocov
 
       time <- self$cal$offsets2time(self$offsets)
       months <- c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12")
@@ -661,7 +663,7 @@ CFTime <- R6::R6Class("CFTime",
                },
                "season"  = {
                  if (!requireNamespace("stringr"))
-                   stop("Must install package `stringr` to use this functionality.", call. = FALSE)
+                   stop("Must install package `stringr` to use this functionality.", call. = FALSE) # nocov
 
                  out <- as.factor(
                    ifelse(time$month == 12L, sprintf("%04dS1", time$year + 1L),
@@ -677,7 +679,7 @@ CFTime <- R6::R6Class("CFTime",
                },
                "quarter" = {
                  if (!requireNamespace("stringr"))
-                   stop("Must install package `stringr` to use this functionality.", call. = FALSE)
+                   stop("Must install package `stringr` to use this functionality.", call. = FALSE) # nocov
 
                  out <- as.factor(sprintf("%04dQ%d", time$year, (time$month - 1L) %/% 3L + 1L))
                  l  <- levels(out)
@@ -798,7 +800,7 @@ CFTime <- R6::R6Class("CFTime",
       if (is.list(f)) factors <- f else factors <- list(f)
       if (!(all(unlist(lapply(factors, function(x) is.factor(x) && is.numeric(attr(x, "era")) &&
                               attr(x, "period") %in% CFt$factor_periods)))))
-        stop("Argument `f` must be a factor generated by the method `CFTime$factor()`", call. = FALSE)
+        stop("Argument `f` must be a factor generated by the method `CFTime$factor()`", call. = FALSE) # nocov
 
       out <- lapply(factors, function(fac) .factor_units(fac, self$cal, CFt$units$per_day[self$cal$unit]))
       if (is.factor(f)) out <- out[[1L]]
@@ -821,10 +823,10 @@ CFTime <- R6::R6Class("CFTime",
       if (is.list(f)) factors <- f else factors <- list(f)
       if (!(all(unlist(lapply(factors, function(x) is.factor(x) && is.numeric(attr(x, "era")) &&
                               attr(x, "period") %in% CFt$factor_periods)))))
-        stop("Argument `f` must be a factor generated by the method `CFTime$factor()`", call. = FALSE)
+        stop("Argument `f` must be a factor generated by the method `CFTime$factor()`", call. = FALSE) # nocov
 
       if (!(is.character(coverage) && coverage %in% c("absolute", "relative")))
-        stop("Argument `coverage` must be a character string with a value of 'absolute' or 'relative'", call. = FALSE)
+        stop("Argument `coverage` must be a character string with a value of 'absolute' or 'relative'", call. = FALSE) # nocov
 
       if (coverage == "relative") {
         out <- lapply(factors, function(fac) {

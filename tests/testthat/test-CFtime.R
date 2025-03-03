@@ -47,6 +47,9 @@ test_that("test all variants of creating a CFtime object and useful functions", 
   expect_equal(range(t), c("2023-01-01 00:00:00", "2023-04-30 23:00:00"))
   expect_equal(length(as_timestamp(t, "timestamp")), 4 * 30 * 24)
 
+  t$bounds <- TRUE
+  expect_equal(t$range(bounds = TRUE), c("2022-12-30 23:30:00", "2023-04-30 23:30:00"))
+
   expect_warning(t <- CFtime("days since 2023-01-01", "366_day", c("2023-01-01", "2023-04-13", "2023-10-30", "2023-05-12")))
   expect_equal(range(t), c("2023-01-01", "2023-10-30"))
 
@@ -71,7 +74,12 @@ test_that("test all variants of creating a CFtime object and useful functions", 
   expect_true(length(offsets(t3)) == 730)
   expect_false((range(diff(offsets(t3))) == c(1, 1))[1])
 
+  t2 <- t1 + c("2023-01-01", "2023-01-02")
+  expect_match(capture_output(t1$print()), "between 365 elements\\)\\n  Bounds  : not set$")
+  expect_equal(t2$resolution, 1)
+
   # Timezones
+  expect_equal(timezone(t1), "+0000")
   expect_false(grepl("+0000", capture_output(t1$print()), fixed = TRUE))
   t1 <- CFtime("days since 2022-01-01 00:00:00+04", "365_day", 0:364)
   expect_true(grepl("+0400", capture_output(t1$print()), fixed = TRUE))
@@ -116,19 +124,19 @@ test_that("test all variants of creating a CFtime object and useful functions", 
   expect_equal(sum(slice(t, c("2023-01-01 00:00", "2023-01-01 04:00", "2023-01-02 00:00"), TRUE)), 25)
 })
 
+test_that("Leap years on some calendars", {
+  t <- CFTime$new("days since 2025-01-01", "360_day")
+  expect_true(all(!t$cal$leap_year(c(2000:2025))))
+  t <- CFTime$new("days since 2025-01-01", "366_day")
+  expect_true(all(t$cal$leap_year(c(2000:2025))))
+})
+
 test_that("Working with packages and files", {
   lf <- list.files(path = system.file("extdata", package = "CFtime"), full.names = TRUE)
 
-  if (requireNamespace("ncdf4"))
+  if (requireNamespace("ncdfCF"))
     lapply(lf, function(f) {
-      nc <- ncdf4::nc_open(f)
-      expect_s3_class(CFtime(nc$dim$time$units, nc$dim$time$calendar, nc$dim$time$vals), "CFTime")
-      ncdf4::nc_close(nc)
+      nc <- ncdfCF::open_ncdf(f)
+      expect_s3_class(nc[["time"]]$values, "CFTime")
     })
-
-  # if (requireNamespace("ncdfCF"))
-  #   lapply(lf, function(f) {
-  #     nc <- ncdfCF::open_ncdf(f)
-  #     expect_s3_class(nc[["time"]]$values, "CFTime")
-  #   })
 })
