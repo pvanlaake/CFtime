@@ -1,4 +1,4 @@
-# CFtime (development version)
+# CFtime 1.5.1
 
 * `CFTime$slice()` can now work with a single or multiple timestamp values.
 * Test coverage increased.
