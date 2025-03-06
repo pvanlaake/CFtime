@@ -4,7 +4,7 @@
 #' follow the CF Metadata Conventions, and its productive use in R.
 #'
 #' The class has a field `cal` which holds a specific calendar from the
-#' allowed types (9 named calendars are currently supported). The calendar is
+#' allowed types (all named calendars are supported). The calendar is
 #' also implemented as a (hidden) class which converts netCDF file encodings to
 #' timestamps as character strings, and vice-versa. Bounds information (the
 #' period of time over which a timestamp is valid) is used when defined in the
@@ -54,7 +54,7 @@ CFTime <- R6::R6Class("CFTime",
     #'   equal to the unit of measure in the definition, inclusive of the
     #'   definition timestamp. The unit of measure of the offsets is defined by
     #'   the `definition` argument.
-    initialize = function(definition, calendar, offsets = NULL) {
+    initialize = function(definition, calendar = "standard", offsets = NULL) {
       if (is.null(calendar)) calendar <- "standard" # This may occur when "calendar" attribute is not defined in the NC file
       calendar <- tolower(calendar)
       self$cal <- switch(calendar,
@@ -452,10 +452,10 @@ CFTime <- R6::R6Class("CFTime",
     #'   An attribute 'CFTime' will have the same definition as `self` but with
     #'   offsets corresponding to the time steps falling between the two
     #'   extremes. If there are no values between the extremes, the attribute is
-    #'   `NULL`.
+    #'   not set.
     slice = function(extremes, closed = FALSE) {
       if (!is.character(extremes) || length(extremes) < 1L)
-        stop("Second argument must be a character vector of at least one timestamp.", call. = FALSE)
+        stop("Second argument must be a character vector of at least one timestamp.", call. = FALSE) # nocov
 
       off <- self$offsets
       roff <- range(off)
@@ -473,7 +473,7 @@ CFTime <- R6::R6Class("CFTime",
             t$set_bounds(bnds[, out, drop = FALSE])
           attr(out, "CFTime") <- t
         } else
-          out <- rep(FALSE, length(off))
+          out <- rep(FALSE, length(off)) # nocov
       }
       out
     },
@@ -710,24 +710,23 @@ CFTime <- R6::R6Class("CFTime",
                  yr <- as.integer(substr(ll, 1L, 4L))
                  if (lp == 36L)
                    dt <- c(dt, sprintf("%04d-01-01", yr + 1L))
-                 else dt <- c(dt, sprintf("%04d-%02d-%s", yr, (lp + 1L) %/% 3L + 1L, c("01", "11", "21")[(lp + 1L) %% 3L + 1L]))
+                 else dt <- c(dt, sprintf("%04d-%02d-%s", yr, lp %/% 3L + 1L, c("01", "11", "21")[lp %% 3L + 1L]))
                },
                "day"     = {
                  out <- as.factor(sprintf("%04d-%02d-%02d", time$year, time$month, time$day))
-                 l <- levels(out)
-                 lp <- l[nlevels(out)]
-                 last <- self$cal$offsets2time(self$cal$parse(lp)$offset)
-                 dt <- c(l, sprintf("%04d-%02d-%02d", last$year, last$month, last$day))
+                 new_cf <- CFTime$new(self$cal$definition, self$cal$name, paste(levels(out), "12:00:00"))
                }
         )
 
         # Convert bounds dates to an array of offsets, find mid-points, create new CFTime instance
-        off  <- self$cal$parse(dt)$offset
-        off[is.na(off)] <- 0     # This can happen only when the time series starts at or close to the origin, for seasons
-        noff <- length(off)
-        bnds <- rbind(off[1L:(noff - 1L)], off[2L:noff])
-        off  <- bnds[1L,] + (bnds[2L,] - bnds[1L,]) * 0.5
-        new_cf <- CFTime$new(self$cal$definition, self$cal$name, off)
+        if (period != "day") {
+          off  <- self$cal$parse(dt)$offset
+          off[is.na(off)] <- 0     # This can happen only when the time series starts at or close to the origin, for seasons
+          noff <- length(off)
+          bnds <- rbind(off[1L:(noff - 1L)], off[2L:noff])
+          off  <- bnds[1L,] + (bnds[2L,] - bnds[1L,]) * 0.5
+          new_cf <- CFTime$new(self$cal$definition, self$cal$name, off)
+        }
         bounds(new_cf) <- TRUE
 
         # Bind attributes to the factor

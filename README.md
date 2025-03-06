@@ -134,9 +134,22 @@ reference system, including its calendar and origin, and which holds the
 time coordinate values that are offset from the origin to represent
 instants in time. This class operates on the data in the file of
 interest, here a Coordinated Regional Climate Downscaling Experiment
-(CORDEX) file of precipitation for the Central America domain:
+(CORDEX) file of precipitation for the Central America domain.
+
+> In this vignette we are using the [`ncdfCF`
+> package](https://cran.r-project.org/package=ncdfCF) as that provides
+> the easiest interface to work with netCDF files. Package `CFtime` is
+> integrated into `ncdfCF` which makes working with time dimensions in
+> netCDF seamless.  
+> Packages `RNetCDF` and `ncdf4` can work with `CFtime` as well but then
+> the “intelligence” built into `ncdfCF` is not available, such as
+> automatically identifying axes and data orientation. Other packages
+> like `terra` and `stars` are not recommended because they do not
+> provide access to the specifics of the time dimension of the data and
+> do not consider any calendars other than “proleptic_gregorian”.
 
 ``` r
+# install.packages("ncdfCF")
 library(ncdfCF)
 
 # Opening a data set that is included with the package.

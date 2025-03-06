@@ -242,9 +242,8 @@ CFCalendarUTC <- R6::R6Class("CFCalendarUTC",
     #'   calendar.
     #' @return A `data.frame` with columns for the timestamp elements and as
     #'   many rows as there are offsets.
-    offsets2time = function(offsets) {
-      len <- length(offsets)
-      if(len == 0L)
+    offsets2time = function(offsets = NULL) {
+      if(is.null(offsets) || (len <- length(offsets)) == 0L)
         return(data.frame(year = integer(), month = integer(), day = integer(),
                           hour = integer(), minute = integer(), second = numeric(),
                           tz = character(), offset = numeric()))

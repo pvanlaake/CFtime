@@ -2,34 +2,36 @@
 % Please edit documentation in R/api.R
 \name{slice}
 \alias{slice}
-\title{Which time steps fall within two extreme values}
+\title{Which time steps fall within extreme values}
 \usage{
 slice(x, extremes, rightmost.closed = FALSE)
 }
 \arguments{
 \item{x}{The \code{CFTime} instance to operate on.}
 
-\item{extremes}{Character vector of two timestamps that represent the
-extremes of the time period of interest. The timestamps must be in
-increasing order. The timestamps need not fall in the range of the time
-steps in argument `x.}
+\item{extremes}{Character vector of timestamps that represent the time period
+of interest. The extreme values are selected. Badly formatted timestamps
+are silently dropped.}
 
-\item{rightmost.closed}{Is the larger extreme value included in the result?
-Default is \code{FALSE}.}
+\item{rightmost.closed}{Is the right side closed, i.e. included in the
+result? Default is \code{FALSE}. A specification of \verb{c("2022-01-01", "2023-01-01)} will thus include all time steps that fall in the year 2022
+when \code{closed = FALSE} but include \code{2023-01-01} if that exact value is
+present in the time series.}
 }
 \value{
 A logical vector with a length equal to the number of time steps in
-\code{x} with values \code{TRUE} for those time steps that fall between the two
-extreme values, \code{FALSE} otherwise. The earlier timestamp is included, the
-later timestamp is excluded. A specification of \code{c("2022-01-01", "2023-01-01")}
-will thus include all time steps that fall in the year 2022.
+\code{x} with values \code{TRUE} for those time steps that fall between the extreme
+values, \code{FALSE} otherwise.
+
+An attribute 'CFTime' will have the same definition as \code{x} but with offsets
+corresponding to the time steps falling between the two extremes. If there
+are no values between the extremes, the attribute is \code{NULL}.
 }
 \description{
-Given two extreme character timestamps, return a logical vector of a length
-equal to the number of time steps in the \link{CFTime} instance with values \code{TRUE}
-for those time steps that fall between the two extreme values, \code{FALSE}
-otherwise. This can be used to select slices from the time series in reading
-or analysing data.
+Given a vector of character timestamps, return a logical vector of a length
+equal to the number of time steps in the time series with values \code{TRUE} for
+those time steps that fall between the two extreme values of the vector
+values, \code{FALSE} otherwise.
 }
 \details{
 If bounds were set these will be preserved.

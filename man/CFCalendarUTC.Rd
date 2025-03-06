@@ -117,7 +117,7 @@ Decompose a vector of offsets, in units of the calendar, to
 their timestamp values. This adds a specified amount of time to the
 origin of a \code{CFTime} object.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{CFCalendarUTC$offsets2time(offsets)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{CFCalendarUTC$offsets2time(offsets = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{

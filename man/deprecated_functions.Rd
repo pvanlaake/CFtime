@@ -35,7 +35,7 @@ function if no arguments are given in the table.\tabular{ll}{
    CFmonth_days() \tab \code{\link[=month_days]{month_days()}} \cr
    CFparse() \tab \code{\link[=parse_timestamps]{parse_timestamps()}} \cr
    CFrange() \tab \code{\link[=range]{range()}} \cr
-   CFsubset() \tab \code{\link[=slab]{slab()}} \cr
+   CFsubset() \tab \code{\link[=slice]{slice()}} \cr
    CFtimestamp() \tab \code{\link[=as_timestamp]{as_timestamp()}} \cr
 }
 }

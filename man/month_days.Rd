@@ -7,14 +7,15 @@
 month_days(t, x = NULL)
 }
 \arguments{
-\item{t}{The \code{CFtime} instance to use.}
+\item{t}{The \code{CFTime} instance to use.}
 
 \item{x}{character. An optional vector of dates as strings with format
 \code{YYYY-MM-DD}. Any time part will be silently ingested.}
 }
 \value{
 A vector indicating the number of days in each month for the vector
-of dates supplied as argument \verb{x. Invalidly specified dates will result in an }NA` value. If no dates are supplied, the number of days per month for
+of dates supplied as argument \code{x}. Invalidly specified dates will result in
+an \code{NA} value. If no dates are supplied, the number of days per month for
 the calendar as a vector of length 12.
 }
 \description{

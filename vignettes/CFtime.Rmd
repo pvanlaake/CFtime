@@ -17,7 +17,6 @@ knitr::opts_chunk$set(
 
 ```{r setup, include = FALSE}
 library(CFtime)
-library(ncdfCF)
 ```
 
 ## Climate change models and calendars
@@ -158,9 +157,15 @@ describing the data set included in a single file, including the mandatory
 of the CF Metadata Conventions that this file adheres to (among possible others).
 Not surprisingly, all the pieces of interest are contained in the "time"
 dimension of the file. The process then becomes as follows, for a CMIP6 file of 
-daily precipitation:
+daily precipitation.
+
+> In this vignette we are using the [`ncdfCF` package](https://cran.r-project.org/package=ncdfCF) as that provides the easiest interface to work with netCDF files. Package `CFtime` is integrated into `ncdfCF` which makes working with time dimensions in netCDF seamless.  
+> Packages `RNetCDF` and `ncdf4` can work with `CFtime` as well but then the "intelligence" built into `ncdfCF` is not available, such as automatically identifying axes and data orientation. Other packages like `terra` and `stars` are not recommended because they do not provide access to the specifics of the time dimension of the data and do not consider any calendars other than "proleptic_gregorian".
 
 ```{r}
+# install.packages("ncdfCF")
+library(ncdfCF)
+
 # Opening a data file that is included with the package.
 # Usually you would `list.files()` on a directory of your choice.
 fn <- list.files(path = system.file("extdata", package = "CFtime"), full.names = TRUE)[1]

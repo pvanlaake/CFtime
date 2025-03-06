@@ -20,6 +20,9 @@ test_that("timestamp string parsing to offsets and deparsing of offsets to times
   t <- CFTime$new("days since 1992-08-20", "standard")
   res <- t$cal$offsets2time()
   expect_equal(nrow(res), 0L)
+  t <- CFTime$new("days since 1992-08-20", "utc")
+  res <- t$cal$offsets2time()
+  expect_equal(nrow(res), 0L)
 })
 
 test_that("testing calendars with leap years", {

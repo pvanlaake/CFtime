@@ -9,7 +9,7 @@ This class manages the "time" dimension of netCDF files that
 follow the CF Metadata Conventions, and its productive use in R.
 
 The class has a field \code{cal} which holds a specific calendar from the
-allowed types (9 named calendars are currently supported). The calendar is
+allowed types (all named calendars are supported). The calendar is
 also implemented as a (hidden) class which converts netCDF file encodings to
 timestamps as character strings, and vice-versa. Bounds information (the
 period of time over which a timestamp is valid) is used when defined in the
@@ -77,7 +77,7 @@ values in the first row, high values in the second row. Use
 \subsection{Method \code{new()}}{
 Create a new instance of this class.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{CFTime$new(definition, calendar, offsets = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{CFTime$new(definition, calendar = "standard", offsets = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -402,7 +402,7 @@ extreme values, \code{FALSE} otherwise.
 An attribute 'CFTime' will have the same definition as \code{self} but with
 offsets corresponding to the time steps falling between the two
 extremes. If there are no values between the extremes, the attribute is
-\code{NULL}.
+not set.
 }
 }
 \if{html}{\out{<hr>}}

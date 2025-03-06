@@ -1,3 +1,11 @@
+# CFtime (development version)
+
+* Fixed new `CFTime` instance for factor with a "day" or "dekad" period where
+the last factor level is not at the end of the year.
+* Test coverage near-complete.
+* Fixed inconsistent documentation for functions.
+* Minor code fixes.
+
 # CFtime 1.5.1
 
 * `CFTime$slice()` can now work with a single or multiple timestamp values.

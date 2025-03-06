@@ -195,7 +195,7 @@ as.character.CFTime <- function(x, ...) {
 #' cut(x, breaks)
 cut.CFTime <- function (x, breaks, ...) {
   if (!inherits(x, "CFTime"))
-    stop("Argument 'x' must be a CFTime instance", call. = FALSE)
+    stop("Argument 'x' must be a CFTime instance", call. = FALSE) # nocov
   x$cut(breaks)
 }
 
@@ -327,28 +327,31 @@ is_complete <- function(x) {
   x$equidistant()
 }
 
-#' Which time steps fall within two extreme values
+#' Which time steps fall within extreme values
 #'
-#' Given two extreme character timestamps, return a logical vector of a length
-#' equal to the number of time steps in the [CFTime] instance with values `TRUE`
-#' for those time steps that fall between the two extreme values, `FALSE`
-#' otherwise. This can be used to select slices from the time series in reading
-#' or analysing data.
+#' Given a vector of character timestamps, return a logical vector of a length
+#' equal to the number of time steps in the time series with values `TRUE` for
+#' those time steps that fall between the two extreme values of the vector
+#' values, `FALSE` otherwise.
 #'
 #' If bounds were set these will be preserved.
 #'
 #' @param x The `CFTime` instance to operate on.
-#' @param extremes Character vector of two timestamps that represent the
-#'   extremes of the time period of interest. The timestamps must be in
-#'   increasing order. The timestamps need not fall in the range of the time
-#'   steps in argument `x.
-#' @param rightmost.closed Is the larger extreme value included in the result?
-#'   Default is `FALSE`.
+#' @param extremes Character vector of timestamps that represent the time period
+#'   of interest. The extreme values are selected. Badly formatted timestamps
+#'   are silently dropped.
+#' @param rightmost.closed Is the right side closed, i.e. included in the
+#'   result? Default is `FALSE`. A specification of `c("2022-01-01",
+#'   "2023-01-01)` will thus include all time steps that fall in the year 2022
+#'   when `closed = FALSE` but include `2023-01-01` if that exact value is
+#'   present in the time series.
 #' @returns A logical vector with a length equal to the number of time steps in
-#'   `x` with values `TRUE` for those time steps that fall between the two
-#'   extreme values, `FALSE` otherwise. The earlier timestamp is included, the
-#'   later timestamp is excluded. A specification of `c("2022-01-01", "2023-01-01")`
-#'   will thus include all time steps that fall in the year 2022.
+#'   `x` with values `TRUE` for those time steps that fall between the extreme
+#'   values, `FALSE` otherwise.
+#'
+#'   An attribute 'CFTime' will have the same definition as `x` but with offsets
+#'   corresponding to the time steps falling between the two extremes. If there
+#'   are no values between the extremes, the attribute is `NULL`.
 #' @export
 #' @examples
 #' t <- CFtime("hours since 2023-01-01 00:00:00", "standard", 0:23)
@@ -700,12 +703,12 @@ as_timestamp <- function(t, format = NULL, asPOSIX = FALSE) {
 #' integer vector of length 12 with the number of days for each month of the
 #' calendar (disregarding the leap day for `standard` and `julian` calendars).
 #'
-#' @param t The `CFtime` instance to use.
+#' @param t The `CFTime` instance to use.
 #' @param x character. An optional vector of dates as strings with format
 #'   `YYYY-MM-DD`. Any time part will be silently ingested.
 #'
 #' @returns A vector indicating the number of days in each month for the vector
-#'   of dates supplied as argument `x. Invalidly specified dates will result in
+#'   of dates supplied as argument `x`. Invalidly specified dates will result in
 #'   an `NA` value. If no dates are supplied, the number of days per month for
 #'   the calendar as a vector of length 12.
 #'

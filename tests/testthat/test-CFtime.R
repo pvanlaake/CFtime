@@ -15,6 +15,7 @@ test_that("test all variants of creating a CFtime object and useful functions", 
 
   # Call CFtime() with a valid definition and calendar but faulty offsets
   expect_error(CFtime("days since 1991-01-01", "standard", c(0:10, NA)))
+  expect_error(CFtime("days since 1991-01-01", "utc", c(0:10, NA)))
 
   # CFtime() with only a definition
   t <- CFtime("d per 1991-01-01")
@@ -45,6 +46,7 @@ test_that("test all variants of creating a CFtime object and useful functions", 
   # Character offsets
   t <- CFtime("hours since 2023-01-01", "360_day", "2023-04-30T23:00")
   expect_equal(range(t), c("2023-01-01 00:00:00", "2023-04-30 23:00:00"))
+  expect_equal(range(t, bounds = TRUE), c("2023-01-01 00:00:00", "2023-04-30 23:00:00")) # bounds have not been set
   expect_equal(length(as_timestamp(t, "timestamp")), 4 * 30 * 24)
 
   t$bounds <- TRUE
@@ -115,6 +117,7 @@ test_that("test all variants of creating a CFtime object and useful functions", 
   t <- CFtime("hours since 2023-01-01 00:00:00", "standard", 0:239)
   expect_error(slice("zxcv"))
   expect_true(all(slice(t, c("2023-01-01", "2023-02-01"))))
+  expect_true(length(which(slice(t, c("2023-01-01", "2023-01-01")))) == 1) # Identical extremes
   expect_true(length(which(slice(t, c("2023-01-01", "2023-05-01")))) == 240)
   expect_true(length(which(slice(t, c("2023-01-01 00:00", "2023-01-01 04:00")))) == 4)
   expect_true(length(which(slice(t, c("2023-01-01 04:00", "2023-01-01 00:00")))) == 4) # extremes in reverse order
@@ -122,6 +125,11 @@ test_that("test all variants of creating a CFtime object and useful functions", 
   expect_true(all(!slice(t, c("2023-02-01", "2023-03-01")))) # both extremes outside time series
   expect_equal(sum(slice(t, c("2023-01-01 00:00", "2023-01-01 04:00", "2023-01-02 00:00"))), 24)
   expect_equal(sum(slice(t, c("2023-01-01 00:00", "2023-01-01 04:00", "2023-01-02 00:00"), TRUE)), 25)
+
+  t$bounds <- TRUE
+  s <- t$slice(c("2023-01-01", "2023-05-01"))
+  st <- attr(s, "CFTime")
+  expect_true(st$bounds)
 })
 
 test_that("Leap years on some calendars", {

@@ -13,6 +13,10 @@ test_that("Creating timestamps", {
   expect_equal(nchar(as_timestamp(cf)[1]), 10L) # date string
   expect_equal(length(as_timestamp(cf, "date", TRUE)), 365L)
   expect_equal(length(as_timestamp(cf, "timestamp", TRUE)), 365L)
+  expect_equal(as_timestamp(cf), as.character(cf))
+
+  cf <- cf + 364.56764
+  expect_equal(cf$range()[2], "2001-12-31 13:37:24.096")
 })
 
 test_that("Using format()", {
@@ -179,7 +183,15 @@ test_that("CFfactor testing", {
   expect_equal(x$double, c(180L, 184L, 184L, 182L)) # two full years
   expect_equal(x$final3, c(270L, 276L, 276L, 273L)) # three full years
   x <- unlist(CFfactor_coverage(cf, f, "relative"))
-  #expect_equal(x[1], 59 / 90). # works in the console but not here
+  expect_true(all(x[2L:12L] == 1L))
+
+  f <- CFfactor(cf, "quarter", eras)
+  expect_true(all(sapply(CFfactor_units(cf, f), function(x) {all(x == c(90L, 91L, 92L, 92L))})))
+  x <- CFfactor_coverage(cf, f, "absolute")
+  expect_equal(x$first[1L], 90L)
+  expect_equal(x$double, c(180L, 182L, 184L, 184L)) # two full years
+  expect_equal(x$final3, c(270L, 273L, 276L, 276L)) # three full years
+  x <- unlist(CFfactor_coverage(cf, f, "relative"))
   expect_true(all(x[2L:12L] == 1L))
 
   f <- CFfactor(cf, "month", eras)

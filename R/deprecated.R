@@ -13,7 +13,7 @@
 #' | CFmonth_days()      | [month_days()]       |
 #' | CFparse()           | [parse_timestamps()] |
 #' | CFrange()           | [range()]            |
-#' | CFsubset()          | [slab()]             |
+#' | CFsubset()          | [slice()]             |
 #' | CFtimestamp()       | [as_timestamp()]     |
 #'
 #' @param t,x,format,asPOSIX,extremes See replacement functions.
