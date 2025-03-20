@@ -92,12 +92,7 @@ the values permitted by the CF Metadata Conventions. If \code{NULL}, the
 
 \item{\code{offsets}}{Numeric or character vector, optional. When numeric, a
 vector of offsets from the origin in the time series. When a character
-vector of length 2 or more, timestamps in ISO8601 or UDUNITS format.
-When a character string, a timestamp in ISO8601 or UDUNITS format and
-then a time series will be generated with a separation between steps
-equal to the unit of measure in the definition, inclusive of the
-definition timestamp. The unit of measure of the offsets is defined by
-the \code{definition} argument.}
+vector of length 2 or more, timestamps in ISO8601 or UDUNITS format.}
 }
 \if{html}{\out{</div>}}
 }
@@ -468,11 +463,11 @@ is always -1.
 \if{html}{\out{<a id="method-CFTime-factor"></a>}}
 \if{latex}{\out{\hypertarget{method-CFTime-factor}{}}}
 \subsection{Method \code{factor()}}{
-Generate a factor for the offsets, or a part thereof. This is
-specifically interesting for creating factors from the date part of the
-time series that aggregate the time series into longer time periods (such
-as month) that can then be used to process daily CF data sets using, for
-instance, \code{tapply()}.
+Generate a factor for the offsets, or a part thereof. This
+is specifically interesting for creating factors from the date part of
+the time series that aggregate the time series into longer time periods
+(such as month) that can then be used to process daily CF data sets
+using, for instance, \code{tapply()}.
 
 The factor will respect the calendar that the time series is built on.
 
@@ -482,11 +477,10 @@ guarantee that the factor is ordered. For most processing with a factor
 the ordering is of no concern.
 
 If the \code{era} parameter is specified, either as a vector of years to
-include in the factor, or as a list of such vectors, the factor will only
-consider those values in the time series that fall within the list of
-years, inclusive of boundary values. Other values in the factor will be
-set to \code{NA}. The years need not be contiguous, within a single vector or
-among the list items, or in order.
+include in the factor, or as a list of such vectors, the factor will
+only consider those values in the time series that fall within the list
+of years, inclusive of boundary values. Other values in the factor will
+be set to \code{NA}.
 
 The following periods are supported by this method:
 
@@ -522,14 +516,13 @@ Factors based on the timestamp information and not dependent on the
 calendar can trivially be constructed from the output of the
 \code{\link[=as_timestamp]{as_timestamp()}} function.
 
-For non-era factors the attribute 'CFTime' of the result contains a
-\code{CFTime} instance that is valid for the result of applying the factor to
-a resource that this instance is associated with. In other words, if
-\code{CFTime} instance 'At' describes the temporal dimension of resource 'A'
-and a factor 'Af' is generated from \code{Af <- At$factor()}, then
-\code{Bt <- attr(Af, "CFTime")} describes the temporal dimension of the result
-of, say, \code{B <- apply(A, 1:2, tapply, Af, FUN)}. The 'CFTime' attribute is
-\code{NULL} for era factors.
+Attribute 'CFTime' of the result contains a \code{CFTime} instance that is
+valid for the result of applying the factor to a resource that this
+instance is associated with. In other words, if \code{CFTime} instance 'At'
+describes the temporal dimension of resource 'A' and a factor 'Af' is
+generated from \code{Af <- At$factor()}, then \code{Bt <- attr(Af, "CFTime")}
+describes the temporal dimension of the result of, say, \code{B <- apply(A, 1:2, tapply, Af, FUN)}. The 'CFTime' attribute contains a
+\link{CFClimatology} instance for era factors.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{CFTime$factor(period = "month", era = NULL)}\if{html}{\out{</div>}}
 }
@@ -542,26 +535,26 @@ of, say, \code{B <- apply(A, 1:2, tapply, Af, FUN)}. The 'CFTime' attribute is
 
 \item{\code{era}}{numeric or list, optional. Vector of years for which to
 construct the factor, or a list whose elements are each a vector of
-years. If \code{era} is not specified, the factor will use the entire time
-series for the factor.}
+years. The extreme values of the supplied vector will be used. If \code{era}
+is not specified, the factor will use the entire time series for the
+factor.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-If \code{era} is a single vector or not specified, a factor with a
-length equal to the number of offsets in this instance. If \code{era} is a
-list, a list with the same number of elements and names as \code{era},
-each containing a factor. Elements in the factor will be set to \code{NA}
-for time series values outside of the range of specified years.
+If \code{era} is a single vector or \code{NULL}, a factor with a length
+equal to the number of offsets in this instance. If \code{era} is a list, a
+list with the same number of elements and names as \code{era}, each
+containing a factor. Elements in the factor will be set to \code{NA} for
+time series values outside of the range of specified years.
 
-The factor, or factors in the list, have attributes 'period', 'era'
-and 'CFTime'. Attribute 'period' holds the value of the \code{period}
-argument. Attribute 'era' indicates the number of years that are
-included in the era, or -1 if no \code{era} is provided. Attribute
-'CFTime' holds an instance of \code{CFTime} that has the same definition as
-this instance, but with offsets corresponding to the mid-point of
-non-era factor levels; if the \code{era} argument is specified,
-attribute 'CFTime' is \code{NULL}.
+The factor, or factors in the list, have attributes 'period', 'era' and
+'CFTime'. Attribute 'period' holds the value of the \code{period} argument.
+Attribute 'era' indicates the number of years that are included in the
+era, or -1 if no \code{era} is provided. Attribute 'CFTime' holds an
+instance of \code{CFTime} or \code{CFClimatology} that has the same definition as
+this instance, but with offsets corresponding to the mid-point of the
+factor levels.
 }
 }
 \if{html}{\out{<hr>}}

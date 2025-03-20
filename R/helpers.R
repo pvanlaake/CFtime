@@ -67,7 +67,7 @@
     format <- "date"
 
   if (format == "date") return(sprintf("%04d-%02d-%02d", ts$year, ts$month, ts$day))
-  else if (format == "timestamp") return(sprintf("%04d-%02d-%02d %s", ts$year, ts$month, ts$day, .format_time(ts)))
+  else if (format == "timestamp") return(sprintf("%04d-%02d-%02dT%s", ts$year, ts$month, ts$day, .format_time(ts)))
 
   # Expand any composite specifiers
   format <- stringr::str_replace_all(format, c("%F" = "%Y-%m-%d", "%R" = "%H:%M", "%T" = "%H:%M:%S"))

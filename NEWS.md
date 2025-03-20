@@ -1,7 +1,12 @@
 # CFtime (development version)
 
+* New class `CFClimatology` to manage climatological statistics. Method
+`CFTime$factor()` with an `era` argument will now have a `CFClimatology`
+instance attached to the attribute "CFTime" of its return value.
 * Fixed new `CFTime` instance for factor with a "day" or "dekad" period where
 the last factor level is not at the end of the year.
+* `CFTime$new()` with a single character string offset will generate only the
+single corresponding offset.
 * Test coverage near-complete.
 * Fixed inconsistent documentation for functions.
 * Minor code fixes.

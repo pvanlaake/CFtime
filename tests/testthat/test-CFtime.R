@@ -44,13 +44,9 @@ test_that("test all variants of creating a CFtime object and useful functions", 
   expect_error(CFtime("d per 1991-01-01", "julian", c(TRUE, FALSE, FALSE)))
 
   # Character offsets
-  t <- CFtime("hours since 2023-01-01", "360_day", "2023-04-30T23:00")
-  expect_equal(range(t), c("2023-01-01 00:00:00", "2023-04-30 23:00:00"))
+  t <- CFtime("hours since 2023-01-01", "360_day", c("2023-01-01T00:00:00", "2023-04-30T23:00"))
   expect_equal(range(t, bounds = TRUE), c("2023-01-01 00:00:00", "2023-04-30 23:00:00")) # bounds have not been set
-  expect_equal(length(as_timestamp(t, "timestamp")), 4 * 30 * 24)
-
-  t$bounds <- TRUE
-  expect_equal(t$range(bounds = TRUE), c("2022-12-30 23:30:00", "2023-04-30 23:30:00"))
+  expect_equal(length(as_timestamp(t, "timestamp")), 2)
 
   expect_warning(t <- CFtime("days since 2023-01-01", "366_day", c("2023-01-01", "2023-04-13", "2023-10-30", "2023-05-12")))
   expect_equal(range(t), c("2023-01-01", "2023-10-30"))

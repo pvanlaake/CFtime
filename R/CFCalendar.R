@@ -72,7 +72,7 @@ CFCalendar <- R6::R6Class("CFCalendar",
       tz <- self$timezone
       if (tz == "+0000") tz <- ""
       cat("CF calendar:",
-          "\n  Origin  : ", self$origin_date, " ", self$origin_time, tz,
+          "\n  Origin  : ", self$origin_date, "T", self$origin_time, tz,
           "\n  Units   : ", CFt$units$name[self$unit],
           "\n  Type    : ", self$name, "\n",
           sep = "")

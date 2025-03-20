@@ -131,3 +131,13 @@ Not implemented.
 ## 4.4.5. Explicitly Defined Calendar
 
 Not implemented.
+
+## 7.4. Climatological statistics
+
+The time coordinate with climatological bounds is fully supported, with the
+exception of using year 0 in the `standard` and `julian` calendars to flag
+climatological data.
+
+This package is agnostic to the underlying statistical operation that produced
+the *climatological time* so the `cell_methods` attribute is not inspected nor
+interpreted.

@@ -39,6 +39,7 @@ Collate:
     'CFCalendarStandard.R'
     'CFCalendarTAI.R'
     'CFCalendarUTC.R'
+    'CFClimatology.R'
     'CFtime-package.R'
     'CFtime.R'
     'deprecated.R'
