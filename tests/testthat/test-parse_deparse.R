@@ -98,29 +98,29 @@ test_that("Gregorian/Julian calendar gap in the standard calendar", {
 test_that("Leap seconds in the utc calendar work fine", {
   expect_error(CFtime("seconds since 1792-01-01", "utc")) # No UTC in 1792
   t <- CFTime$new("seconds since 1972-06-30 23:59:57", "utc", 1:4)
-  expect_equal(as_timestamp(t), c("1972-06-30 23:59:58", "1972-06-30 23:59:59",
-                                  "1972-06-30 23:59:60", "1972-07-01 00:00:00"))
+  expect_equal(as_timestamp(t), c("1972-06-30T23:59:58", "1972-06-30T23:59:59",
+                                  "1972-06-30T23:59:60", "1972-07-01T00:00:00"))
 
   expect_error(CFTime$new("seconds since 1973-06-30 23:59:60", "utc", -1:2)) # Bad leap second
   t <- CFTime$new("seconds since 1972-06-30 23:59:60", "utc", -1:2)
-  expect_equal(as_timestamp(t), c("1972-06-30 23:59:59", "1972-06-30 23:59:60",
-                                  "1972-07-01 00:00:00", "1972-07-01 00:00:01"))
+  expect_equal(as_timestamp(t), c("1972-06-30T23:59:59", "1972-06-30T23:59:60",
+                                  "1972-07-01T00:00:00", "1972-07-01T00:00:01"))
 
   t <- CFTime$new("seconds since 2016-12-31 23:59:58", "utc", 1:4)
-  expect_equal(as_timestamp(t), c("2016-12-31 23:59:59", "2016-12-31 23:59:60",
-                                  "2017-01-01 00:00:00", "2017-01-01 00:00:01"))
+  expect_equal(as_timestamp(t), c("2016-12-31T23:59:59", "2016-12-31T23:59:60",
+                                  "2017-01-01T00:00:00", "2017-01-01T00:00:01"))
 
   t <- CFTime$new("minutes since 2016-12-31 23:58:00", "utc", 1:4)
-  expect_equal(as_timestamp(t), c("2016-12-31 23:59:00", "2016-12-31 23:59:60",
-                                  "2017-01-01 00:00:59", "2017-01-01 00:01:59"))
+  expect_equal(as_timestamp(t), c("2016-12-31T23:59:00", "2016-12-31T23:59:60",
+                                  "2017-01-01T00:00:59", "2017-01-01T00:01:59"))
 
   t <- CFTime$new("hours since 2016-12-31 22:00", "utc", 1:4)
-  expect_equal(as_timestamp(t), c("2016-12-31 23:00:00", "2016-12-31 23:59:60",
-                                  "2017-01-01 00:59:59", "2017-01-01 01:59:59"))
+  expect_equal(as_timestamp(t), c("2016-12-31T23:00:00", "2016-12-31T23:59:60",
+                                  "2017-01-01T00:59:59", "2017-01-01T01:59:59"))
 
   t <- CFTime$new("days since 2016-12-30", "utc", 1:4)
-  expect_equal(as_timestamp(t), c("2016-12-31 00:00:00", "2016-12-31 23:59:60",
-                                  "2017-01-01 23:59:59", "2017-01-02 23:59:59"))
+  expect_equal(as_timestamp(t), c("2016-12-31T00:00:00", "2016-12-31T23:59:60",
+                                  "2017-01-01T23:59:59", "2017-01-02T23:59:59"))
 })
 
 test_that("Fractional time parts and replace Z timezone with offset", {

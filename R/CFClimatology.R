@@ -41,7 +41,7 @@ CFClimatology <- R6::R6Class("CFClimatology",
         stop("Argument 'bounds' must be a matrix with two rows and as many columns as the length of argument 'offset'", call. = FALSE)
 
       super$initialize(definition, calendar, offsets)
-      self$bounds <- bounds
+      self$bounds <- self$set_bounds(bounds)
 
       # Determine period and years from the bounds of the first offset
       time <- self$cal$offsets2time(bounds[1L:2L, 1L])
@@ -73,11 +73,11 @@ CFClimatology <- R6::R6Class("CFClimatology",
         sprintf("  Elements: [%s .. %s] (average of %f %s between %d elements)\n",
                 d[1L], d[2L], self$resolution, CFt$units$name[self$cal$unit], noff)
       } else
-        paste("  Elements:", d[1L], "\n")
+        paste0("  Elements: ", d[1L], "\n")
 
-      p <- paste("  Period  :", private$.period, "\n")
-      if (private$.years[1L] == private$.years[2L]) y <- paste("  Year    :", private$.years[1L], "\n")
-      else y <- paste("  Years   :", private$.years[1L], "-", private$.years[2L], "(inclusive)\n")
+      p <- paste0("  Period  : ", private$.period, "\n")
+      if (private$.years[1L] == private$.years[2L]) y <- paste0("  Year    : ", private$.years[1L], "\n")
+      else y <- paste0("  Years   : ", private$.years[1L], " - ", private$.years[2L], " (inclusive)\n")
 
       cal <- capture.output(self$cal$print())
       cat(paste(cal, collapse = "\n"), "\nClimatological time series:\n",  el, p, y, sep = "")

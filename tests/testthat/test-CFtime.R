@@ -38,14 +38,14 @@ test_that("test all variants of creating a CFtime object and useful functions", 
   # CFtime with a single offset
   t <- t + 15
   expect_equal(as_timestamp(t, "date"), "1991-01-16")
-  expect_match(capture_output(t$print()), "Elements: 1991-01-16 \\n  Bounds  : not set$")
+  expect_match(capture_output(t$print()), "Element : 1991-01-16 \\n  Bounds  : not set$")
 
   # Invalid offsets
   expect_error(CFtime("d per 1991-01-01", "julian", c(TRUE, FALSE, FALSE)))
 
   # Character offsets
   t <- CFtime("hours since 2023-01-01", "360_day", c("2023-01-01T00:00:00", "2023-04-30T23:00"))
-  expect_equal(range(t, bounds = TRUE), c("2023-01-01 00:00:00", "2023-04-30 23:00:00")) # bounds have not been set
+  expect_equal(range(t, bounds = TRUE), c("2023-01-01T00:00:00", "2023-04-30T23:00:00")) # bounds have not been set
   expect_equal(length(as_timestamp(t, "timestamp")), 2)
 
   expect_warning(t <- CFtime("days since 2023-01-01", "366_day", c("2023-01-01", "2023-04-13", "2023-10-30", "2023-05-12")))
@@ -143,4 +143,17 @@ test_that("Working with packages and files", {
       nc <- ncdfCF::open_ncdf(f)
       expect_s3_class(nc[["time"]]$values, "CFTime")
     })
+})
+
+test_that("Calendar 'none'", {
+  t <- CFTime$new("days since 2025-01-01", "none")
+  expect_true(inherits(t$cal, "CFCalendarNone"))
+  t <- t + 0:4
+  ymd <- data.frame(year = c(rep(2025, 5), NA), month = c(rep(1, 5), NA), day = c(1, 1, 1, 2, 3, NA))
+  expect_equal(t$cal$valid_days(ymd), c(T, T, T, F, F, NA))
+  expect_equal(t$cal$month_days(), rep(NA, 12))
+  expect_equal(t$cal$month_days(ymd), rep(NA, 6))
+  expect_equal(t$cal$leap_year(ymd$year), rep(NA, 6))
+  expect_equal(t$cal$date2offset(ymd), c(0, 0, 0, 0, 0, NA))
+  expect_equal(t$cal$offset2date(1:5), data.frame(year = rep(2025, 5), month = rep(1, 5), day = rep(1, 5)))
 })

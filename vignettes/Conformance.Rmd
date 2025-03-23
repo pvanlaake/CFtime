@@ -106,7 +106,7 @@ neither is any time zone indication.
 * `no_leap` / `365_day`: Fully conformant.
 * `all_leap` / `366_day`: Fully conformant.
 * `360_day`: Fully conformant.
-* `none`: Not implemented.
+* `none`: Fully conformant.
 
 ## 4.4.3. Leap seconds
 
@@ -126,7 +126,7 @@ with a caveat communicated through the `units_metdata` attribute.
 
 ## 4.4.4. Time Coordinates with no Annual Cycle
 
-Not implemented.
+Fully conformant.
 
 ## 4.4.5. Explicitly Defined Calendar
 
@@ -136,7 +136,8 @@ Not implemented.
 
 The time coordinate with climatological bounds is fully supported, with the
 exception of using year 0 in the `standard` and `julian` calendars to flag
-climatological data.
+climatological data (which is a deprecated practice as per the CF Metadata
+Conventions.
 
 This package is agnostic to the underlying statistical operation that produced
 the *climatological time* so the `cell_methods` attribute is not inspected nor

@@ -19,10 +19,14 @@ https://cfconventions.org/Data/cf-conventions/cf-conventions-1.12/cf-conventions
 \section{Super class}{
 \code{\link[CFtime:CFTime]{CFtime::CFTime}} -> \code{CFClimatology}
 }
-\section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
+\section{Active bindings}{
+\if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
-\item{\code{days}}{Temp for debugging}
+\item{\code{period}}{(read-only) Character string indicating the period during
+the year over which the climatology was calculated.}
+
+\item{\code{years}}{(read-only) Vector of two integer values indicating the
+years over which the climatology was calculated.}
 }
 \if{html}{\out{</div>}}
 }

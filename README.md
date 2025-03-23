@@ -95,6 +95,9 @@ All defined calendars of the CF Metadata Conventions are supported:
 - `360_day`: This is a “model time” calendar in which every year has 360
   days divided over 12 months of 30 days each. Year 0 exists, as well as
   years prior to that.
+- `none`: Perpetual “calendar” for experiments that are simulated on a
+  given instant during the year. All the elements in this calendar thus
+  represent the same instant in time.
 
 Use of custom calendars is currently not supported.
 
@@ -146,7 +149,8 @@ interest, here a Coordinated Regional Climate Downscaling Experiment
 > automatically identifying axes and data orientation. Other packages
 > like `terra` and `stars` are not recommended because they do not
 > provide access to the specifics of the time dimension of the data and
-> do not consider any calendars other than “proleptic_gregorian”.
+> do not properly consider any calendars other than “standard” and
+> “proleptic_gregorian”.
 
 ``` r
 # install.packages("ncdfCF")
@@ -168,12 +172,12 @@ dimnames(ds)
 # Get the CFTime instance from the "time" axis
 (time <- ds[["time"]]$time())
 #> CF calendar:
-#>   Origin  : 1850-01-01 00:00:00
+#>   Origin  : 1850-01-01T00:00:00
 #>   Units   : days
 #>   Type    : noleap
 #> Time series:
-#>   Elements: [2015-01-01 12:00:00 .. 2099-12-31 12:00:00] (average of 1.000000 days between 31025 elements)
-#>   Bounds  : regular and consecutive
+#>   Elements: [2015-01-01T12:00:00 .. 2099-12-31T12:00:00] (average of 1.000000 days between 31025 elements)
+#>   Bounds  : irregular
 ```
 
 Note that the `ncdfCF` package reads the netCDF file and interprets its

@@ -18,58 +18,26 @@ knitr::opts_chunk$set(
 library(CFtime)
 ```
 
-Climate projection data sets are produced in a variety of formats but all conform 
-to the CF Metadata Conventions. NetCDF data files, in particular, are highly
-structured and relatively easy to process. That said, it is very important to
-maintain a proper processing workflow such that the small changes in the climate
-projections are maintained and revealed through analysis. In this document, the
-basic workflow with varying calendars is described.
+Climate projection data sets are produced in a variety of formats but all conform to the CF Metadata Conventions. NetCDF data files, in particular, are highly structured and relatively easy to process. That said, it is very important to maintain a proper processing workflow such that the small changes in the climate projections are maintained and revealed through analysis. In this document, the basic workflow with varying calendars is described.
 
 > In this vignette we are using the [`ncdfCF` package](https://cran.r-project.org/package=ncdfCF) as that provides the easiest interface to work with netCDF files. Package `CFtime` is integrated into `ncdfCF` which makes working with time dimensions in netCDF seamless.  
 > Packages `RNetCDF` and `ncdf4` can work with `CFtime` as well but then the "intelligence" built into `ncdfCF` is not available, such as automatically identifying axes and data orientation. Other packages like `terra` and `stars` are not recommended because they do not provide access to the specifics of the time dimension of the data and do not consider any calendars other than "proleptic_gregorian".
 
 ## Processing climate projection data
 
-Individual files containing climate projections contain global, regional or local
-data, typically on a rectangular latitude-longitude grid, for a single parameter
-such as "near-surface temperature", and for a number of time steps. An analysis
-workflow then consists of a number of steps:
+Individual files containing climate projections contain global, regional or local data, typically on a rectangular latitude-longitude grid, for a single parameter such as "near-surface temperature", and for a number of time steps. An analysis workflow then consists of a number of steps:
 
- - Download the appropriate data files for your desired combination of model, experiment, realization,
- geography, time range, parameter, ... (called a "data suite" henceforth). If your 
- analysis involves multiple parameters (such as temperature and precipitation to 
- estimate crop productivity), repeat the process for all parameters. If you want 
- to make a multi-model ensemble to reduce model bias, repeat again for all desired model, 
- experiment and realization combinations ("ensemble member"). You end up having 
- one or more data suites to work with.
- - Take all files in a data suite and extract the data. Process the data in the 
- data suite. Since the data are (mostly) 3-dimensional arrays, this will involve 
- binding the arrays on the right dimension and then do something like 
- `apply(data, 1:2, tapply, f, fun)` (following the CF Metadata Conventions,
- dimensions 1 and 2 are "longitude" and "latitude", respectively; the third 
- dimension is "time"; none of this is standardized though and deviations are out
- there; package `ncdfCF` can help with the `CFData$array()` method). Repeat for 
- the data suite for each ensemble member.
- - Combine the above results as your workflow requires. Frequently this involves 
- computing "anomalies": ratio the data for one or more future periods to a 
- baseline period. Repeat for each ensemble member.
+ - Download the appropriate data files for your desired combination of model, experiment, realization, geography, time range, parameter, ... (called a "data suite" henceforth). If your analysis involves multiple parameters (such as temperature and precipitation to estimate crop productivity), repeat the process for all parameters. If you want to make a multi-model ensemble to reduce model bias, repeat again for all desired model, experiment and realization combinations ("ensemble member"). You end up having one or more data suites to work with.
+ - Take all files in a data suite and extract the data. Process the data in the data suite. Since the data are (mostly) 3-dimensional arrays, this will involve binding the arrays on the right dimension and then do something like `apply(data, 1:2, tapply, f, fun)` (following the CF Metadata Conventions, dimensions 1 and 2 are "longitude" and "latitude", respectively; the third dimension is "time"; none of this is standardized though and deviations are out there; package `ncdfCF` can help with the `CFData$array()` method). Repeat for the data suite for each ensemble member.
+ - Combine the above results as your workflow requires. Frequently this involves computing "anomalies": ratio the data for one or more future periods to a baseline period. Repeat for each ensemble member.
  - Construct the multi-model ensemble from the individual ensemble members.
  
-Apart from the first step of obtaining the data, the steps lend themselves well
-to automation. The catch, however, is in the factor `f` to use with `tapply()`.
-The different models (in your ensemble) use different calendars, meaning that
-different factors are required. The `CFtime` package can help out.
+Apart from the first step of obtaining the data, the steps lend themselves well to automation. The catch, however, is in the factor `f` to use with `tapply()`. The different models (in your ensemble) use different calendars, meaning that different factors are required. The `CFtime` package can help out.
 
-The `CFTime$factor()` method produces a factor that respects the calendar of the
-data files. The method comes in two operating modes:
+The `CFTime$factor()` method produces a factor that respects the calendar of the data files. The method comes in two operating modes:
 
- - Plain vanilla mode produces a factor for a time period across the entire
- time series. The factor level includes the year. This would be useful to calculate 
- mean temperature for every month in every year, for instance.
- - When one or more "eras" (periods of interest) are provided, the factor level 
- no longer includes the year and can be used to calculate, for instance, the mean
- temperature per period of interest in the era (e.g. average March temperature
- in the era 2041-2060).
+ - Plain vanilla mode produces a factor for a time period across the entire time series. The factor level includes the year. This would be useful to calculate mean temperature for every month in every year, for instance.
+ - When one or more "eras" (periods of interest) are provided, the factor level no longer includes the year and can be used to calculate, for instance, the mean temperature per period of interest in the era (e.g. average March temperature in the era 2041-2060).
  
 ```{r}
 # Setting up
@@ -87,10 +55,7 @@ str(baseline)
 str(future)
 ```
 
-Building on the examples above of opening a file, creating a `CFTime` instance
-and a suitable factor for one data suite, here daily rainfall, the actual
-processing of the data into precipitation anomalies for 3 periods relative to a
-baseline period could look like this:
+Building on the examples above of opening a file, creating a `CFTime` instance and a suitable factor for one data suite, here daily rainfall, the actual processing of the data into precipitation anomalies for 3 periods relative to a baseline period could look like this:
 
 ```{r}
 # Get the data for the "pr" data variable from the netCDF data set.
@@ -121,28 +86,13 @@ lines(1:12, ano$late[,1,1], type = "o", col = "red")
 
 Looks like Hadley will be needing rubber boots in spring and autumn back home!
 
-The interesting feature, working from opening the netCDF file down to plotting, is that
-the specifics of the CF calendar that the data suite uses do not have to be considered
-anywhere in the processing workflow: the `CFtime` package provides the functionality.
-Data suites using another CF calendar are processed exactly the same.
+The interesting feature, working from opening the netCDF file down to plotting, is that the specifics of the CF calendar that the data suite uses do not have to be considered anywhere in the processing workflow: the `CFtime` package provides the functionality. Data suites using another CF calendar are processed exactly the same.
 
 ## Combining data from different models with different calendars
 
-Different climate projection data sets can use different calendars. It is
-absolutely essential to respect the calendar of the different data sets because
-the underlying solar and atmospheric physics are based on those calendars as
-well.
+Different climate projection data sets can use different calendars. It is absolutely essential to respect the calendar of the different data sets because the underlying solar and atmospheric physics are based on those calendars as well.
 
-In a typical situation, a researcher would construct a multi-model ensemble to
-remove or reduce the bias in any given model. The data sets composing the
-ensemble might well use different calendars. The correct way of constructing an
-ensemble is to perform the desired analysis on every ensemble member individually
-and to combine them only in the final step and to then perform any ensemble operations
-such as computing confidence intervals. The design of the `CFtime` package makes
-it easy to do this, through its heavy use of lists. Building on the previous
-example, let's make a multi-model ensemble of 2 models (not much of an ensemble
-but such are the limitations of including data with packages - the example easily
-extends to a larger set of ensemble members).
+In a typical situation, a researcher would construct a multi-model ensemble to remove or reduce the bias in any given model. The data sets composing the ensemble might well use different calendars. The correct way of constructing an ensemble is to perform the desired analysis on every ensemble member individually and to combine them only in the final step and to then perform any ensemble operations such as computing confidence intervals. The design of the `CFtime` package makes it easy to do this, through its heavy use of lists. Building on the previous example, let's make a multi-model ensemble of 2 models (not much of an ensemble but such are the limitations of including data with packages - the example easily extends to a larger set of ensemble members).
 
 ```{r}
 # Get the list of files that make up the ensemble members, here:
@@ -177,39 +127,15 @@ rownames(ensemble) <- rownames(ano[[1]][[1]])
 ensemble
 ```
 
-Here we simply compute the average of the monthly precipitation anomaly over the
-ensemble members. In a more typical scenario, you would use the values from the 
-individual models and to apply a more suitable analysis, such as calculating 
-the confidence interval or model agreement.
+Here we simply compute the average of the monthly precipitation anomaly over the ensemble members. In a more typical scenario, you would use the values from the individual models and to apply a more suitable analysis, such as calculating the confidence interval or model agreement.
 
-One significant advantage of this processing workflow is that it is easily 
-parallelized: the bulk of the work goes into computing the anomalies, `ano`, and
-this is [embarrassingly parallel](https://en.wikipedia.org/wiki/Embarrassingly_parallel)
-because they read their own data and produce independent outputs. Use 
-[package future](https://cran.r-project.org/package=future) or something similar 
-to easily make the code run on all available CPU cores.
+One significant advantage of this processing workflow is that it is easily parallelized: the bulk of the work goes into computing the anomalies, `ano`, and this is [embarrassingly parallel](https://en.wikipedia.org/wiki/Embarrassingly_parallel) because they read their own data and produce independent outputs. Use [package future](https://cran.r-project.org/package=future) or something similar to easily make the code run on all available CPU cores.
 
 ## Working with multiple files in a single data suite
 
-Due to the large size of typical climate projection data files, it is
-common to have a data suite that is contained in multiple files. A case in point
-is the CORDEX data set which breaks up the experiment period of 2006 - 2100 into
-19 files of 5 years each, with each file covering a single parameter (temperature,
-precipitation, etc) over an entire domain (such as Europe, South Asia, Central 
-America and the Caribbean, etc). The CFtime package can streamline processing of
-such multi-file data suites as well.
+Due to the large size of typical climate projection data files, it is common to have a data suite that is contained in multiple files. A case in point is the CORDEX data set which breaks up the experiment period of 2006 - 2100 into 19 files of 5 years each, with each file covering a single parameter (temperature, precipitation, etc) over an entire domain (such as Europe, South Asia, Central America and the Caribbean, etc). The CFtime package can streamline processing of such multi-file data suites as well.
 
-Assuming that you have your CORDEX files in a directory on disk, organized by domain
-and other properties such as the variable, GCM/RCM combination, experiment, etc, 
-the process of preparing the files for processing could be encoded in a function 
-as below. The argument `fn` is a list of file names to process, and `var` is the
-variable contained in the files. (There are no checks on argument sanity here, 
-which should really be included. This function only makes sense for a single
-[domain, GCM/RCM, experiment, variable] combination. Also be aware of data size,
-CORDEX files are huge and stitching all domain data together will easily exhaust
-available memory and it may thus lead to very large swap files and very poor 
-performance - use the `ncdfCF::CFVariable$subset()` method to read spatial or
-temporal chunks of data to avoid such problems.)
+Assuming that you have your CORDEX files in a directory on disk, organized by domain and other properties such as the variable, GCM/RCM combination, experiment, etc, the process of preparing the files for processing could be encoded in a function as below. The argument `fn` is a list of file names to process, and `var` is the variable contained in the files. (There are no checks on argument sanity here, which should really be included. This function only makes sense for a single [domain, GCM/RCM, experiment, variable] combination. Also be aware of data size, CORDEX files are huge and stitching all domain data together will easily exhaust available memory and it may thus lead to very large swap files and very poor performance - use the `ncdfCF::CFVariable$subset()` method to read spatial or temporal chunks of data to avoid such problems.)
 
 ```{r eval = FALSE}
 library(ncdfCF)
@@ -237,53 +163,17 @@ prepare_CORDEX <- function(fn, var, aoi) {
 }
 ```
 
-Calling this function like `prepare_CORDEX(list.files(path = "~/CC/CORDEX/CAM",
-pattern = "^pr.*\\.nc$", full.names = TRUE), "pr", ncdfCF::aoi(0, 20, 30, 50))` 
-will yield a list of netCDF files with precipitation data, with the resulting 
-`CFTime` instance describing the full temporal extent covered by the data files, 
-as well as the data bound on the temporal dimension, ready for further processing.
+Calling this function like `prepare_CORDEX(list.files(path = "~/CC/CORDEX/CAM", pattern = "^pr.*\\.nc$", full.names = TRUE), "pr", ncdfCF::aoi(0, 20, 30, 50))` will yield a list of netCDF files with precipitation data, with the resulting `CFTime` instance describing the full temporal extent covered by the data files, as well as the data bound on the temporal dimension, ready for further processing.
 
-When working like this it is imperative that the offsets and the data arrays are
-added to their final structures *in exactly the same order*. It is not necessary
-that the offsets (and the data) themselves are in order, but the correspondence
-between offsets and data needs to be maintained. (`list.files()` produces a list
-in alphabetical order by default, which for most climate projection files
-produces offsets in chronological order.)
+When working like this it is imperative that the offsets and the data arrays are added to their final structures *in exactly the same order*. It is not necessary that the offsets (and the data) themselves are in order, but the correspondence between offsets and data needs to be maintained. (`list.files()` produces a list in alphabetical order by default, which for most climate projection files produces offsets in chronological order.)
 
 ## Acknowledgements
 
-The results presented contain modified data from Copernicus Climate Change 
-Service information, 2023-2025. Neither the European Commission nor ECMWF is responsible 
-for any use that may be made of the Copernicus information or data it contains.
+The results presented contain modified data from Copernicus Climate Change Service information, 2023-2025. Neither the European Commission nor ECMWF is responsible for any use that may be made of the Copernicus information or data it contains.
 
-We acknowledge the World Climate Research Programme, which, through its Working 
-Group on Coupled Modelling, coordinated and promoted CMIP6. We thank the climate 
-modeling groups for producing and making available their model output, the Earth 
-System Grid Federation (ESGF) for archiving the data and providing access, and the 
-multiple funding agencies who support CMIP6 and ESGF.
+We acknowledge the World Climate Research Programme, which, through its Working Group on Coupled Modelling, coordinated and promoted CMIP6. We thank the climate modeling groups for producing and making available their model output, the Earth System Grid Federation (ESGF) for archiving the data and providing access, and the multiple funding agencies who support CMIP6 and ESGF.
 
-The two data sets used as examples in this vignette carry the following license
-statements:
+The two data sets used as examples in this vignette carry the following license statements:
 
- - **pr_day_GFDL-ESM4_ssp245_r1i1p1f1_gr1_20150101-20991231_v20180701.nc:** CMIP6 
-model data produced by NOAA-GFDL is licensed under a Creative Commons Attribution-ShareAlike 
-4.0 International License (https://creativecommons.org/licenses/). Consult
-https://pcmdi.llnl.gov/CMIP6/TermsOfUse/ for terms of use governing CMIP6 output, 
-including citation requirements and proper acknowledgment. Further information 
-about this data, including some limitations, can be found via the further_info_url 
-(recorded as a global attribute in this file). The data producers and data providers 
-make no warranty, either express or implied, including, but not limited to, warranties 
-of merchantability and fitness for a particular purpose. All liabilities arising 
-from the supply of the information (including any liability arising in negligence) 
-are excluded to the fullest extent permitted by law.
- - **pr_day_MRI-ESM2-0_ssp245_r1i1p1f1_gn_20150101-20991231_v20190603.nc:** CMIP6 
-model data produced by MRI is licensed under a Creative Commons Attribution-ShareAlike 
-4.0 International License (https://creativecommons.org/licenses/). Consult
-https://pcmdi.llnl.gov/CMIP6/TermsOfUse/ for terms of use governing CMIP6 output, 
-including citation requirements and proper acknowledgment. Further information about 
-this data, including some limitations, can be found via the further_info_url (recorded
-as a global attribute in this file). The data producers and data providers make no 
-warranty, either express or implied, including, but not limited to, warranties of 
-merchantability and fitness for a particular purpose. All liabilities arising from
-the supply of the information (including any liability arising in negligence) are 
-excluded to the fullest extent permitted by law.
+ - **pr_day_GFDL-ESM4_ssp245_r1i1p1f1_gr1_20150101-20991231_v20180701.nc:** CMIP6 model data produced by NOAA-GFDL is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License (https://creativecommons.org/licenses/). Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse/ for terms of use governing CMIP6 output, including citation requirements and proper acknowledgment. Further information about this data, including some limitations, can be found via the further_info_url (recorded as a global attribute in this file). The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.
+ - **pr_day_MRI-ESM2-0_ssp245_r1i1p1f1_gn_20150101-20991231_v20190603.nc:** CMIP6 model data produced by MRI is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License (https://creativecommons.org/licenses/). Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse/ for terms of use governing CMIP6 output, including citation requirements and proper acknowledgment. Further information about this data, including some limitations, can be found via the further_info_url (recorded as a global attribute in this file). The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.

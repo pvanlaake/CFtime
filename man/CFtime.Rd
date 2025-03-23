@@ -535,9 +535,10 @@ describes the temporal dimension of the result of, say, \code{B <- apply(A, 1:2,
 
 \item{\code{era}}{numeric or list, optional. Vector of years for which to
 construct the factor, or a list whose elements are each a vector of
-years. The extreme values of the supplied vector will be used. If \code{era}
-is not specified, the factor will use the entire time series for the
-factor.}
+years. The extreme values of the supplied vector will be used. Note
+that if a single year is specified that the result is valid, but not a
+climatological statistic. If \code{era} is not specified, the factor will
+use the entire time series for the factor.}
 }
 \if{html}{\out{</div>}}
 }

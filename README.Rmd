@@ -39,35 +39,15 @@ That's a difference of nearly 21 months! (And yes, 30 February is a valid date o
 
 All defined calendars of the CF Metadata Conventions are supported:
 
--   `standard` or `gregorian`: This calendar is valid for the Common Era only; it
-starts at 0001-01-01 00:00:00, i.e. 1 January of year 1. Time periods prior to the
-introduction of the Gregorian calendar (1582-10-15) use the `julian` calendar
-that was in common use then. The 10-day gap between the Julian and Gregorian
-calendars is observed, so dates in the range 5 to 14 October 1582 are invalid.
--   `proleptic_gregorian`: This calendar uses the Gregorian calendar for periods
-prior to the introduction of that calendar as well, and it extends to periods
-before the Common Era, e.g. year 0 and negative years.
--   `tai`: International Atomic Time, a global standard for linear time based on
-multiple atomic clocks: it counts seconds since its start at 1958-01-01 00:00:00. 
-For presentation it uses the Gregorian calendar. Timestamps prior to its start 
-are not allowed.
--   `utc`: Coordinated Universal Time, the standard for civil timekeeping all
-over the world. It is based on International Atomic Time but it uses occasional
-leap seconds to remain synchronous with Earth's rotation around the Sun; at the
-end of 2024 it is 37 seconds behind `tai`. It uses the Gregorian calendar with a
-start at 1972-01-01 00:00:00; earlier timestamps are not allowed. Future timestamps
-are also not allowed because the insertion of leap seconds is unpredictable.
-Most computer clocks synchronize against UTC but calculations of periods do not 
-consider leap seconds.
--   `julian`: The `julian` calendar has a leap year every four years, including
-centennial years. Otherwise it is the same as the `standard` calendar.
--   `365_day` or `noleap`: This is a "model time" calendar in which no leap years
-occur. Year 0 exists, as well as years prior to that.
--   `366_day` or `all_leap`: This is a "model time" calendar in which all years
-are leap years. Year 0 exists, as well as years prior to that.
--   `360_day`: This is a "model time" calendar in which every year has 360 days
-divided over 12 months of 30 days each. Year 0 exists, as well as years prior to 
-that.
+-   `standard` or `gregorian`: This calendar is valid for the Common Era only; it starts at 0001-01-01 00:00:00, i.e. 1 January of year 1. Time periods prior to the introduction of the Gregorian calendar (1582-10-15) use the `julian` calendar that was in common use then. The 10-day gap between the Julian and Gregorian calendars is observed, so dates in the range 5 to 14 October 1582 are invalid.
+-   `proleptic_gregorian`: This calendar uses the Gregorian calendar for periods prior to the introduction of that calendar as well, and it extends to periods before the Common Era, e.g. year 0 and negative years.
+-   `tai`: International Atomic Time, a global standard for linear time based on multiple atomic clocks: it counts seconds since its start at 1958-01-01 00:00:00. For presentation it uses the Gregorian calendar. Timestamps prior to its start are not allowed.
+-   `utc`: Coordinated Universal Time, the standard for civil timekeeping all over the world. It is based on International Atomic Time but it uses occasional leap seconds to remain synchronous with Earth's rotation around the Sun; at the end of 2024 it is 37 seconds behind `tai`. It uses the Gregorian calendar with a start at 1972-01-01 00:00:00; earlier timestamps are not allowed. Future timestamps are also not allowed because the insertion of leap seconds is unpredictable. Most computer clocks synchronize against UTC but calculations of periods do not consider leap seconds.
+-   `julian`: The `julian` calendar has a leap year every four years, including centennial years. Otherwise it is the same as the `standard` calendar.
+-   `365_day` or `noleap`: This is a "model time" calendar in which no leap years occur. Year 0 exists, as well as years prior to that.
+-   `366_day` or `all_leap`: This is a "model time" calendar in which all years are leap years. Year 0 exists, as well as years prior to that.
+-   `360_day`: This is a "model time" calendar in which every year has 360 days divided over 12 months of 30 days each. Year 0 exists, as well as years prior to that.
+ - `none`: Perpetual "calendar" for experiments that are simulated on a given instant during the year. All the elements in this calendar thus represent the same instant in time.
 
 Use of custom calendars is currently not supported.
 
@@ -75,9 +55,7 @@ This package facilitates use of a suite of models of climate projections that us
 
 Timestamps are generated using the [ISO8601 standard](https://en.wikipedia.org/wiki/ISO_8601).
 
-Calendar-aware factors can be generated to support processing of data using 
-`tapply()` and similar functions. Merging of multiple data sets and subsetting 
-facilitate analysis while preserving computer resources.
+Calendar-aware factors can be generated to support processing of data using `tapply()` and similar functions. Merging of multiple data sets and subsetting facilitate analysis while preserving computer resources.
 
 ## Installation
 
@@ -96,14 +74,10 @@ devtools::install_github("pvanlaake/CFtime")
 
 ## Basic operation
 
-The package contains a class, `CFTime`, to describe the time coordinate reference system, 
-including its calendar and origin, and which holds the time coordinate values 
-that are offset from the origin to represent instants in time. This class 
-operates on the data in the file of interest, here a Coordinated Regional Climate 
-Downscaling Experiment (CORDEX) file of precipitation for the Central America domain.
+The package contains a class, `CFTime`, to describe the time coordinate reference system, including its calendar and origin, and which holds the time coordinate values that are offset from the origin to represent instants in time. This class operates on the data in the file of interest, here a Coordinated Regional Climate Downscaling Experiment (CORDEX) file of precipitation for the Central America domain.
 
 > In this vignette we are using the [`ncdfCF` package](https://cran.r-project.org/package=ncdfCF) as that provides the easiest interface to work with netCDF files. Package `CFtime` is integrated into `ncdfCF` which makes working with time dimensions in netCDF seamless.  
-> Packages `RNetCDF` and `ncdf4` can work with `CFtime` as well but then the "intelligence" built into `ncdfCF` is not available, such as automatically identifying axes and data orientation. Other packages like `terra` and `stars` are not recommended because they do not provide access to the specifics of the time dimension of the data and do not consider any calendars other than "proleptic_gregorian".
+> Packages `RNetCDF` and `ncdf4` can work with `CFtime` as well but then the "intelligence" built into `ncdfCF` is not available, such as automatically identifying axes and data orientation. Other packages like `terra` and `stars` are not recommended because they do not provide access to the specifics of the time dimension of the data and do not properly consider any calendars other than "standard" and "proleptic_gregorian".
 
 ```{r example_2}
 # install.packages("ncdfCF")
@@ -123,16 +97,11 @@ dimnames(ds)
 (time <- ds[["time"]]$time())
 ```
 
-Note that the `ncdfCF` package reads the netCDF file and interprets its contents
-on the basis of its attribute values. If an axis is found that represents time,
-then a `CFTime` instance is created for it, which can be accessed with the
-`time()` method.
+Note that the `ncdfCF` package reads the netCDF file and interprets its contents on the basis of its attribute values. If an axis is found that represents time, then a `CFTime` instance is created for it, which can be accessed with the `time()` method.
 
 ##### Using RNetCDF or ncdf4
 
-If you are using the `RNetCDF` or `ncdf4` package rather than `ncdfCF`, creating 
-a `CFTime` instance goes like this (but note that this assumes that the axis is
-called "time"):
+If you are using the `RNetCDF` or `ncdf4` package rather than `ncdfCF`, creating a `CFTime` instance goes like this (but note that this assumes that the axis is called "time"):
 
 ```{r eval = FALSE}
 library(RNetCDF)

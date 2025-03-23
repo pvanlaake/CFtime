@@ -21,70 +21,25 @@ library(CFtime)
 
 ## Climate change models and calendars
 
-Around the world, many climate change models are being developed (100+) under
-the umbrella of the [World Climate Research Programme](https://www.wcrp-climate.org) to assess the
-rate of climate change. Published data is generally publicly available to download for
-research and other (non-commercial) purposes through partner organizations in 
-the Earth Systems Grid Federation.
+Around the world, many climate change models are being developed (100+) under the umbrella of the [World Climate Research Programme](https://www.wcrp-climate.org) to assess the rate of climate change. Published data is generally publicly available to download for research and other (non-commercial) purposes through partner organizations in the Earth Systems Grid Federation.
 
-The data are all formatted to comply with the [CF Metadata Conventions](http://cfconventions.org),
-a set of standards to support standardization among research groups and published
-data sets. These conventions greatly facilitate use and analysis of the climate
-projections because standard processing work flows (should) work across
-the various data sets.
+The data are all formatted to comply with the [CF Metadata Conventions](http://cfconventions.org), a set of standards to support standardization among research groups and published data sets. These conventions greatly facilitate use and analysis of the climate projections because standard processing work flows (should) work across the various data sets.
 
-On the flip side, the CF Metadata Conventions needs to cater to a wide range of
-modeling requirements and that means that some of the areas covered by the standards are
-more complex than might be assumed. One of those areas is the temporal dimension
-of the data sets. The CF Metadata Conventions supports no less than 11 different
-calendar definitions, that, upon analysis, fall into 8 distinct calendars
-(from the perspective of computation of climate projections):
+On the flip side, the CF Metadata Conventions needs to cater to a wide range of modeling requirements and that means that some of the areas covered by the standards are more complex than might be assumed. One of those areas is the temporal dimension of the data sets. The CF Metadata Conventions supports no less than 12 different calendar definitions, that, upon analysis, fall into 9 distinct calendars (from the perspective of computation of climate projections):
 
- - `standard` (or `gregorian`): The Gregorian calendar that is in common use in 
- many countries around the world, adopted by edict of Pope Gregory XIII in 1582
- and in effect from 15 October of that year. The earliest valid time in this
- calendar is 0001-01-01 00:00:00 (1 January of year 1) as year 0 does not exist
- and the CF Metadata Conventions require the year to be positive, but noting
- that a Julian calendar is used in periods before the Gregorian calendar was
- introduced.
- - `proleptic_gregorian`: This is the Gregorian calendar with validity 
- extended to periods prior to `1582-10-15`, including a year 0 and negative years.
- This calendar is being used in most OSes and is what is being used by R.
- - `tai`: International Atomic Time, a global standard for linear time: it 
-counts seconds since its start at 1958-01-01 00:00:00. For presentation it uses
-the Gregorian calendar. Timestamps prior to its start are not allowed.
-- `utc`: Coordinated Universal Time, the standard for civil timekeeping all
-over the world. It is based on International Atomic Time but it uses occasional
-leap seconds to remain synchronous with Earth's rotation around the Sun; at the
-end of 2024 it is 37 seconds behind `tai`. It uses the Gregorian calendar with a
-start at 1972-01-01 00:00:00; earlier timestamps are not allowed. Future timestamps
-are also not allowed because the insertion of leap seconds is unpredictable.
-Most computer clocks use UTC.
-- `julian`: Adopted in the year 45 BCE, every fourth year is a leap year. 
- Originally, the Julian calendar did not have a monotonically increasing year 
- assigned to it and there are indeed several Julian calendars in use around the
- world today with different years assigned to them. Common interpretation
- is currently that the year is the same as that of the Gregorian calendar. The 
- Julian calendar is currently 13 days behind the Gregorian calendar. As with the 
- standard calendar, the earliest valid time in this calendar is 0001-01-01 00:00:00.
- - `365_day` or `noleap`: "Model time" in which no years have a leap day. 
- Negative years are allowed and year 0 exists.
- - `366_day` or `all_leap`: "Model time" in which all years have a leap day. 
- Negative years are allowed and year 0 exists.
- - `360_day`: "Model time" in which every year has 12 months of 30 days each. 
- Negative years are allowed and year 0 exists.
+ - `standard` (or `gregorian`): The Gregorian calendar that is in common use in many countries around the world, adopted by edict of Pope Gregory XIII in 1582 and in effect from 15 October of that year. The earliest valid time in this calendar is 0001-01-01 00:00:00 (1 January of year 1) as year 0 does not exist and the CF Metadata Conventions require the year to be positive, but noting that a Julian calendar is used in periods before the Gregorian calendar was introduced.
+ - `proleptic_gregorian`: This is the Gregorian calendar with validity extended to periods prior to `1582-10-15`, including a year 0 and negative years. This calendar is the closest to what is being used in most OSes and what is being used by R. The difference is in leap seconds: while this calendar does not account for them (and neither does POSIXt), most computers are periodically synchronized against a time server running on UTC, which does include leap seconds.
+ - `tai`: International Atomic Time, a global standard for linear time: it counts seconds since its start at 1958-01-01 00:00:00. For presentation it uses the Gregorian calendar. Timestamps prior to its start are not allowed.
+- `utc`: Coordinated Universal Time, the standard for civil timekeeping all over the world. It is based on International Atomic Time but it uses occasional leap seconds to remain synchronous with Earth's rotation around the Sun; at the end of 2024 it is 37 seconds behind `tai`. It uses the Gregorian calendar with a start at 1972-01-01 00:00:00; earlier timestamps are not allowed. Future timestamps are also not allowed because the insertion of leap seconds is unpredictable. Most computer clocks synchronize with UTC but calculate time intervals without accounting for leap seconds.
+- `julian`: Adopted in the year 45 BCE, every fourth year is a leap year. Originally, the Julian calendar did not have a monotonically increasing year assigned to it and there are indeed several Julian calendars in use around the world today with different years assigned to them. Common interpretation is currently that the year is the same as that of the Gregorian calendar. The Julian calendar is currently 13 days behind the Gregorian calendar. As with the standard calendar, the earliest valid time in this calendar is 0001-01-01 00:00:00.
+ - `365_day` or `noleap`: "Model time" in which no years have a leap day. Negative years are allowed and year 0 exists.
+ - `366_day` or `all_leap`: "Model time" in which all years have a leap day. Negative years are allowed and year 0 exists.
+ - `360_day`: "Model time" in which every year has 12 months of 30 days each. Negative years are allowed and year 0 exists.
+ - `none`: Perpetual "calendar" for experiments that are simulated on a given instant during the year. All the elements in this calendar thus represent the same instant in time.
 
-The three latter calendars of model time are specific to the CF Metadata 
-Conventions to reduce computational complexities of working with dates. None of 
-the 8 calendars are compliant with the standard `POSIXt` date/time facilities in 
-`R` and using standard date/time functions would quickly lead to problems. See 
-the section on "CFtime and POSIXt", below, for a detailed description of the 
-discrepancies between the CF calendars and POSIXt.
+The three calendars of model time are specific to the CF Metadata Conventions to reduce computational complexities of working with dates. None of the nine calendars are compliant with the standard `POSIXt` date/time facilities in `R` and using standard date/time functions would quickly lead to problems. See the section on "CFtime and POSIXt", below, for a detailed description of the discrepancies between the CF calendars and POSIXt.
 
-In the below code snippet, the date of `1949-12-01` is the *origin* from which 
-other dates are calculated. When adding 43,289 days to this origin for a data 
-set that uses the `360_day` calendar, that should yield a date some 120 years 
-after the origin:
+In the below code snippet, the date of `1949-12-01` is the *origin* from which other dates are calculated. When adding 43,289 days to this origin for a data set that uses the `360_day` calendar, that should yield a date some 120 years after the origin:
 
 ```{r}
 # POSIXt calculations on a standard calendar - INCORRECT
@@ -95,69 +50,30 @@ as.Date("1949-12-01") + 43289
 as_timestamp(CFtime("days since 1949-12-01", "360_day", 43289))
 ```
 
-Using standard `POSIXt` calculations gives a result that is about 21 months off
-from the correct date - obviously an undesirable situation. This example is far
-from artificial: `1949-12-01` is the origin for all CORDEX data, covering the 
-period 1950 - 2005 for historical experiments and the period 2006 - 2100 for RCP 
-experiments (with some deviation between data sets), and several models used in 
-the CORDEX set use the `360_day` calendar. The `365_day` or `noleap` calendar 
-deviates by about 1 day every 4 years (disregarding centurial years), or about 
-24 days in a century. The `366_day` or  `all_leap` calendar deviates by about 3 
-days every 4 years, or about 76 days in a century.
+Using standard `POSIXt` calculations gives a result that is about 21 months off from the correct date - obviously an undesirable situation. This example is far from artificial: `1949-12-01` is the origin for all CORDEX data, covering the period 1950 - 2005 for historical experiments and the period 2006 - 2100 for RCP experiments (with some deviation between data sets), and several models used in the CORDEX set use the `360_day` calendar. The `365_day` or `noleap` calendar deviates by about 1 day every 4 years (disregarding centurial years), or about 24 days in a century. The `366_day` or  `all_leap` calendar deviates by about 3 days every 4 years, or about 76 days in a century.
 
-The `CFtime` package deals with the complexity of the different calendars allowed
-by the CF Metadata Conventions. It properly formats dates and times (even oddball
-dates like `2070-02-30`) and it can generate calendar-aware factors for further 
-processing of the data.
+The `CFtime` package deals with the complexity of the different calendars allowed by the CF Metadata Conventions. It properly formats dates and times (even oddball dates like `2070-02-30`) and it can generate calendar-aware factors for further processing of the data.
 
 ##### Time zones
 
-The character of CF time series - a number of numerical offsets from a base date -
-implies that there should only be a single time zone associated with the time
-series, and then only for the `standard` and `proleptic_gregorian` calendars.
-For the other calendars a time zone can be set but it will have no effect.
-Daylight savings time information is never considered by `CFtime` so the user
-should take care to avoid entering times with DST.
+The character of CF time series - a number of numerical offsets from a base date - implies that there should only be a single time zone associated with the time series, and then only for the `standard` and `proleptic_gregorian` calendars. For the other calendars a time zone can be set but it will have no effect. Daylight savings time information is never considered by `CFtime` so the user should take care to avoid entering times with DST; DST should be accounted for by indicating the applicable DST time zone.
 
-The time zone offset from UTC is stored in the `CFTime` instance and can be 
-retrieved with the `timezone()` function. If a vector of character timestamps with time
-zone information is parsed with the `parse_timestamps()` function and the time zones are 
-found to be different from the `CFTime` time zone, a warning message is generated
-but the timestamp is interpreted as being in the `CFTime` time zone. No correction 
-of timestamp to `CFTime` time zone is performed.
+The time zone offset from UTC is stored in the `CFTime` instance and can be retrieved with the `timezone()` function. If a vector of character timestamps with time zone information is parsed with the `parse_timestamps()` function and the time zones are found to be different from the `CFTime` time zone, a warning message is generated but the timestamp is interpreted as being in the `CFTime` time zone. No correction of timestamp to `CFTime` time zone is performed.
 
-The concept of time zones does not apply to the `utc` and `tai` calendars as
-they represent universal time, i.e. the indicated time is valid all over the
-globe. Timestamps passed to these calendars should not have a time zone
-indicated, but if there are, anything other than a 0 offset will generate an
-error.
+The concept of time zones does not apply to the `utc` and `tai` calendars as they represent universal time, i.e. the indicated time is valid all over the globe. Timestamps passed to these calendars should not have a time zone indicated, but if there are, anything other than a 0 offset will generate an error.
 
 ## Using CFtime to deal with calendars
 
-Data sets that are compliant with the CF Metadata Conventions always include a 
-*origin*, a specific point in time in reference to a specified *calendar*, from 
-which other points in time are calculated by adding a specified *offset* of a
-certain *unit*. This approach is encapsulated in the `CFtime` package by the R6 
-class `CFTime`.
+Data sets that are compliant with the CF Metadata Conventions always include a *origin*, a specific point in time in reference to a specified *calendar*, from which other points in time are calculated by adding a specified *offset* of a certain *unit*. This approach is encapsulated in the `CFtime` package by the R6 class `CFTime`.
 
 ```{r}
 # Create a CFTime object from a definition string, a calendar and some offsets
 (t <- CFtime("days since 1949-12-01", "360_day", 19830:90029))
 ```
 
-The `CFtime()` function takes a description (which is actually a unit -
-"days" - in reference to an origin - "1949-12-01"), a calendar description, and a 
-vector of *offsets* from that origin. Once a `CFTime` instance is created its 
-origin and calendar cannot be changed anymore. Offsets may be added.
+The `CFtime()` function takes a description (which is actually a unit - "days" - in reference to an origin - "1949-12-01"), a calendar description, and a vector of *offsets* from that origin. Once a `CFTime` instance is created its origin and calendar cannot be changed anymore. Offsets may be added.
 
-In practice, these parameters will be taken from the data set of interest. CF Metadata
-Conventions require data sets to be in the netCDF format, with all metadata
-describing the data set included in a single file, including the mandatory 
-"Conventions" global attribute which should have a string identifying the version 
-of the CF Metadata Conventions that this file adheres to (among possible others).
-Not surprisingly, all the pieces of interest are contained in the "time"
-dimension of the file. The process then becomes as follows, for a CMIP6 file of 
-daily precipitation.
+In practice, these parameters will be taken from the data set of interest. CF Metadata Conventions require data sets to be in the netCDF format, with all metadata describing the data set included in a single file, including the mandatory "Conventions" global attribute which should have a string identifying the version of the CF Metadata Conventions that this file adheres to (among possible others). Not surprisingly, all the pieces of interest are contained in the "time" coordinate variables of the file. The process then becomes as follows, for a CMIP6 file of daily precipitation.
 
 > In this vignette we are using the [`ncdfCF` package](https://cran.r-project.org/package=ncdfCF) as that provides the easiest interface to work with netCDF files. Package `CFtime` is integrated into `ncdfCF` which makes working with time dimensions in netCDF seamless.  
 > Packages `RNetCDF` and `ncdf4` can work with `CFtime` as well but then the "intelligence" built into `ncdfCF` is not available, such as automatically identifying axes and data orientation. Other packages like `terra` and `stars` are not recommended because they do not provide access to the specifics of the time dimension of the data and do not consider any calendars other than "proleptic_gregorian".
@@ -180,13 +96,9 @@ fn <- list.files(path = system.file("extdata", package = "CFtime"), full.names =
 (t <- time$time())
 ```
 
-You can see from the global attribute "Conventions" that the file adheres to the
-CF Metadata Conventions, among others. According to the CF conventions, `units` 
-and `calendar` are required attributes of the "time" dimension in the netCDF file.
+You can see from the global attribute "Conventions" that the file adheres to the CF Metadata Conventions, among others. According to the CF conventions, `units` and `calendar` are required attributes of the "time" dimension in the netCDF file.
 
-The above example (and others in this vignette) use the `ncdfCF` package. If you 
-are using the `RNetCDF` or `ncdf4` package, checking for CF conventions and then 
-creating a `CFTime` instance goes like this:
+The above example (and others in this vignette) use the `ncdfCF` package. If you are using the `RNetCDF` or `ncdf4` package, checking for CF conventions and then creating a `CFTime` instance goes like this:
 
 ```{r, eval = FALSE}
 library(RNetCDF)
@@ -217,28 +129,15 @@ dates[1:10]
 t$range()
 ```
 
-Note that in this latter case, if any of the timestamps in the time series have a time that is
-other than `00:00:00` then the time of the extremes of the time series is also
-displayed. This is a common occurrence because the CF Metadata Conventions
-prescribe that the middle of the time period (month, day, etc) is recorded, which 
-for months with 31 days would be something like `2005-01-15T12:00:00`.
+Note that in this latter case, if any of the timestamps in the time series have a time that is other than `00:00:00` then the time of the extremes of the time series is also displayed. This is a common occurrence because the CF Metadata Conventions prescribe that the middle of the time period (month, day, etc) is recorded, which for months with 31 days would be something like `2005-01-15T12:00:00`.
 
 ## Supporting processing of climate projection data
 
-When working with high resolution climate projection data, typically at a "day"
-resolution, one of the processing steps would be to aggregate the data to some
-lower resolution such as a dekad (10-day period), a month or a meteorological 
-season, and then compute a derivative value such as the dekadal sum of precipitation,
-monthly minimum/maximum daily temperature, or seasonal average daily short-wave
-irradiance.
+When working with high resolution climate projection data, typically at a "day" resolution, one of the processing steps would be to aggregate the data to some lower resolution such as a dekad (10-day period), a month or a meteorological season, and then compute a derivative value such as the dekadal sum of precipitation, monthly minimum/maximum daily temperature, or seasonal average daily short-wave irradiance.
 
-It is also possible to create factors for multiple "eras" in one go. This greatly
-reduces programming effort if you want to calculate anomalies over multiple future
-periods. A complete example is provided in the vignette 
-["Processing climate projection data"](Processing.html).
+It is also possible to create factors for multiple "eras" in one go. This greatly reduces programming effort if you want to calculate anomalies over multiple future periods. A complete example is provided in the vignette ["Processing climate projection data"](Processing.html).
 
-It is easy to generate the factors that you need once you have a `CFTime` instance 
-prepared:
+It is easy to generate the factors that you need once you have a `CFTime` instance prepared:
 
 ```{r}
 # Create a dekad factor for the whole `t` time series that was created above
@@ -253,56 +152,33 @@ str(future)
 
 For the "era" version, there are two interesting things to note here:
 
- - The eras do not have to coincide with the boundaries of the time series. In the 
- example above, the time series starts in 2015, while the baseline era is from 1991.
- Obviously, the number of time steps from the time series that then fall within 
- this era will then be reduced.
- - The factor is always of the same length as the time series, with `NA` values
- where the time series values are not falling in the era. This ensures that the
- factor is compatible with the data set which the time series describes, such
- that functions like `tapply()` will not throw an error.
+ - The eras do not have to coincide with the boundaries of the time series. In the example above, the time series starts in 2015, while the baseline era is from 1991. Obviously, the number of time steps from the time series that then fall within this era will then be reduced.
+ - The factor is always of the same length as the time series, with `NA` values where the time series values are not falling in the era. This ensures that the factor is compatible with the data set which the time series describes, such that functions like `tapply()` will not throw an error.
  
 There are six periods defined for factoring:
 
  - `year`, to summarize data to yearly timescales
- - `season`, the meteorological seasons. Note that the month of December will be
- added to the months of January and February of the following year, so the date 
- "2020-12-01" yields the factor value "2021S1".
+ - `season`, the meteorological seasons. Note that the month of December will be added to the months of January and February of the following year, so the date "2020-12-01" yields the factor value "2021S1".
  - `quarter`, the standard quarters of the year.
  - `month`, monthly summaries, the default period.
- - `dekad`, 10-day period. Each month is subdivided in dekads as follows: (1) 
- days 01 - 10; (2) days 11 - 20; (3) remainder of the month.
+ - `dekad`, 10-day period. Each month is subdivided in dekads as follows: (1) days 01 - 10; (2) days 11 - 20; (3) remainder of the month.
  - `day`, to summarize sub-daily data.
 
 ##### New "time" dimension
 
-A `CFTime` instance describes the "time" dimension of an associated data set. When
-you process that dimension of the data set using `CFTime$factor()` or another method
-to filter or otherwise subset the "time" dimension, the resulting data set will
-have a different "time" dimension. To associate a proper `CFTime` instance with
-your processing result, the methods in this package return that `CFTime` instance
-as an attribute:
+A `CFTime` instance describes the "time" dimension of an associated data set. When you process that dimension of the data set using `CFTime$factor()` or another method to filter or otherwise subset the "time" dimension, the resulting data set will have a different "time" dimension. To associate a proper `CFTime` instance with your processing result, the methods in this package return that `CFTime` instance as an attribute:
 
 ```{r}
   (new_time <- attr(f_k, "CFTime"))
 ```
 
-In the vignette ["Processing climate projection data"](Processing.html) is a
-fully worked out example of this.
+In the vignette ["Processing climate projection data"](Processing.html) is a fully worked out example of this.
 
 ##### Incomplete time series
 
-You can test if your time series is complete with the function `is_complete()`.
-A time series is considered complete if the time steps between the two extreme 
-values are equally spaced. There is a "fuzzy" assessment of completeness for
-time series with a datum unit of "days" or smaller where the time steps are
-months or years apart - these have different lengths in days in different months 
-or years (e.g. a leap year).
+You can test if your time series is complete with the function `is_complete()`. A time series is considered complete if the time steps between the two extreme values are equally spaced. There is a "fuzzy" assessment of completeness for time series with a datum unit of "days" or smaller where the time steps are months or years apart - these have different lengths in days in different months or years (e.g. a leap year).
 
-If your time series is incomplete, for instance because it has missing time steps, 
-you should recognize that in your further processing. As an example, you might 
-want to filter out months that have fewer than 90% of daily data from further 
-processing or apply weights based on the actual coverage. 
+If your time series is incomplete, for instance because it has missing time steps, you should recognize that in your further processing. As an example, you might want to filter out months that have fewer than 90% of daily data from further processing or apply weights based on the actual coverage. 
 
 ```{r}
 # Is the time series complete?
@@ -316,10 +192,7 @@ t$factor_coverage(baseline, "absolute")
 t$factor_coverage(baseline, "relative")
 ```
 
-The time series is complete but coverage of the baseline era is only 
-20%! Recall that the time series starts in 2015 while the baseline period in the
-factor is for `1991:2020` so that's only 6 years of time series data out of 30 
-years of the baseline factor.
+The time series is complete but coverage of the baseline era is only 20%! Recall that the time series starts in 2015 while the baseline period in the factor is for `1991:2020` so that's only 6 years of time series data out of 30 years of the baseline factor.
 
 An artificial example of missing data:
 
@@ -337,63 +210,37 @@ t$factor_coverage(mon, "absolute")
 t$factor_coverage(mon, "relative")
 ```
 
-Keep in mind, though, that there are data sets where the time unit is lower than
-the intended resolution of the data. Since the CF conventions recommend that the
-coarsest time unit is "day", many files with monthly data sets have a definition
-like `days since 2016-01-01` with offset values for the middle of the month like
-`15, 44, 74, 104, ...`. Even in these scenarios you can verify that your data 
-set is complete with the function `CFcomplete()`.
+Keep in mind, though, that there are data sets where the time unit is lower than the intended resolution of the data. Since the CF conventions recommend that the coarsest time unit is "day", many files with monthly data sets have a definition like `days since 2016-01-01` with offset values for the middle of the month like `15, 44, 74, 104, ...`. Even in these scenarios you can verify that your data set is complete with the function `CFcomplete()`.
 
 ## CFtime and POSIXt
 
-The CF Metadata Conventions supports 11 different calendars. None of these are 
-fully compatible with POSIXt, the basis for timekeeping on virtually all 
-computers. The reason for this is that POSIXt does not consider leap seconds
-(just like the `tai` calendar) but computer clocks are periodically synchronized
-using Network Time Protocol servers that report UTC time. The problem is easily
-demonstrated:
+The CF Metadata Conventions supports 11 different calendars (disregarding `none` here). None of these are fully compatible with POSIXt, the basis for timekeeping on virtually all computers. The reason for this is that POSIXt does not consider leap seconds (just like the `tai` calendar) but computer clocks are periodically synchronized using Network Time Protocol servers that report UTC time. The problem is easily demonstrated:
 
 ```{r}
-# 1970-01-01 is the origin of POSIXt
-difftime(as.POSIXct("2024-01-01"), as.POSIXct("1970-01-01"), units = "sec")
+# 1972-01-01 is the origin of UTC, when leap seconds came into existence
+difftime(as.POSIXct("2024-01-01"), as.POSIXct("1972-01-01"), units = "sec")
+
+# CFtime with a "utc" calendar
+t <- CFTime$new("seconds since 1972-01-01", "utc", "2024-01-01")
+t$offsets
 
 # Leap seconds in UTC
 .leap.seconds
 ```
 
-`difftime()` is off by 27 seconds, the number of leap seconds in UTC since their
-introduction in 1972. Your computer may have the correct time based on UTC, but
-calculations over periods that include leap seconds are always off by a number 
-of seconds.
+`difftime()` is off by 27 seconds, the number of leap seconds in UTC since their introduction in 1972. Your computer may have the correct time based on UTC, but calculations over periods that include leap seconds are always off by a number of seconds.
 
 ##### Duh!
 
-If 27 seconds is of no concern to you or your application - perhaps your data 
-has a daily resolution - then you can safely forget about the leap seconds in
-several of the calendars, in particular `standard` (for periods after 1582-10-15),
-`proleptic_gregorian` and `tai`. The `utc` calendar does account for leap
-seconds so consider if you should use that - this is the only calendar that 
-considers leap seconds in calculation. These calendars support the generation of
-timestamps in POSIXct with the `as_timestamp()` function but note the potential
-for a discrepancy due to the presence of leap seconds.
+If 27 seconds is of no concern to you or your application - perhaps your data has a daily resolution - then you can safely forget about the leap seconds in several of the calendars, in particular `standard` (for periods after 1582-10-15), `proleptic_gregorian` and `tai`. The `utc` calendar does account for leap seconds so consider if you should use that - this is the only calendar that considers leap seconds in calculation. These calendars support the generation of timestamps in POSIXct with the `as_timestamp()` function but note the potential for a discrepancy due to the presence of leap seconds.
 
 ##### When seconds count
 
-If second accuracy is of concern, then you should carefully consider the time
-keeping in the source of your data and use a matching calendar. The `utc`
-calendar is a sensible option if your equipment synchronizes time with an NTP 
-server or a computer that does so. Even then you should ensure that time is
-accurate after a new leap second is introduced.
+If second accuracy is of concern, then you should carefully consider the time keeping in the source of your data and use a matching calendar. The `utc` calendar is a sensible option if your equipment synchronizes time with an NTP server or a computer that does so. Even then you should ensure that time is accurate before your first new observation after a new leap second is introduced.
 
 ##### Bigger problems
 
-The other calendars have discrepancies with POSIXt that are much larger, namely
-one or more days. These calendars do not support POSIXct timestamps and an error
-will be thrown if you try. If you really want the timestamps in POSIXct then you
-can generate the timestamps as character strings using this package, and then
-convert to a `POSIXct` or `Date` using the available R tools. Converting time 
-series using these incompatible calendars to `POSIXct` or `Date` is likely
-to produce problems. This is most pronounced for the `360_day` calendar:
+The other calendars have discrepancies with POSIXt that are much larger, namely one or more days. These calendars do not support POSIXct timestamps and an error will be thrown if you try. If you really want the timestamps in POSIXct then you can generate the timestamps as character strings using this package, and then convert to a `POSIXct` or `Date` using the available R tools. Converting time series using these incompatible calendars to `POSIXct` or `Date` is likely to produce problems. This is most pronounced for the `360_day` calendar:
 
 ```{r}
 # Days in January and February
@@ -402,67 +249,29 @@ ts_days <- t$as_timestamp("date")
 as.Date(ts_days)
 ```
 
-31 January is missing from the vector of `Date`s because the `360_day` calendar 
-does not include it and 29 and 30 February are `NA`s because POSIXt rejects them.
-This will produce problems later on when processing your data.
+31 January is missing from the vector of `Date`s because the `360_day` calendar does not include it and 29 and 30 February are `NA`s because POSIXt rejects them. This will produce problems later on when processing your data.
 
-The general advice is therefore: **do not convert CFTime objects to Date objects**
-unless you are sure that the `CFTime` object uses a POSIXt-compatible calendar.
+The general advice is therefore: **do not convert CFTime objects to Date objects** unless you are sure that the `CFTime` object uses a POSIXt-compatible calendar.
 
 The degree of incompatibility for the various calendars is as follows:
 
- - `standard`: Only valid for periods after 1582-10-15. The preceeding period 
- uses the Julian calendar.
- - `julian`: Every fouth year is a leap year. Dates like `2100-02-29` and
- `2200-02-29` are valid.
+ - `standard`: Only valid for periods after 1582-10-15. The preceeding period uses the Julian calendar.
+ - `julian`: Every fouth year is a leap year. Dates like `2100-02-29` and `2200-02-29` are valid.
  - `365_day` or `noleap`: No leap year exists. `2020-02-29` does not occur.
  - `366_day` or `all_leap`: All years are leap years.
- - `360_day`: All months have 30 days in every year. This means that 31 January,
- March, May, July, August, October and December never occur, while 29 and 30
- February occur in every year.
+ - `360_day`: All months have 30 days in every year. This means that 31 January, March, May, July, August, October and December never occur, while 29 and 30 February occur in every year.
 
 ##### So how do I compare climate projection data with different calendars?
 
-One reason to convert the time dimension from different climate projection data
-sets is to be able to compare the data from different models and produce a
-multi-model ensemble. The correct procedure to do this is to first calculate 
-**for each data set individually** the property of interest (e.g. average daily 
-rainfall per month anomaly for some future period relative to a baseline period), 
-which will typically involve aggregation to a lower resolution (such as from 
-daily data to monthly averages), and only then combine the aggregate data from 
-multiple data sets to compute statistically interesting properties (such as 
-average among models and standard deviation, etc).
+One reason to convert the time dimension from different climate projection data sets is to be able to compare the data from different models and produce a multi-model ensemble. The correct procedure to do this is to first calculate **for each data set individually** the property of interest (e.g. average daily rainfall per month anomaly for some future period relative to a baseline period), which will typically involve aggregation to a lower resolution (such as from daily data to monthly averages), and only then combine the aggregate data from multiple data sets to compute statistically interesting properties (such as average among models and standard deviation, etc).
 
-Once data is aggregated from daily or higher-resolution values to a lower
-temporal resolution - such as a "month" - the different calendars no longer 
-matter (although if you do need to convert averaged data (e.g. average daily
-precipitation in a month) to absolute data (e.g. precipitation per month) you 
-should use `CFfactor_units()` to make sure that you use the correct scaling 
-factor).
+Once data is aggregated from daily or higher-resolution values to a lower temporal resolution - such as a "month" - the different calendars no longer matter (although if you do need to convert averaged data (e.g. average daily precipitation in a month) to absolute data (e.g. precipitation per month) you should use `CFfactor_units()` to make sure that you use the correct scaling factor).
 
-Otherwise, there really shouldn't be any reason to convert the time series in the
-data files to `Date`s. Climate projection data is virtually never compared on a 
-day-to-day basis between different models and neither does complex date arithmetic 
-make much sense (such as adding intervals) - `CFtime` can support basic arithmetic
-by manipulation the offsets of the `CFTime` object. The character representations
-that are produced are perfectly fine to use for `dimnames()` on an array or as
-`rownames()` in a `data.frame` and these also support basic logical operations
-such as `"2023-02-30" < "2023-03-01"`. So ask yourself, do you really need `Date`s
-when working with unprocessed climate projection data? (If so, [open an issue on 
-GitHub](https://github.com/pvanlaake/CFtime/issues)).
+Otherwise, there really shouldn't be any reason to convert the time series in the data files to `Date`s. Climate projection data is virtually never compared on a day-to-day basis between different models and neither does complex date arithmetic make much sense (such as adding intervals) - `CFtime` can support basic arithmetic by manipulation the offsets of the `CFTime` object. The character representations that are produced are perfectly fine to use for `dimnames()` on an array or as `rownames()` in a `data.frame` and these also support basic logical operations such as `"2023-02-30" < "2023-03-01"`. So ask yourself, do you really need `Date`s when working with unprocessed climate projection data? (If so, [open an issue on GitHub](https://github.com/pvanlaake/CFtime/issues)).
 
-A complete example of creating a multi-model ensemble is provided in the vignette 
-["Processing climate projection data"](Processing.html).
+A complete example of creating a multi-model ensemble is provided in the vignette ["Processing climate projection data"](Processing.html).
 
 ## Final observations
 
- - This package is intended to facilitate processing of climate projection
- data. It is not a full implementation of the CF Metadata Conventions "time"
- component.
- - In parsing and deparsing of offsets and timestamps, data is rounded to
- 3 digits of precision of the unit of the calendar. When using a description of 
- time that is very different from the calendar unit, this may lead to some loss 
- of precision due to rounding errors. For instance, if milli-second precision is 
- required, use a unit of "seconds". The authors have no knowledge of published
- climate projection data that requires milli-second precision so for the
- intended use of the package this issue is marginal.
+ - This package is intended to facilitate processing of climate projection data. It is a near-complete implementation of the CF Metadata Conventions "time" component.
+ - In parsing and deparsing of offsets and timestamps, data is rounded to 3 digits of precision of the unit of the calendar. When using a description of time that is very different from the calendar unit, this may lead to some loss of precision due to rounding errors. For instance, if milli-second precision is required, use a unit of "seconds". The authors have no knowledge of published climate projection data that requires milli-second precision so for the intended use of the package this issue is marginal.

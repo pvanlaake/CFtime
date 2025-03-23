@@ -16,7 +16,10 @@ POSIXt). The CF time coordinate is formally defined in the
 \href{https://cfconventions.org/Data/cf-conventions/cf-conventions-1.12/cf-conventions.html#time-coordinate}{CF Metadata Conventions document}.
 }
 \details{
-The package can create a \link{CFTime} instance from scratch or, more commonly, it
+This package also supports the creation of a "time" dimension, using class
+\code{CFClimatology}, for climatological statistics as defined \href{https://cfconventions.org/Data/cf-conventions/cf-conventions-1.12/cf-conventions.html#climatological-statistics}{here}.
+
+The package can create a \link{CFTime} or \link{CFClimatology} instance from scratch or, more commonly, it
 can use the dimension attributes and dimension variable values from a netCDF
 resource. The package does not actually do any of the reading and the user is
 free to use their netCDF package of preference. The recommended package to

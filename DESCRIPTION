@@ -35,6 +35,7 @@ Collate:
     'CFCalendar365.R'
     'CFCalendar366.R'
     'CFCalendarJulian.R'
+    'CFCalendarNone.R'
     'CFCalendarProleptic.R'
     'CFCalendarStandard.R'
     'CFCalendarTAI.R'

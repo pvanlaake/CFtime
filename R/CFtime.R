@@ -64,6 +64,7 @@ CFTime <- R6::R6Class("CFTime",
         "noleap" = CFCalendar365$new(calendar, definition),
         "366_day" = CFCalendar366$new(calendar, definition),
         "all_leap" = CFCalendar366$new(calendar, definition),
+        "none" = CFCalendarNone$new(calendar, definition),
         stop("Invalid calendar specification", call. = FALSE)
       )
 
@@ -105,11 +106,18 @@ CFTime <- R6::R6Class("CFTime",
         b  <- "  Bounds  : (not set)\n"
       } else {
         d <- self$range()
-        el <- if (noff > 1L) {
-          sprintf("  Elements: [%s .. %s] (average of %f %s between %d elements)\n",
-                 d[1L], d[2L], self$resolution, CFt$units$name[self$cal$unit], noff)
-        } else
-          paste("  Elements:", d[1L], "\n")
+        if (inherits(self$cal, "CFCalendarNone")) {
+          el <- if (noff > 1L) {
+            sprintf("  Elements: Series of %d elements at %s\n", noff, d[1L])
+          } else
+            paste("  Element : One element at", d[1L], "\n")
+        } else {
+          el <- if (noff > 1L) {
+            sprintf("  Elements: [%s .. %s] (average of %f %s between %d elements)\n",
+                   d[1L], d[2L], self$resolution, CFt$units$name[self$cal$unit], noff)
+          } else
+            paste("  Element :", d[1L], "\n")
+        }
 
         b <- if (is.logical(self$bounds)) {
           if (self$bounds) "  Bounds  : regular and consecutive\n"
@@ -360,7 +368,7 @@ CFTime <- R6::R6Class("CFTime",
     #'   `(2, length(self$offsets))` or a single logical value.
     #' @return `self` invisibly.
     set_bounds = function(value) {
-      if (isFALSE(value)) self$bounds <- FALSE
+      if (is.null(value) || isFALSE(value)) self$bounds <- FALSE
       else if (isTRUE(value)) self$bounds <- TRUE
       else {
         off <- self$offsets
@@ -382,8 +390,8 @@ CFTime <- R6::R6Class("CFTime",
             diff(range(diff(value[1L,]))) == 0) value <- TRUE
 
         self$bounds <- value
-        invisible(self)
       }
+      invisible(self)
     },
 
     #' This method returns `TRUE` if the time series has uniformly distributed
@@ -608,9 +616,10 @@ CFTime <- R6::R6Class("CFTime",
     #'   "year", "season", "quarter", "month" (the default), "dekad" or "day".
     #' @param era numeric or list, optional. Vector of years for which to
     #'   construct the factor, or a list whose elements are each a vector of
-    #'   years. The extreme values of the supplied vector will be used. If `era`
-    #'   is not specified, the factor will use the entire time series for the
-    #'   factor.
+    #'   years. The extreme values of the supplied vector will be used. Note
+    #'   that if a single year is specified that the result is valid, but not a
+    #'   climatological statistic. If `era` is not specified, the factor will
+    #'   use the entire time series for the factor.
     #' @return If `era` is a single vector or `NULL`, a factor with a length
     #'   equal to the number of offsets in this instance. If `era` is a list, a
     #'   list with the same number of elements and names as `era`, each
@@ -728,7 +737,7 @@ CFTime <- R6::R6Class("CFTime",
         return(out)
       }
 
-      # Era factor =============================================================
+      ##### Era factor =========================================================
       if (is.numeric(era)) ep <- list(era)
       else if ((is.list(era) && all(unlist(lapply(era, is.numeric))))) ep <- era
       else stop("When specified, the `era` parameter must be a numeric vector or a list thereof", call. = FALSE)
