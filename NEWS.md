@@ -1,4 +1,4 @@
-# CFtime (development version)
+# CFtime 1.6.0
 
 * New class `CFClimatology` to manage climatological statistics. Method
 `CFTime$factor()` with an `era` argument will now have a `CFClimatology`
