@@ -47,6 +47,9 @@ values in the first row, high values in the second row. Use
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
 \item{\code{unit}}{(read-only) The unit string of the calendar and time series.}
+
+\item{\code{friendlyClassName}}{Character string with class name for display
+purposes.}
 }
 \if{html}{\out{</div>}}
 }

@@ -97,6 +97,13 @@ CFClimatology <- R6::R6Class("CFClimatology",
     years = function(value) {
       if (missing(value))
         private$.years
+    },
+
+    #' @field friendlyClassName Character string with class name for display
+    #'   purposes.
+    friendlyClassName = function(value) {
+      if (missing(value))
+        "CFClimatology"
     }
   )
 )

@@ -737,7 +737,7 @@ CFTime <- R6::R6Class("CFTime",
         return(out)
       }
 
-      ##### Era factor =========================================================
+      # Era factor
       if (is.numeric(era)) ep <- list(era)
       else if ((is.list(era) && all(unlist(lapply(era, is.numeric))))) ep <- era
       else stop("When specified, the `era` parameter must be a numeric vector or a list thereof", call. = FALSE)
@@ -923,6 +923,27 @@ CFTime <- R6::R6Class("CFTime",
     unit = function(value) {
       if (missing(value))
         CFt$units$name[self$cal$unit]
+    },
+
+    #' @field friendlyClassName Character string with class name for display
+    #'   purposes.
+    friendlyClassName = function(value) {
+      if (missing(value))
+        "CFTime"
     }
   )
 )
+
+# ==============================================================================
+# S3 functions
+
+#' Compact display of a CFTime instance
+#' @param object A `CFTime` instance.
+#' @param ... Ignored.
+#' @export
+str.CFTime <- function(object, ...) {
+  cat(object$friendlyClassName, " with origin [", object$cal$definition,
+      "] using calendar [", object$cal$name,
+      "] having ", length(object$offsets), " offset values", sep = "")
+}
+

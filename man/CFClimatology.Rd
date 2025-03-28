@@ -27,6 +27,9 @@ the year over which the climatology was calculated.}
 
 \item{\code{years}}{(read-only) Vector of two integer values indicating the
 years over which the climatology was calculated.}
+
+\item{\code{friendlyClassName}}{Character string with class name for display
+purposes.}
 }
 \if{html}{\out{</div>}}
 }
