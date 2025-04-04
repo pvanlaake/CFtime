@@ -141,7 +141,7 @@ test_that("Working with packages and files", {
   if (requireNamespace("ncdfCF"))
     lapply(lf, function(f) {
       nc <- ncdfCF::open_ncdf(f)
-      expect_s3_class(nc[["time"]]$values, "CFTime")
+      expect_true(inherits(nc[["time"]]$time(), "CFTime"))
     })
 })
 

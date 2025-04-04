@@ -36,13 +36,15 @@ CFCalendarStandard <- R6::R6Class("CFCalendarStandard",
     gap = -1L
   ),
   public = list(
-    #' @description Create a new CF calendar.
+    #' @description Create a new CF calendar. When called with the deprecated
+    #' 'gregorian' it is automatically converted to the equivalent 'standard'.
     #' @param nm The name of the calendar. This must be "standard" or
     #'   "gregorian" (deprecated).
     #' @param definition The string that defines the units and the origin, as
     #' per the CF Metadata Conventions.
     #' @return A new instance of this class.
     initialize = function(nm, definition) {
+      nm <- "standard"
       super$initialize(nm, definition)
       private$rd_greg <- .gregorian_date2offset(self$origin, self$leap_year(self$origin$year))
       private$rd_juli <- .julian_date2offset(self$origin, self$leap_year(self$origin$year))

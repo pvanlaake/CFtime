@@ -728,7 +728,8 @@ CFTime <- R6::R6Class("CFTime",
           off  <- bnds[1L,] + (bnds[2L,] - bnds[1L,]) * 0.5
           new_time <- CFTime$new(self$cal$definition, self$cal$name, off)
         }
-        bounds(new_time) <- TRUE
+        if (length(new_time) > 1L)
+          bounds(new_time) <- TRUE # FIXME: for length == 1
 
         # Bind attributes to the factor
         attr(out, "era") <- -1L

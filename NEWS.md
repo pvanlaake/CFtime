@@ -1,3 +1,7 @@
+# CFtime (development version)
+
+* Deprecated "gregorian" calendar automatically converted to the equivalent "standard".
+
 # CFtime 1.6.0
 
 * New class `CFClimatology` to manage climatological statistics. Method
