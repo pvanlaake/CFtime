@@ -35,8 +35,9 @@ calendar is compatible with POSIXt on most OSes.
 }
 }
 \if{html}{\out{
-<details open><summary>Inherited methods</summary>
+<details><summary>Inherited methods</summary>
 <ul>
+<li><span class="pkg-link" data-pkg="CFtime" data-topic="CFCalendar" data-id="add_day"><a href='../../CFtime/html/CFCalendar.html#method-CFCalendar-add_day'><code>CFtime::CFCalendar$add_day()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="CFtime" data-topic="CFCalendar" data-id="is_compatible"><a href='../../CFtime/html/CFCalendar.html#method-CFCalendar-is_compatible'><code>CFtime::CFCalendar$is_compatible()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="CFtime" data-topic="CFCalendar" data-id="is_equivalent"><a href='../../CFtime/html/CFCalendar.html#method-CFCalendar-is_equivalent'><code>CFtime::CFCalendar$is_equivalent()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="CFtime" data-topic="CFCalendar" data-id="offsets2time"><a href='../../CFtime/html/CFCalendar.html#method-CFCalendar-offsets2time'><code>CFtime::CFCalendar$offsets2time()</code></a></span></li>
@@ -49,7 +50,8 @@ calendar is compatible with POSIXt on most OSes.
 \if{html}{\out{<a id="method-CFCalendarStandard-new"></a>}}
 \if{latex}{\out{\hypertarget{method-CFCalendarStandard-new}{}}}
 \subsection{Method \code{new()}}{
-Create a new CF calendar.
+Create a new CF calendar. When called with the deprecated
+'gregorian' it is automatically converted to the equivalent 'standard'.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{CFCalendarStandard$new(nm, definition)}\if{html}{\out{</div>}}
 }

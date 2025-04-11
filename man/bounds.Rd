@@ -18,13 +18,11 @@ bounds(x) <- value
 \item{value}{A \code{matrix} (or \code{array}) with dimensions (2, length(offsets))
 giving the lower (first row) and higher (second row) bounds of each offset
 (this is the format that the CF Metadata Conventions uses for storage in
-netCDF files). Use \code{FALSE} to unset any previously set bounds, \code{TRUE} to
-set regular bounds at mid-points between the offsets (which must be regular
-as well).}
+netCDF files). Use \code{NULL} to unset any previously set bounds.}
 }
 \value{
 If bounds have been set, an array of bounds values with dimensions
-(2, length(offsets)). The first row gives the lower bound, the second row
+\verb{(2, length(offsets))}. The first row gives the lower bound, the second row
 the upper bound, with each column representing an offset of \code{x}. If the
 \code{format} argument is specified, the bounds values are returned as strings
 according to the format. \code{NULL} when no bounds have been set.

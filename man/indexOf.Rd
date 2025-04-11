@@ -10,7 +10,7 @@ indexOf(x, y, method = "constant")
 \item{x}{Vector of \code{character}, \code{POSIXt} or \code{Date} values to find indices
 for, or a numeric vector.}
 
-\item{y}{\link{CFTime} instance.}
+\item{y}{A \link{CFTime} instance.}
 
 \item{method}{Single value of "constant" or "linear". If \code{"constant"} or when
 bounds are set on argument \code{y}, return the index value for each match. If

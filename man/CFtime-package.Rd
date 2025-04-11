@@ -54,7 +54,7 @@ are \href{https://cran.r-project.org/package=RNetCDF}{RNetCDF} and
 
 \strong{Filtering and selection}
 \itemize{
-\item \code{\link[=slab]{slab()}}: Logical vector of time steps between two extreme points.
+\item \code{\link[=slice]{slice()}}: Logical vector of time steps between two extreme points.
 \item \code{\link[=indexOf]{indexOf()}}: Index values in the time series of given timestamps, possibly with
 fractional part for interpolation.
 }

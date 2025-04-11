@@ -32,14 +32,6 @@ https://cfconventions.org/Data/cf-conventions/cf-conventions-1.12/cf-conventions
 calendar.}
 
 \item{\code{resolution}}{The average number of time units between offsets.}
-
-\item{\code{bounds}}{Optional, the bounds for the offsets. If not set, it is the
-logical value \code{FALSE}. If set, it is the logical value \code{TRUE} if the
-bounds are regular with respect to the regularly spaced offsets (e.g.
-successive bounds are contiguous and at mid-points between the
-offsets); otherwise a \code{matrix} with columns for \code{offsets} and low
-values in the first row, high values in the second row. Use
-\code{get_bounds()} to get bounds values when they are regularly spaced.}
 }
 \if{html}{\out{</div>}}
 }
@@ -47,6 +39,11 @@ values in the first row, high values in the second row. Use
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
 \item{\code{unit}}{(read-only) The unit string of the calendar and time series.}
+
+\item{\code{bounds}}{Retrieve or set the bounds for the offsets. On setting, a
+\code{matrix} with columns for \code{offsets} and low values in the first row,
+high values in the second row. This may be simply \code{TRUE} to set regular
+and consecutive bounds.}
 
 \item{\code{friendlyClassName}}{Character string with class name for display
 purposes.}
@@ -326,7 +323,7 @@ bounds. \code{NULL} if the bounds have not been set.
 \if{html}{\out{<a id="method-CFTime-set_bounds"></a>}}
 \if{latex}{\out{\hypertarget{method-CFTime-set_bounds}{}}}
 \subsection{Method \code{set_bounds()}}{
-Set the bounds of the \code{CFTime} instance.
+Set or delete the bounds of the \code{CFTime} instance.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{CFTime$set_bounds(value)}\if{html}{\out{</div>}}
 }
@@ -334,8 +331,8 @@ Set the bounds of the \code{CFTime} instance.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{value}}{The bounds to set, in units of the offsets. Either a matrix
-\verb{(2, length(self$offsets))} or a single logical value.}
+\item{\code{value}}{The bounds to set, in units of the offsets. A matrix \verb{(2, length(self$offsets))}. If \code{NULL}, the bounds are deleted. If \code{TRUE},
+make regular, consecutive bounds.}
 }
 \if{html}{\out{</div>}}
 }

@@ -96,7 +96,7 @@ resolution <- function(t) t$resolution
 #' @param format Optional. A single string with format specifiers, see
 #'   [CFtime::format()] for details.
 #' @return If bounds have been set, an array of bounds values with dimensions
-#'   (2, length(offsets)). The first row gives the lower bound, the second row
+#'   `(2, length(offsets))`. The first row gives the lower bound, the second row
 #'   the upper bound, with each column representing an offset of `x`. If the
 #'   `format` argument is specified, the bounds values are returned as strings
 #'   according to the format. `NULL` when no bounds have been set.
@@ -116,9 +116,7 @@ bounds <- function(x, format) {
 #' @param value A `matrix` (or `array`) with dimensions (2, length(offsets))
 #'   giving the lower (first row) and higher (second row) bounds of each offset
 #'   (this is the format that the CF Metadata Conventions uses for storage in
-#'   netCDF files). Use `FALSE` to unset any previously set bounds, `TRUE` to
-#'   set regular bounds at mid-points between the offsets (which must be regular
-#'   as well).
+#'   netCDF files). Use `NULL` to unset any previously set bounds.
 #' @export
 `bounds<-` <- function(x, value) {
   x$set_bounds(value)
@@ -163,7 +161,7 @@ as.character.CFTime <- function(x, ...) {
 #' level for every interval between timestamps. The last timestamp, therefore,
 #' is only used to close the interval started by the pen-ultimate timestamp -
 #' use a distant timestamp (e.g. `range(x)[2]`) to ensure that all offsets to
-#' the end of the CFTime time series are included, if so desired. The last
+#' the end of the `CFTime` time series are included, if so desired. The last
 #' timestamp will become the upper bound in the `CFTime` instance that is
 #' returned as an attribute to this function so a sensible value for the last
 #' timestamp is advisable.
@@ -240,7 +238,7 @@ cut.CFTime <- function (x, breaks, ...) {
 #'
 #' @param x Vector of `character`, `POSIXt` or `Date` values to find indices
 #'   for, or a numeric vector.
-#' @param y [CFTime] instance.
+#' @param y A [CFTime] instance.
 #' @param method Single value of "constant" or "linear". If `"constant"` or when
 #'   bounds are set on argument `y`, return the index value for each match. If
 #'   `"linear"`, return the index value with any fractional value.
@@ -373,7 +371,7 @@ slice <- function(x, extremes, rightmost.closed = FALSE) {
 #' t <- CFtime("hours since 2023-01-01 00:00:00", "standard", 0:23)
 #' slab(t, c("2022-12-01", "2023-01-01 03:00"))
 slab <- function(x, extremes, rightmost.closed = FALSE) {
-  # FIXME: Deprecate 2025-06
+  warning("Function `slab()` is deprecated. Use function `slice()` instead", call. = FALSE)
   x$slice(extremes, rightmost.closed)
 }
 

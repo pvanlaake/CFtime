@@ -35,7 +35,7 @@ When \code{breaks} is a vector of character timestamps a factor is produced with
 level for every interval between timestamps. The last timestamp, therefore,
 is only used to close the interval started by the pen-ultimate timestamp -
 use a distant timestamp (e.g. \code{range(x)[2]}) to ensure that all offsets to
-the end of the CFTime time series are included, if so desired. The last
+the end of the \code{CFTime} time series are included, if so desired. The last
 timestamp will become the upper bound in the \code{CFTime} instance that is
 returned as an attribute to this function so a sensible value for the last
 timestamp is advisable.

@@ -19,6 +19,10 @@
 #'   https://cfconventions.org/Data/cf-conventions/cf-conventions-1.12/cf-conventions.html#time-coordinate
 #' @docType class
 CFTime <- R6::R6Class("CFTime",
+  private = list(
+    # The boundary values of the time instance.
+    bnds = NULL
+  ),
   public = list(
     #' @field cal The calendar of this `CFTime` instance, a descendant of the
     #' [CFCalendar] class.
@@ -30,15 +34,6 @@ CFTime <- R6::R6Class("CFTime",
 
     #' @field resolution The average number of time units between offsets.
     resolution = NA_real_,
-
-    #' @field bounds Optional, the bounds for the offsets. If not set, it is the
-    #'   logical value `FALSE`. If set, it is the logical value `TRUE` if the
-    #'   bounds are regular with respect to the regularly spaced offsets (e.g.
-    #'   successive bounds are contiguous and at mid-points between the
-    #'   offsets); otherwise a `matrix` with columns for `offsets` and low
-    #'   values in the first row, high values in the second row. Use
-    #'   `get_bounds()` to get bounds values when they are regularly spaced.
-    bounds = FALSE,
 
     #' @description Create a new instance of this class.
     #' @param definition Character string of the units and origin of the
@@ -119,11 +114,8 @@ CFTime <- R6::R6Class("CFTime",
             paste("  Element :", d[1L], "\n")
         }
 
-        b <- if (is.logical(self$bounds)) {
-          if (self$bounds) "  Bounds  : regular and consecutive\n"
-          else "  Bounds  : not set\n"
-        } else if (noff == 1L) "  Bounds  : set\n"
-        else "  Bounds  : irregular\n"
+        b <- if (is.null(private$bnds)) "  Bounds  : not set\n"
+             else "  Bounds  : set\n"
       }
       cal <- capture.output(self$cal$print())
       cat(paste(cal, collapse = "\n"), "\nTime series:\n",  el, b, sep = "")
@@ -152,7 +144,7 @@ CFTime <- R6::R6Class("CFTime",
         stop("`bounds` argument, when present, must be a single logical value", call. = FALSE) # nocov
 
       if (bounds) {
-        bnds <- self$get_bounds()
+        bnds <- private$bnds
         if (is.null(bnds)) time <- self$cal$offsets2time(base::range(self$offsets))
         else time <- self$cal$offsets2time(c(bnds[1L, 1L], bnds[2L, length(self$offsets)]))
       } else time <- self$cal$offsets2time(base::range(self$offsets))
@@ -322,7 +314,7 @@ CFTime <- R6::R6Class("CFTime",
       valid <- which(!is.na(intv) & intv > 0 & intv < .Machine$integer.max)
       if (any(valid)) {
         t <- CFTime$new(self$cal$definition, self$cal$name, xoff[valid])
-        bnds <- self$get_bounds()
+        bnds <- private$bnds
         if (!is.null(bnds))
           t$set_bounds(bnds[, intv[valid], drop = FALSE])
         attr(intv, "CFTime") <- t
@@ -336,41 +328,30 @@ CFTime <- R6::R6Class("CFTime",
     #' @return An array with dims(2, length(offsets)) with values for the
     #'   bounds. `NULL` if the bounds have not been set.
     get_bounds = function(format) {
-      len <- length(self$offsets)
-      if (len == 0L) return(NULL)
-
-      bnds <- self$bounds
-      if (is.logical(bnds)) {
-        if (!bnds) return(NULL)
-
-        b <- seq(from       = self$offsets[1L] - self$resolution * 0.5,
-                 by         = self$resolution,
-                 length.out = len + 1L)
-        if (!missing(format)) {
-          ts <- self$cal$offsets2time(b)
-          b <- .format_format(ts, self$cal$timezone, format)
-        }
-        return(rbind(b[1L:len], b[2L:(len+1L)]))
-      }
-
-      # bnds is a matrix
-      if (missing(format)) return(bnds)
+      bnds <- private$bnds
+      if (is.null(bnds) || missing(format)) return(bnds)
 
       ts <- self$cal$offsets2time(as.vector(bnds))
       b <- .format_format(ts, self$cal$timezone, format)
-      dim(b) <- c(2L, len)
+      dim(b) <- dim(bnds)
       b
     },
 
-    #' @description Set the bounds of the `CFTime` instance.
+    #' @description Set or delete the bounds of the `CFTime` instance.
     #'
-    #' @param value The bounds to set, in units of the offsets. Either a matrix
-    #'   `(2, length(self$offsets))` or a single logical value.
+    #' @param value The bounds to set, in units of the offsets. A matrix `(2,
+    #'   length(self$offsets))`. If `NULL`, the bounds are deleted. If `TRUE`,
+    #'   make regular, consecutive bounds.
     #' @return `self` invisibly.
     set_bounds = function(value) {
-      if (is.null(value) || isFALSE(value)) self$bounds <- FALSE
-      else if (isTRUE(value)) self$bounds <- TRUE
-      else {
+      if (is.null(value) || isFALSE(value)) private$bnds <- NULL
+      else if (isTRUE(value)) {
+        len <- length(self$offsets)
+        b <- seq(from       = self$offsets[1L] - self$resolution * 0.5,
+                 by         = self$resolution,
+                 length.out = len + 1L)
+        private$bnds <- rbind(b[1L:len], b[2L:(len+1L)])
+      } else {
         off <- self$offsets
         len <- length(off)
 
@@ -385,11 +366,7 @@ CFTime <- R6::R6Class("CFTime",
         if (!(all(value[2L,] >= off) && all(off >= value[1L,])))
           stop("Values of the replacement value must surround the offset values", call. = FALSE)
 
-        # Compress array to `TRUE`, if regular
-        if (len > 1L && identical(value[1L,2L:len], value[2L,1L:(len-1L)]) &&
-            diff(range(diff(value[1L,]))) == 0) value <- TRUE
-
-        self$bounds <- value
+        private$bnds <- value
       }
       invisible(self)
     },
@@ -469,7 +446,7 @@ CFTime <- R6::R6Class("CFTime",
                else off >= ext[1L] & off < ext[2L]
         if (any(out)) {
           t <- CFTime$new(self$cal$definition, self$cal$name, off[out])
-          bnds <- self$get_bounds()
+          bnds <- private$bnds
           if (!is.null(bnds))
             t$set_bounds(bnds[, out, drop = FALSE])
           attr(out, "CFTime") <- t
@@ -524,7 +501,7 @@ CFTime <- R6::R6Class("CFTime",
       if(len == 1L) {
         breaks <- sub("s$", "", tolower(breaks))
         if (breaks %in% CFt$factor_periods)
-          return(CFfactor(self, breaks)) # FIXME after CFfactor is done
+          return(self$factor(breaks))
         else stop("Invalid specification of 'breaks'", call. = FALSE) # nocov
       }
 
@@ -543,7 +520,7 @@ CFTime <- R6::R6Class("CFTime",
       bnds <- rbind(ooff[1L:(len-1L)], ooff[2L:len])
       off  <- bnds[1L, ] + (bnds[2L, ] - bnds[1L, ]) * 0.5
       t <- CFTime$new(self$cal$definition, self$cal$name, off)
-      bounds(t) <- bnds
+      t$set_bounds(bnds)
       attr(f, "period") <- "day"
       attr(f, "era")  <- -1L
       attr(f, "CFTime") <- t
@@ -691,7 +668,7 @@ CFTime <- R6::R6Class("CFTime",
                    dt <- c(dt, sprintf("%04d-01-01", as.integer(substr(ll, 1L, 4L)) + 1L))
                  else dt <- c(dt, sprintf("%s-%02d-01", substr(ll, 1L, 4L), lp * 3L + 1L))
                },
-               "month"   = {
+               "month" = {
                  out <- as.factor(sprintf("%04d-%s", time$year, months[time$month]))
                  l  <- levels(out)
                  dt <- paste0(l, "-01")
@@ -701,7 +678,7 @@ CFTime <- R6::R6Class("CFTime",
                    dt <- c(dt, sprintf("%04d-01-01", as.integer(substr(ll, 1L, 4L)) + 1L))
                  else dt <- c(dt, sprintf("%s-%02d-01", substr(ll, 1L, 4L), lp + 1L))
                },
-               "dekad"   = {
+               "dekad" = {
                  out <- as.factor(sprintf("%04dD%02d", time$year, (time$month - 1L) * 3L + pmin.int((time$day - 1L) %/% 10L + 1L, 3L)))
                  l  <- levels(out)
                  dk <- as.integer(substr(l, 6L, 7L)) - 1L
@@ -713,23 +690,26 @@ CFTime <- R6::R6Class("CFTime",
                    dt <- c(dt, sprintf("%04d-01-01", yr + 1L))
                  else dt <- c(dt, sprintf("%04d-%02d-%s", yr, lp %/% 3L + 1L, c("01", "11", "21")[lp %% 3L + 1L]))
                },
-               "day"     = {
+               "day" = {
                  out <- as.factor(sprintf("%04d-%02d-%02d", time$year, time$month, time$day))
-                 new_time <- CFTime$new(self$cal$definition, self$cal$name, paste(levels(out), "12:00:00"))
+                 final <- levels(out)[nlevels(out)]
+                 yr <- as.integer(substring(final, 1, 4))
+                 mon <- as.integer(substring(final, 6, 7))
+                 day <- as.integer(substring(final, 9, 10))
+                 post <- self$cal$add_day(data.frame(year = yr, month = mon, day = day))
+                 post <- sprintf("%04d-%02d-%02d", post$year, post$month, post$day)
+                 dt <- c(levels(out), post)
                }
         )
 
         # Convert bounds dates to an array of offsets, find mid-points, create new CFTime instance
-        if (period != "day") {
-          off  <- self$cal$parse(dt)$offset
-          off[is.na(off)] <- 0     # This can happen only when the time series starts at or close to the origin, for seasons
-          noff <- length(off)
-          bnds <- rbind(off[1L:(noff - 1L)], off[2L:noff])
-          off  <- bnds[1L,] + (bnds[2L,] - bnds[1L,]) * 0.5
-          new_time <- CFTime$new(self$cal$definition, self$cal$name, off)
-        }
-        if (length(new_time) > 1L)
-          bounds(new_time) <- TRUE # FIXME: for length == 1
+        off  <- self$cal$parse(dt)$offset
+        off[is.na(off)] <- 0     # This can happen only when the time series starts at or close to the origin, for seasons
+        noff <- length(off)
+        bnds <- rbind(off[1L:(noff - 1L)], off[2L:noff])
+        off  <- bnds[1L,] + (bnds[2L,] - bnds[1L,]) * 0.5
+        new_time <- CFTime$new(self$cal$definition, self$cal$name, off)
+        new_time$set_bounds(bnds)
 
         # Bind attributes to the factor
         attr(out, "era") <- -1L
@@ -924,6 +904,17 @@ CFTime <- R6::R6Class("CFTime",
     unit = function(value) {
       if (missing(value))
         CFt$units$name[self$cal$unit]
+    },
+
+    #' @field bounds Retrieve or set the bounds for the offsets. On setting, a
+    #'   `matrix` with columns for `offsets` and low values in the first row,
+    #'   high values in the second row. This may be simply `TRUE` to set regular
+    #'   and consecutive bounds.
+    bounds = function(value) {
+      if (missing(value))
+        private$bnds
+      else
+        self$set_bounds(value)
     },
 
     #' @field friendlyClassName Character string with class name for display

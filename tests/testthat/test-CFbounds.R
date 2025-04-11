@@ -1,29 +1,29 @@
 test_that("bounds works", {
-  t <- CFtime("days since 2024-01-01", "standard")
+  t <- CFTime$new("days since 2024-01-01", "standard")
   off <- seq(from = 0.5, by = 1, length.out = 10)
   bnds <- rbind(0:9, 1:10)
 
-  expect_null(bounds(t))          # no offsets
-  expect_error(bounds(t) <- bnds) #
+  expect_null(t$get_bounds())          # no offsets
+  expect_error(t$set_bounds(bnds))   #
 
   t <- t + off
-  expect_null(bounds(t)) # bounds not set
-  bounds(t) <- TRUE
-  expect_equal(bounds(t), bnds)
-  expect_equal(bounds(t, "%Y-%m-%d")[2,1:3], c("2024-01-02", "2024-01-03", "2024-01-04"))
-  bounds(t) <- FALSE
-  expect_null(bounds(t))
+  expect_null(t$bounds) # bounds not set
+  t$set_bounds(bnds)
+  expect_equal(t$bounds, bnds)
+  expect_equal(t$get_bounds("%Y-%m-%d")[2,1:3], c("2024-01-02", "2024-01-03", "2024-01-04"))
+  t$set_bounds(NULL)
+  expect_null(t$bounds)
 
   expect_error(bounds(t) <- matrix(1:12, nrow = 4))
   expect_error(bounds(t) <- "plain wrong")
   expect_error(bounds(t) <- bnds * 10)
 
   bounds(t) <- bnds
-  expect_match(capture_output(t$print()), "Bounds  : regular and consecutive$")
+  expect_match(capture_output(t$print()), "Bounds  : set$")
 
   hr6 <- rbind(off - 0.25, off + 0.25)
   bounds(t) <- hr6
-  expect_match(capture_output(t$print()), "Bounds  : irregular$")
+  expect_match(capture_output(t$print()), "Bounds  : set$")
   expect_equal(bounds(t), hr6)
   expect_equal(bounds(t, "%H")[,1], c("06", "18"))
 })

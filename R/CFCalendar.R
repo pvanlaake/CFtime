@@ -89,6 +89,29 @@ CFCalendar <- R6::R6Class("CFCalendar",
       NULL                                                                                    # nocov
     },
 
+    #' @description Add a day to the supplied dates.
+    #' @param ymd `data.frame` with dates parsed into their parts in columns
+    #'   `year`, `month` and `day`. Any other columns are disregarded.
+    #' @return A `data.frame` like argument `ymd` but with a day added for every
+    #'   row.
+    add_day = function(ymd) {
+      md <- self$month_days(ymd)
+      ifelse(ymd$day < md,
+             ymd$day <- ymd$day + 1L,
+             {
+               ymd$day <- 1L
+               ifelse(ymd$month < 12L,
+                      ymd$month <- ymd$month + 1L,
+                      {
+                        ymd$month <- 1L
+                        ymd$year <- ymd$year + 1L
+                      }
+               )
+             }
+      )
+      ymd
+    },
+
     #' @description Indicate if the time series described using this calendar
     #'   can be safely converted to a standard date-time type (`POSIXct`,
     #'   `POSIXlt`, `Date`).

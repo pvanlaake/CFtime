@@ -32,6 +32,7 @@ before this will generate an error.
 <details><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="CFtime" data-topic="CFCalendar" data-id="POSIX_compatible"><a href='../../CFtime/html/CFCalendar.html#method-CFCalendar-POSIX_compatible'><code>CFtime::CFCalendar$POSIX_compatible()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="CFtime" data-topic="CFCalendar" data-id="add_day"><a href='../../CFtime/html/CFCalendar.html#method-CFCalendar-add_day'><code>CFtime::CFCalendar$add_day()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="CFtime" data-topic="CFCalendar" data-id="is_compatible"><a href='../../CFtime/html/CFCalendar.html#method-CFCalendar-is_compatible'><code>CFtime::CFCalendar$is_compatible()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="CFtime" data-topic="CFCalendar" data-id="is_equivalent"><a href='../../CFtime/html/CFCalendar.html#method-CFCalendar-is_equivalent'><code>CFtime::CFCalendar$is_equivalent()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="CFtime" data-topic="CFCalendar" data-id="offsets2time"><a href='../../CFtime/html/CFCalendar.html#method-CFCalendar-offsets2time'><code>CFtime::CFCalendar$offsets2time()</code></a></span></li>

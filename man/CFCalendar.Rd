@@ -64,6 +64,7 @@ origin of the calendar.}
 \item \href{#method-CFCalendar-new}{\code{CFCalendar$new()}}
 \item \href{#method-CFCalendar-print}{\code{CFCalendar$print()}}
 \item \href{#method-CFCalendar-valid_days}{\code{CFCalendar$valid_days()}}
+\item \href{#method-CFCalendar-add_day}{\code{CFCalendar$add_day()}}
 \item \href{#method-CFCalendar-POSIX_compatible}{\code{CFCalendar$POSIX_compatible()}}
 \item \href{#method-CFCalendar-is_compatible}{\code{CFCalendar$is_compatible()}}
 \item \href{#method-CFCalendar-is_equivalent}{\code{CFCalendar$is_equivalent()}}
@@ -133,6 +134,28 @@ Indicate which of the supplied dates are valid.
 \subsection{Returns}{
 \code{NULL}. A warning will be generated to the effect that a
 descendant class should be used for this method.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-CFCalendar-add_day"></a>}}
+\if{latex}{\out{\hypertarget{method-CFCalendar-add_day}{}}}
+\subsection{Method \code{add_day()}}{
+Add a day to the supplied dates.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{CFCalendar$add_day(ymd)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{ymd}}{\code{data.frame} with dates parsed into their parts in columns
+\code{year}, \code{month} and \code{day}. Any other columns are disregarded.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A \code{data.frame} like argument \code{ymd} but with a day added for every
+row.
 }
 }
 \if{html}{\out{<hr>}}

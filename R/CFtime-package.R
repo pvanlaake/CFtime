@@ -43,7 +43,7 @@
 #' * [CFfactor_coverage()]: How much data is available for each level of the factor?
 #'
 #' **Filtering and selection**
-#' * [slab()]: Logical vector of time steps between two extreme points.
+#' * [slice()]: Logical vector of time steps between two extreme points.
 #' * [indexOf()]: Index values in the time series of given timestamps, possibly with
 #' fractional part for interpolation.
 #' @keywords internal

@@ -41,7 +41,7 @@ CFClimatology <- R6::R6Class("CFClimatology",
         stop("Argument 'bounds' must be a matrix with two rows and as many columns as the length of argument 'offset'", call. = FALSE)
 
       super$initialize(definition, calendar, offsets)
-      self$bounds <- self$set_bounds(bounds)
+      self$set_bounds(bounds)
 
       # Determine period and years from the bounds of the first offset
       time <- self$cal$offsets2time(bounds[1L:2L, 1L])

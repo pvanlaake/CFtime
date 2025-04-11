@@ -125,7 +125,7 @@ test_that("test all variants of creating a CFtime object and useful functions", 
   t$bounds <- TRUE
   s <- t$slice(c("2023-01-01", "2023-05-01"))
   st <- attr(s, "CFTime")
-  expect_true(st$bounds)
+  expect_equal(st$bounds, t$bounds)
 })
 
 test_that("Leap years on some calendars", {
