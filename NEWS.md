@@ -1,4 +1,4 @@
-# CFtime (development version)
+# CFtime 1.6.1
 
 * Deprecated "gregorian" calendar automatically converted to the equivalent "standard".
 * `CFCalendar$add_day()` method added to add a day to a `data.frame` of date parts, using calendar logic.
