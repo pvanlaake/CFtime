@@ -5,7 +5,7 @@
 * Additional checks have been performed with GHA and devtools::check(remote = TRUE, manual = TRUE)
 and devtools::check_win_devel().
 
-* This minor release 1.6.0 add new functionality that is necessary to support dependent package ncdfCF. For this reason it is released a little under a month after the previous patch. Furthermore it fixes some minor errors, expands test coverage and has updated documentation.
+* This patch 1.6.1 add new functionality that is necessary to support dependent package ncdfCF. Furthermore it fixes some minor errors and has updated documentation.
 
 ## revdepcheck results
 

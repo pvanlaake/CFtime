@@ -177,7 +177,7 @@ dimnames(ds)
 #>   Type    : noleap
 #> Time series:
 #>   Elements: [2015-01-01T12:00:00 .. 2099-12-31T12:00:00] (average of 1.000000 days between 31025 elements)
-#>   Bounds  : irregular
+#>   Bounds  : set
 ```
 
 Note that the `ncdfCF` package reads the netCDF file and interprets its
@@ -188,8 +188,8 @@ be accessed with the `time()` method.
 ##### Using RNetCDF or ncdf4
 
 If you are using the `RNetCDF` or `ncdf4` package rather than `ncdfCF`,
-creating a `CFTime` instance goes like this (but note that this assumes
-that the axis is called “time”):
+creating a `CFTime` instance goes like this, assuming that the axis is
+called “time”:
 
 ``` r
 library(RNetCDF)

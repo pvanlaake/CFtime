@@ -10,7 +10,7 @@
 |collate  |en_US.UTF-8                                                                 |
 |ctype    |en_US.UTF-8                                                                 |
 |tz       |Europe/Madrid                                                               |
-|date     |2025-03-28                                                                  |
+|date     |2025-04-12                                                                  |
 |rstudio  |2024.12.1+563 Kousa Dogwood (desktop)                                       |
 |pandoc   |3.6.1 @ /opt/homebrew/bin/ (via rmarkdown)                                  |
 |quarto   |1.5.57 @ /Applications/RStudio.app/Contents/Resources/app/quarto/bin/quarto |
@@ -19,7 +19,7 @@
 
 |package |old   |new        |Δ  |
 |:-------|:-----|:----------|:--|
-|CFtime  |1.5.1 |1.5.1.9000 |*  |
+|CFtime  |1.6.0 |1.6.0.9000 |*  |
 
 # Revdeps
 

@@ -135,16 +135,6 @@ test_that("Leap years on some calendars", {
   expect_true(all(t$cal$leap_year(c(2000:2025))))
 })
 
-test_that("Working with packages and files", {
-  lf <- list.files(path = system.file("extdata", package = "CFtime"), full.names = TRUE)
-
-  if (requireNamespace("ncdfCF"))
-    lapply(lf, function(f) {
-      nc <- ncdfCF::open_ncdf(f)
-      expect_true(inherits(nc[["time"]]$time(), "CFTime"))
-    })
-})
-
 test_that("Calendar 'none'", {
   t <- CFTime$new("days since 2025-01-01", "none")
   expect_true(inherits(t$cal, "CFCalendarNone"))

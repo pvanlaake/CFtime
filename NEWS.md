@@ -2,7 +2,7 @@
 
 * Deprecated "gregorian" calendar automatically converted to the equivalent "standard".
 * `CFCalendar$add_day()` method added to add a day to a `data.frame` of date parts, using calendar logic.
-* **API change**: Bounds are now always fully specified so logical arguments should no longer be used. This is to ensure that factorizing to "approximate" time units (such as a month) will give correct results for the bounds. (Old API deprecated by November 2025, removed early 2026.)
+* **API change**: Bounds are now always fully specified so logical arguments should no longer be used, except in setting regular, consecutive bounds (`bounds <- TRUE`). If bounds have not been set, a `NULL` value is returned. This is to ensure that factorizing to "approximate" time units (such as a month) will give correct results for the bounds. (Old API deprecated by November 2025, removed early 2026.)
 
 # CFtime 1.6.0
 
