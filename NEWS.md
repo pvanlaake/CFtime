@@ -1,3 +1,7 @@
+# CFtime (development version)
+
+* Fixed `CFTime` attribute of a "season" factor when the last factor level is the first season in the year.
+
 # CFtime 1.6.1
 
 * Deprecated "gregorian" calendar automatically converted to the equivalent "standard".

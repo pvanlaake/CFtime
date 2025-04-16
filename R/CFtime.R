@@ -652,7 +652,7 @@ CFTime <- R6::R6Class("CFTime",
                  ll <- l[nlevels(out)]
                  lp <- as.integer(substr(ll, 6L, 6L))
                  if (lp == 1L)
-                   dt <- c(dt, sprintf("%04d-03-01", as.integer(substr(ll, 1L, 4L)) + 1L))
+                   dt <- c(dt, sprintf("%04d-03-01", as.integer(substr(ll, 1L, 4L))))
                  else dt <- c(dt, sprintf("%s-%02d-01", substr(ll, 1L, 4L), lp * 3L))
                },
                "quarter" = {
