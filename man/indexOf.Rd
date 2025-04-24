@@ -4,7 +4,7 @@
 \alias{indexOf}
 \title{Find the index of timestamps in the time series}
 \usage{
-indexOf(x, y, method = "constant")
+indexOf(x, y, method = "constant", rightmost.closed = FALSE)
 }
 \arguments{
 \item{x}{Vector of \code{character}, \code{POSIXt} or \code{Date} values to find indices
@@ -15,20 +15,22 @@ for, or a numeric vector.}
 \item{method}{Single value of "constant" or "linear". If \code{"constant"} or when
 bounds are set on argument \code{y}, return the index value for each match. If
 \code{"linear"}, return the index value with any fractional value.}
+
+\item{rightmost.closed}{Whether or not to include the upper limit of
+argument \code{x}. Default is \code{FALSE}. This argument is ignored when
+argument \code{x} contains index values.}
 }
 \value{
-A numeric vector giving indices into the "time" dimension of the
-data set associated with \code{y} for the values of \code{x}. If there is at least 1
-valid index, then attribute "CFTime" contains an instance of \code{CFTime} that
-describes the dimension of filtering the data set associated with \code{y} with
-the result of this function, excluding any \code{NA}, \code{0} and
-\code{.Machine$integer.max} values.
+A numeric vector giving indices into \code{y} for the values of
+\code{x}. If there is at least 1 valid index, then attribute "CFTime"
+contains an instance of \code{CFTime} that describes the dimension of
+filtering the dataset associated with \code{y} with the result of this
+method, excluding any \code{NA} values.
 }
 \description{
 Find the index in the time series for each timestamp given in argument \code{x}.
-Values of \code{x} that are before the earliest value in \code{y} will be returned as
-\code{0}; values of \code{x} that are after the latest values in \code{y} will be returned
-as \code{.Machine$integer.max}. Alternatively, when \code{x} is a numeric vector of
+Values of \code{x} that are before the earliest value or after the latest value in
+\code{y} will be returned as \code{NA}. Alternatively, when \code{x} is a numeric vector of
 index values, return the valid indices of the same vector, with the side
 effect being the attribute "CFTime" associated with the result.
 }
@@ -48,9 +50,9 @@ values in \code{x} are at midnight. This situation is easily avoided by ensuring
 that \code{y} has bounds set (use \code{bounds(y) <- TRUE} as a proximate solution if
 bounds are not stored in the netCDF file). See the Examples.
 
-If bounds are set, the indices are taken from those bounds. Returned indices
-may fall in between bounds if the latter are not contiguous, with the
-exception of the extreme values in \code{x}.
+If bounds are set, the indices are informed by those bounds. If the
+bounds are not contiguous, returned values may be \code{NA} even if the
+value of \code{x} falls between two valid timestamps.
 
 Values of \code{x} that are not valid timestamps according to the calendar of \code{y}
 will be returned as \code{NA}.

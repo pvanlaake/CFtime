@@ -45,8 +45,8 @@ test_that("indexOf() works", {
   expect_error(indexOf(x, CFtime("months since 2001-01-01", "standard", 0:23)))
   expect_error(indexOf(x, t, nomatch = "July")) # must be able to coerce to numeric
 
-  expect_equal(indexOf(x, t)[1:8], c(0, 0, 29, NA, 30, 59, 60, .Machine$integer.max))
-  expect_equal(indexOf(x, t, method = "linear")[1:8], c(0, 0, 29.5, NA, 30.5, 59.5, 60.5, .Machine$integer.max))
+  expect_equal(indexOf(x, t)[1:8], c(NA, NA, 29, NA, 30, 59, 60, NA))
+  expect_equal(indexOf(x, t, method = "linear")[1:8], c(NA, NA, 29.5, NA, 30.5, 59.5, 60.5, NA))
 
   n <- 1:3
   out <- indexOf(n, t)
@@ -62,9 +62,9 @@ test_that("indexOf() works", {
   # Attached CFtime must have valid timestamps in `x`
   out <- indexOf(x, t)
   outt <- attr(out, "CFTime")
-  expect_equal(as_timestamp(outt), x[!is.na(out) & out > 0 & out < .Machine$integer.max])
+  expect_equal(as_timestamp(outt), x[!is.na(out)])
 
   bounds(t) <- TRUE
-  expect_equal(indexOf(x, t)[1:8], c(0, 0, 30, NA, 31, 60, 61, .Machine$integer.max))
-  expect_equal(indexOf(x, t, method = "linear")[1:8], c(0, 0, 30, NA, 31, 60, 61, .Machine$integer.max))
+  expect_equal(indexOf(x, t)[1:8], c(NA, NA, 30, NA, 31, 60, 61, NA))
+  expect_equal(indexOf(x, t, method = "linear")[1:8], c(NA, NA, 30, NA, 31, 60, 61, NA))
 })

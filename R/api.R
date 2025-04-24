@@ -200,9 +200,8 @@ cut.CFTime <- function (x, breaks, ...) {
 #' Find the index of timestamps in the time series
 #'
 #' Find the index in the time series for each timestamp given in argument `x`.
-#' Values of `x` that are before the earliest value in `y` will be returned as
-#' `0`; values of `x` that are after the latest values in `y` will be returned
-#' as `.Machine$integer.max`. Alternatively, when `x` is a numeric vector of
+#' Values of `x` that are before the earliest value or after the latest value in
+#' `y` will be returned as `NA`. Alternatively, when `x` is a numeric vector of
 #' index values, return the valid indices of the same vector, with the side
 #' effect being the attribute "CFTime" associated with the result.
 #'
@@ -221,9 +220,9 @@ cut.CFTime <- function (x, breaks, ...) {
 #' that `y` has bounds set (use `bounds(y) <- TRUE` as a proximate solution if
 #' bounds are not stored in the netCDF file). See the Examples.
 #'
-#' If bounds are set, the indices are taken from those bounds. Returned indices
-#' may fall in between bounds if the latter are not contiguous, with the
-#' exception of the extreme values in `x`.
+#' If bounds are set, the indices are informed by those bounds. If the
+#' bounds are not contiguous, returned values may be `NA` even if the
+#' value of `x` falls between two valid timestamps.
 #'
 #' Values of `x` that are not valid timestamps according to the calendar of `y`
 #' will be returned as `NA`.
@@ -242,13 +241,14 @@ cut.CFTime <- function (x, breaks, ...) {
 #' @param method Single value of "constant" or "linear". If `"constant"` or when
 #'   bounds are set on argument `y`, return the index value for each match. If
 #'   `"linear"`, return the index value with any fractional value.
-#'
-#' @returns A numeric vector giving indices into the "time" dimension of the
-#'   data set associated with `y` for the values of `x`. If there is at least 1
-#'   valid index, then attribute "CFTime" contains an instance of `CFTime` that
-#'   describes the dimension of filtering the data set associated with `y` with
-#'   the result of this function, excluding any `NA`, `0` and
-#'   `.Machine$integer.max` values.
+#' @param rightmost.closed Whether or not to include the upper limit of
+#'   argument `x`. Default is `FALSE`. This argument is ignored when
+#'   argument `x` contains index values.
+#' @return A numeric vector giving indices into `y` for the values of
+#'   `x`. If there is at least 1 valid index, then attribute "CFTime"
+#'   contains an instance of `CFTime` that describes the dimension of
+#'   filtering the dataset associated with `y` with the result of this
+#'   method, excluding any `NA` values.
 #' @export
 #'
 #' @examples
@@ -267,8 +267,8 @@ cut.CFTime <- function (x, breaks, ...) {
 #'
 #' # Numeric x
 #' indexOf(c(29, 30, 31), cf)
-indexOf <- function(x, y, method = "constant") {
-  y$indexOf(x, method)
+indexOf <- function(x, y, method = "constant", rightmost.closed = FALSE) {
+  y$indexOf(x, method, rightmost.closed)
 }
 
 #' Extreme time series values

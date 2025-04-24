@@ -9,5 +9,6 @@ CFt <- new.env(parent = emptyenv())
                              seconds  = c(1L, 60L, 3600L, 86400L, 86400L * 30L, 86400L * 365L),
                              per_day  = c(86400, 1440, 24, 1, 1/30, 1/365)), envir = CFt)
   assign("factor_periods", c("year", "season", "quarter", "month", "dekad", "day"), envir = CFt)
+  assign("eps", .Machine$double.eps^0.5, envir = CFt)
 }
 #nocov end

@@ -173,3 +173,16 @@
   }
   res * upd
 }
+
+# =====================
+# Others
+
+#' Round values `x` with .5 being rounded up.
+#' Adapted from https://stackoverflow.com/a/12688836/3304426
+#' @noRd
+.round = function(x) {
+  posneg = sign(x)
+  z = trunc(abs(x) + 0.5 + CFt$eps)
+  z*posneg
+}
+

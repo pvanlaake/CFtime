@@ -239,10 +239,7 @@ returned verbatim.
 \if{latex}{\out{\hypertarget{method-CFTime-indexOf}{}}}
 \subsection{Method \code{indexOf()}}{
 Find the index in the time series for each timestamp given
-in argument \code{x}. Values of \code{x} that are before the earliest value in
-the time series will be returned as \code{0}; values of \code{x} that are after
-the latest values in the time series will be returned as
-\code{.Machine$integer.max}. Alternatively, when \code{x} is a numeric vector of
+in argument \code{x}. Alternatively, when \code{x} is a numeric vector of
 index values, return the valid indices of the same vector, with the
 side effect being the attribute "CFTime" associated with the result.
 
@@ -257,16 +254,16 @@ result in \verb{(NA, 1, 2)} (or \verb{(NA, 1.5, 2.5)} with \code{method = "linea
 because the date values in \code{x} are at midnight. This situation is
 easily avoided by ensuring that this \code{CFTime} instance has bounds set
 (use \code{bounds(y) <- TRUE} as a proximate solution if bounds are not
-stored in the netCDF file). See the Examples.
+stored in the netCDF file).
 
-If bounds are set, the indices are taken from those bounds. Returned
-indices may fall in between bounds if the latter are not contiguous,
-with the exception of the extreme values in \code{x}.
+If bounds are set, the indices are informed by those bounds. If the
+bounds are not contiguous, returned values may be \code{NA} even if the
+value of \code{x} falls between two valid timestamps.
 
 Values of \code{x} that are not valid timestamps according to the calendar
 of this \code{CFTime} instance will be returned as \code{NA}.
 
-\code{x} can also be a numeric vector of index values, in which case the
+Argument \code{x} can also be a numeric vector of index values, in which case the
 valid values in \code{x} are returned. If negative values are passed, the
 positive counterparts will be excluded and then the remainder returned.
 Positive and negative values may not be mixed. Using a numeric vector
@@ -274,7 +271,7 @@ has the side effect that the result has the attribute "CFTime"
 describing the temporal dimension of the slice. If index values outside
 of the range of \code{self} are provided, an error will be thrown.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{CFTime$indexOf(x, method = "constant")}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{CFTime$indexOf(x, method = "constant", rightmost.closed = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -283,19 +280,22 @@ of the range of \code{self} are provided, an error will be thrown.
 \item{\code{x}}{Vector of character, POSIXt or Date values to find indices for,
 or a numeric vector.}
 
-\item{\code{method}}{Single value of "constant" or "linear". If \code{"constant"} or
-when bounds are set on \code{self}, return the index value for each
-match. If \code{"linear"}, return the index value with any fractional value.}
+\item{\code{method}}{Single value of "constant" or "linear". If \code{"constant"},
+return the index value for each match. If \code{"linear"}, return the index
+value with any fractional value.}
+
+\item{\code{rightmost.closed}}{Whether or not to include the upper limit of
+argument \code{x}. Default is \code{FALSE}. This argument is ignored when
+argument \code{x} contains index values.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-A numeric vector giving indices into the "time" dimension of the
-dataset associated with \code{self} for the values of \code{x}. If there is at
-least 1 valid index, then attribute "CFTime" contains an instance of
-\code{CFTime} that describes the dimension of filtering the dataset
-associated with \code{self} with the result of this function, excluding any
-\code{NA}, \code{0} and \code{.Machine$integer.max} values.
+A numeric vector giving indices into \code{self} for the values of
+\code{x}. If there is at least 1 valid index, then attribute "CFTime"
+contains an instance of \code{CFTime} that describes the dimension of
+filtering the dataset associated with \code{self} with the result of this
+method, excluding any \code{NA} values.
 }
 }
 \if{html}{\out{<hr>}}

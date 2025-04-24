@@ -1,5 +1,6 @@
 # CFtime (development version)
 
+* `CFTime$indexOf()` method has new `rightmost.closed` argument with default value `FALSE`. Invalid return values are always `NA`, also for values outside of range. Boundary values are fully considered so when boundary values are not contiguous, results may be `NA` when values of `x` do not fall within the bounds of a coordinate.
 * Fixed `CFTime` attribute of a "season" factor when the last factor level is the first season in the year.
 
 # CFtime 1.6.1

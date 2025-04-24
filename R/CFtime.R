@@ -241,10 +241,7 @@ CFTime <- R6::R6Class("CFTime",
     },
 
     #' @description Find the index in the time series for each timestamp given
-    #'   in argument `x`. Values of `x` that are before the earliest value in
-    #'   the time series will be returned as `0`; values of `x` that are after
-    #'   the latest values in the time series will be returned as
-    #'   `.Machine$integer.max`. Alternatively, when `x` is a numeric vector of
+    #'   in argument `x`. Alternatively, when `x` is a numeric vector of
     #'   index values, return the valid indices of the same vector, with the
     #'   side effect being the attribute "CFTime" associated with the result.
     #'
@@ -259,36 +256,36 @@ CFTime <- R6::R6Class("CFTime",
     #'   because the date values in `x` are at midnight. This situation is
     #'   easily avoided by ensuring that this `CFTime` instance has bounds set
     #'   (use `bounds(y) <- TRUE` as a proximate solution if bounds are not
-    #'   stored in the netCDF file). See the Examples.
+    #'   stored in the netCDF file).
     #'
-    #'   If bounds are set, the indices are taken from those bounds. Returned
-    #'   indices may fall in between bounds if the latter are not contiguous,
-    #'   with the exception of the extreme values in `x`.
+    #'   If bounds are set, the indices are informed by those bounds. If the
+    #'   bounds are not contiguous, returned values may be `NA` even if the
+    #'   value of `x` falls between two valid timestamps.
     #'
     #'   Values of `x` that are not valid timestamps according to the calendar
     #'   of this `CFTime` instance will be returned as `NA`.
     #'
-    #'   `x` can also be a numeric vector of index values, in which case the
+    #'   Argument `x` can also be a numeric vector of index values, in which case the
     #'   valid values in `x` are returned. If negative values are passed, the
     #'   positive counterparts will be excluded and then the remainder returned.
     #'   Positive and negative values may not be mixed. Using a numeric vector
     #'   has the side effect that the result has the attribute "CFTime"
     #'   describing the temporal dimension of the slice. If index values outside
     #'   of the range of `self` are provided, an error will be thrown.
-    #'
     #' @param x Vector of character, POSIXt or Date values to find indices for,
     #'   or a numeric vector.
-    #' @param method Single value of "constant" or "linear". If `"constant"` or
-    #'   when bounds are set on `self`, return the index value for each
-    #'   match. If `"linear"`, return the index value with any fractional value.
-    #'
-    #' @return A numeric vector giving indices into the "time" dimension of the
-    #'   dataset associated with `self` for the values of `x`. If there is at
-    #'   least 1 valid index, then attribute "CFTime" contains an instance of
-    #'   `CFTime` that describes the dimension of filtering the dataset
-    #'   associated with `self` with the result of this function, excluding any
-    #'   `NA`, `0` and `.Machine$integer.max` values.
-    indexOf = function(x, method = "constant") {
+    #' @param method Single value of "constant" or "linear". If `"constant"`,
+    #'   return the index value for each match. If `"linear"`, return the index
+    #'   value with any fractional value.
+    #' @param rightmost.closed Whether or not to include the upper limit of
+    #'   argument `x`. Default is `FALSE`. This argument is ignored when
+    #'   argument `x` contains index values.
+    #' @return A numeric vector giving indices into `self` for the values of
+    #'   `x`. If there is at least 1 valid index, then attribute "CFTime"
+    #'   contains an instance of `CFTime` that describes the dimension of
+    #'   filtering the dataset associated with `self` with the result of this
+    #'   method, excluding any `NA` values.
+    indexOf = function(x, method = "constant", rightmost.closed = FALSE) {
       stopifnot(inherits(x, c("character", "POSIXt", "Date")) || is.numeric(x),
                 method %in% c("constant", "linear"))
 
@@ -303,15 +300,24 @@ CFTime <- R6::R6Class("CFTime",
           stop("Parsing of timestamps on a 'month' or 'year' time unit is not supported.", call. = FALSE)
 
         xoff <- self$cal$parse(as.character(x))$offset
-        vals <- self$get_bounds()
-        vals <- if (is.null(vals)) self$offsets
-                else c(vals[1L, 1L], vals[2L, ])
-        intv <- stats::approx(vals, 1L:length(vals), xoff, method = method,
-                              yleft = 0, yright = .Machine$integer.max)$y
-        intv[which(intv == length(vals))] <- .Machine$integer.max
+        vals <- self$offsets
+        bnds <- self$get_bounds()
+        if (!is.null(bnds)) {
+          # Axis has bounds so get the closest coordinate first, allow for extremes
+          intv <- .round(stats::approx(vals, 1L:length(vals), xoff, method = "linear", rule = 2)$y)
+          # Test that xoff falls within the bounds of the coordinates
+          valid <- if (rightmost.closed) (bnds[1L, intv] <= xoff) & (xoff <= bnds[2L, intv])
+                   else (bnds[1L, intv] <= xoff) & (xoff < bnds[2L, intv])
+          intv[!valid] <- NA
+        } else {
+          intv <- stats::approx(vals, 1L:length(vals), xoff, method = method)$y
+          if (!rightmost.closed)
+            intv[xoff == vals[length(vals)]] <- NA
+          intv
+        }
       }
 
-      valid <- which(!is.na(intv) & intv > 0 & intv < .Machine$integer.max)
+      valid <- which(!is.na(intv))
       if (any(valid)) {
         t <- CFTime$new(self$cal$definition, self$cal$name, xoff[valid])
         bnds <- private$bnds
