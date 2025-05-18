@@ -6,6 +6,7 @@
 \alias{CFmonth_days}
 \alias{CFcomplete}
 \alias{CFsubset}
+\alias{slab}
 \alias{CFparse}
 \title{Deprecated functions}
 \usage{
@@ -17,10 +18,12 @@ CFcomplete(x)
 
 CFsubset(x, extremes)
 
+slab(x, extremes, rightmost.closed = FALSE)
+
 CFparse(t, x)
 }
 \arguments{
-\item{t, x, format, asPOSIX, extremes}{See replacement functions.}
+\item{t, x, format, asPOSIX, extremes, rightmost.closed}{See replacement functions.}
 }
 \value{
 See replacement functions.
@@ -36,6 +39,7 @@ function if no arguments are given in the table.\tabular{ll}{
    CFparse() \tab \code{\link[=parse_timestamps]{parse_timestamps()}} \cr
    CFrange() \tab \code{\link[=range]{range()}} \cr
    CFsubset() \tab \code{\link[=slice]{slice()}} \cr
+   slab() \tab \code{\link[=slice]{slice()}} \cr
    CFtimestamp() \tab \code{\link[=as_timestamp]{as_timestamp()}} \cr
 }
 }

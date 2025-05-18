@@ -13,10 +13,11 @@
 #' | CFmonth_days()      | [month_days()]       |
 #' | CFparse()           | [parse_timestamps()] |
 #' | CFrange()           | [range()]            |
-#' | CFsubset()          | [slice()]             |
+#' | CFsubset()          | [slice()]            |
+#' | slab()              | [slice()]            |
 #' | CFtimestamp()       | [as_timestamp()]     |
 #'
-#' @param t,x,format,asPOSIX,extremes See replacement functions.
+#' @param t,x,format,asPOSIX,extremes,rightmost.closed See replacement functions.
 #'
 #' @returns See replacement functions.
 
@@ -46,8 +47,15 @@ CFcomplete <- function(x) {
 #' @rdname deprecated_functions
 #' @export
 CFsubset <- function(x, extremes) {
-  warning("Function `CFsubset()` is deprecated. Use `slab()` instead.")
-  slab(x, extremes)
+  warning("Function `CFsubset()` is deprecated. Use `slice()` instead.")
+  slice(x, extremes)
+}
+
+#' @rdname deprecated_functions
+#' @export
+slab <- function(x, extremes, rightmost.closed = FALSE) {
+  warning("Function `slab()` is deprecated. Use function `slice()` instead", call. = FALSE)
+  x$slice(extremes, rightmost.closed)
 }
 
 #' @rdname deprecated_functions

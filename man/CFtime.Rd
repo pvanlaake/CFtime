@@ -38,6 +38,9 @@ calendar.}
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
+\item{\code{calendar}}{(read-only) The calendar of this \code{CFTime} instance, a
+descendant of the \link{CFCalendar} class.}
+
 \item{\code{unit}}{(read-only) The unit string of the calendar and time series.}
 
 \item{\code{bounds}}{Retrieve or set the bounds for the offsets. On setting, a

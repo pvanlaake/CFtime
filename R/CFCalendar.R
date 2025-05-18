@@ -151,7 +151,7 @@ CFCalendar <- R6::R6Class("CFCalendar",
     #' @return `TRUE` if the instance in argument `cal` is equivalent to
     #'   `self`, `FALSE` otherwise.
     is_equivalent = function(cal) {
-      sum(self$origin[1L,1L:6L] == cal$origin[1L,1L:6L]) == 6L &&  # Offset column is NA
+      all(self$origin[1L,1L:6L] == cal$origin[1L,1L:6L]) &&  # Offset column is NA
       self$is_compatible(cal)
     },
 

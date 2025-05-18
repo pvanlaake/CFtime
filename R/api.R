@@ -359,22 +359,6 @@ slice <- function(x, extremes, rightmost.closed = FALSE) {
   x$slice(extremes, rightmost.closed)
 }
 
-#' Which time steps fall within two extreme values
-#'
-#' Avoid using this function, use [slice()] instead. This function will be
-#' deprecated in the near future.
-#'
-#' @param x,extremes,rightmost.closed See `slice()`.
-#' @returns See `slice()`.
-#' @export
-#' @examples
-#' t <- CFtime("hours since 2023-01-01 00:00:00", "standard", 0:23)
-#' slab(t, c("2022-12-01", "2023-01-01 03:00"))
-slab <- function(x, extremes, rightmost.closed = FALSE) {
-  warning("Function `slab()` is deprecated. Use function `slice()` instead", call. = FALSE)
-  x$slice(extremes, rightmost.closed)
-}
-
 #' Equivalence of CFTime objects
 #'
 #' This operator can be used to test if two [CFTime] objects represent the same

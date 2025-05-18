@@ -906,6 +906,13 @@ CFTime <- R6::R6Class("CFTime",
     }
   ),
   active = list(
+    #' @field calendar (read-only) The calendar of this `CFTime` instance, a
+    #'   descendant of the [CFCalendar] class.
+    calendar = function(value) {
+      if (missing(value))
+        self$cal
+    },
+
     #' @field unit (read-only) The unit string of the calendar and time series.
     unit = function(value) {
       if (missing(value))
