@@ -5,11 +5,11 @@
 * Additional checks have been performed with GHA and devtools::check(remote = TRUE, manual = TRUE)
 and devtools::check_win_devel().
 
-* This patch 1.6.1 add new functionality that is necessary to support dependent package ncdfCF. Furthermore it fixes some minor errors and has updated documentation.
+* This patch 1.6.2 is a maintenance release to fix some minor errors and update documentation.
 
 ## revdepcheck results
 
-We checked 4 reverse dependencies, comparing R CMD check results across CRAN and dev versions of this package.
+We checked 5 reverse dependencies, comparing R CMD check results across CRAN and dev versions of this package.
 
  * We saw 0 new problems
  * We failed to check 0 packages
