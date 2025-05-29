@@ -14,11 +14,11 @@ Downloads](https://cranlogs.r-pkg.org/badges/grand-total/CFtime)](https://cran.r
 [![License: GPL
 v3](https://img.shields.io/badge/License-MIT-blue.svg)](https://mit-license.org)
 [![Commits since
-release](https://img.shields.io/github/commits-since/pvanlaake/CFtime/latest.svg?color=green)](https://GitHub.com/pvanlaake/CFtime/commit/main/)
+release](https://img.shields.io/github/commits-since/R-CF/CFtime/latest.svg?color=green)](https://GitHub.com/R-CF/CFtime/commit/main/)
 [![Last
-commit](https://img.shields.io/github/last-commit/pvanlaake/CFtime)](https://github.com/pvanlaake/CFtime/commits/main)
-[![R-CMD-check](https://github.com/pvanlaake/CFtime/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/pvanlaake/CFtime/actions/workflows/R-CMD-check.yaml)
-[![codecov](https://codecov.io/gh/pvanlaake/CFtime/branch/main/graph/badge.svg)](https://app.codecov.io/gh/pvanlaake/CFtime)
+commit](https://img.shields.io/github/last-commit/R-CF/CFtime)](https://github.com/R-CF/CFtime/commits/main)
+[![R-CMD-check](https://github.com/R-CF/CFtime/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/R-CF/CFtime/actions/workflows/R-CMD-check.yaml)
+[![codecov](https://codecov.io/gh/R-CF/CFtime/branch/main/graph/badge.svg)](https://app.codecov.io/gh/R-CF/CFtime)
 
 <!-- badges: end -->
 
@@ -127,7 +127,7 @@ You can install the development version of CFtime from
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("pvanlaake/CFtime")
+devtools::install_github("R-CF/CFtime")
 ```
 
 ## Basic operation

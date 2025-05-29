@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 
 This document sets out how the `CFtime` package conforms to the CF Metadata Conventions, by section of the conventions. This information is mostly useful for developers and expert users.
 
-If you have issues reading a netCDF file that is due to conformance of package `CFtime` with the CF Metadata Conventions, please [open an issue on GitHub](https://github.com/pvanlaake/CFtime/issues).
+If you have issues reading a netCDF file that is due to conformance of package `CFtime` with the CF Metadata Conventions, please [open an issue on GitHub](https://github.com/R-CF/CFtime/issues).
 
 Please note that there are many netCDF files out there that are not claimingadherence to the CF Metadata Conventions but whose time coordinate can still be successfully handled by `CFtime`: the `netCDF` library itself provides the basic plumbing.
 

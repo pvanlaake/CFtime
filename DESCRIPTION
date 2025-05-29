@@ -24,8 +24,8 @@ Suggests:
     ncdfCF,
     testthat (>= 3.0.0),
     stringr
-URL: https://github.com/pvanlaake/CFtime
-BugReports: https://github.com/pvanlaake/CFtime/issues
+URL: https://github.com/R-CF/CFtime
+BugReports: https://github.com/R-CF/CFtime/issues
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Collate: 

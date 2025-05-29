@@ -405,7 +405,7 @@ CFTime <- R6::R6Class("CFTime",
           # This is all rather approximate but should be fine in most cases
           # This accommodates middle-of-the-time-period offsets as per the
           # CF Metadata Conventions
-          # Please report problems at https://github.com/pvanlaake/CFtime/issues
+          # Please report problems at https://github.com/R-CF/CFtime/issues
           ddays <- range(doff) * CFt$units$per_day[self$cal$unit]
           return((ddays[1] >= 28 && ddays[2] <= 31) ||      # months
                    (ddays[1] >= 8 && ddays[2] <= 11) ||     # dekads

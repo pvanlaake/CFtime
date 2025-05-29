@@ -62,8 +62,8 @@ fractional part for interpolation.
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/pvanlaake/CFtime}
-  \item Report bugs at \url{https://github.com/pvanlaake/CFtime/issues}
+  \item \url{https://github.com/R-CF/CFtime}
+  \item Report bugs at \url{https://github.com/R-CF/CFtime/issues}
 }
 
 }
